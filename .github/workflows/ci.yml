@@ -1,0 +1,27 @@
+name: CI
+
+# The fleet's two push gates, re-run in CI. The gates themselves are the machine-wide pre-push
+# hooks; this is the backstop for what never met them: a `--no-verify` push, a machine without
+# the hooks, and any commit made on GitHub itself. Both workflows are owned by Abhijeet34/gates,
+# and the secret scan fails if this repository's synced .gitleaks.toml or .githooks/pre-push
+# has drifted from the canonical copy there; re-sync with that repository's .ci/gitleaks/sync.sh.
+# The system's own checks are in maintenance.yml, which also runs on every pull request.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    uses: Abhijeet34/gates/.github/workflows/shared-secret-scan.yml@main
+  watermark:
+    uses: Abhijeet34/gates/.github/workflows/shared-watermark-scan.yml@main

@@ -1,0 +1,3 @@
+# Python bytecode from running the tools. Nothing here is built; tools/ is plain scripts.
+__pycache__/
+*.py[cod]

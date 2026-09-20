@@ -1,0 +1,16 @@
+version: 2
+
+# The only dependencies here are the workflows' SHA-pinned actions: the tools are
+# standard-library Python and nothing is installed. A pin is only safe while something
+# moves it, and this is that something.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]

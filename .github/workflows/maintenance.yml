@@ -1,0 +1,240 @@
+name: maintenance
+
+# Weekly, and on demand. Everything here is internal consistency plus one liveness check on the
+# cited sources. It cannot re-screen the field, and README.md says so where a reader will see it
+# before they read a green tick as more than it is.
+#
+# It opens an issue ONLY when something moved. A quiet week is silent: no issue, no comment, no
+# commit. Nothing here ever writes to the repository, so this workflow cannot put a bot commit
+# into a public history.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'design/**'
+      - 'tokens/**'
+      - 'exports/**'
+      - 'tools/**'
+      - '.github/workflows/maintenance.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  consistency:
+    name: the system agrees with itself
+    runs-on: ubuntu-24.04
+    outputs:
+      report: ${{ steps.collect.outputs.report }}
+      failed: ${{ steps.collect.outputs.failed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The tools are standard-library Python 3, so the runner's own python3 is enough and no
+      # setup action has to be pinned and moved.
+      # Each step writes its own section of the report and records its status, rather than
+      # stopping the job, so one failure does not hide the other four.
+      - name: run every check
+        id: collect
+        run: |
+          set -uo pipefail
+          report=$(mktemp)
+          failed=0
+
+          run() {
+            local title="$1"; shift
+            local out rc
+            out=$("$@" 2>&1); rc=$?
+            if [ "$rc" -ne 0 ]; then
+              failed=1
+              # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+              { printf '### %s\n\n```text\n%s\n```\n\n' "$title" "$out"; } >> "$report"
+              printf '::error title=%s::%s\n' "$title" "check failed, see the job summary"
+            fi
+            printf '%s: exit %s\n' "$title" "$rc"
+            printf '%s\n' "$out"
+          }
+
+          run "The token files no longer build from the seed" \
+            python3 tools/build.py --check
+          run "A published contrast ratio no longer holds" \
+            python3 tools/contrast.py
+          run "The coverage inventory, its refusals, its manifest or a link" \
+            python3 tools/check-coverage.py
+
+          # The exporter writes before it reports, so the diff is the check.
+          python3 tools/export.py || true
+          if ! git diff --quiet -- exports/; then
+            failed=1
+            # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+            {
+              printf '### An export no longer matches its source\n\n'
+              printf 'Regenerating `exports/` changed the working tree. Run '
+              printf '`python3 tools/export.py` and commit the result.\n\n```diff\n'
+              git --no-pager diff --stat -- exports/
+              printf '\n```\n\n'
+            } >> "$report"
+            printf '::error title=export drift::exports/ is stale\n'
+          fi
+          git checkout -- exports/ 2>/dev/null || true
+
+          {
+            echo "report<<REPORT_EOF"
+            cat "$report"
+            echo "REPORT_EOF"
+            echo "failed=$failed"
+          } >> "$GITHUB_OUTPUT"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY" || true
+          exit "$failed"
+
+  sources:
+    name: every cited source still resolves
+    runs-on: ubuntu-24.04
+    # Network liveness is flakier than the rest by nature, so it is its own job: a timed-out CDN
+    # must not be able to mask a real contrast failure.
+    continue-on-error: true
+    outputs:
+      report: ${{ steps.check.outputs.report }}
+      failed: ${{ steps.check.outputs.failed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: resolve every cited source
+        id: check
+        run: |
+          set -uo pipefail
+
+          # Three kinds of citation, because the book cites more by name than by link: a full
+          # URL, a bare host or path in backticks, and an npm package at a pinned version.
+          python3 - <<'EXTRACT' > sources.txt
+          import re, pathlib
+          FILES = sorted(pathlib.Path("design").glob("*.md")) + [
+              pathlib.Path("README.md"), pathlib.Path("SKILL.md")]
+          # A backticked dotted token is a host only if its last label is not a file extension.
+          NOT_TLD = {"md", "py", "css", "json", "js", "yml", "yaml", "txt", "html", "svg",
+                     "png", "jpg", "sh", "toml", "lock", "xml"}
+          URL = re.compile(r"https?://[A-Za-z0-9._~:/?#@!$&*+,;=%()-]+")
+          DOM = re.compile(r"`([a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+"
+                           r"(?:/[A-Za-z0-9._~/?#@!$&*+,;=%()-]*)?)`")
+          NPM = re.compile(r"`(@?[a-z0-9][a-z0-9._/-]*)@(\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?)`")
+          out = set()
+          for f in FILES:
+              text = f.read_text(encoding="utf-8")
+              for m in URL.findall(text):
+                  out.add(m.rstrip(".,;:)]"))
+              for m in DOM.findall(text):
+                  tld = m.split("/")[0].rsplit(".", 1)[-1]
+                  if tld not in NOT_TLD and len(tld) >= 2 and not tld.isdigit():
+                      out.add("https://" + m)
+              for name, version in NPM.findall(text):
+                  out.add(f"https://registry.npmjs.org/{name}/{version}")
+          print("\n".join(sorted(out)))
+          EXTRACT
+
+          # Sources the book itself records as unreachable, each with the entry that says so, and
+          # account handles that only look like hosts. Checking them would report the finding the
+          # book already carries, or a host that was never cited, every week.
+          cat > skip.txt <<'SKIP'
+          https://eightshapes.com
+          https://figma.expert
+          https://height.app
+          https://refero.design/web
+          https://ui.ux.jam
+          SKIP
+
+          report=$(mktemp); failed=0; n=0
+          while read -r u; do
+            [ -z "$u" ] && continue
+            if grep -qxF "$u" skip.txt; then
+              printf 'skip      %s  (recorded unreachable, or an account handle)\n' "$u"
+              continue
+            fi
+            n=$((n + 1))
+            # curl writes 000 itself when it never got a response, so appending a fallback
+            # here produces '000000' and the comparison below then reads a nonsense number.
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 25 --retry 2 \
+                     --retry-delay 3 -A 'halderworks-design maintenance (+github actions)' \
+                     "$u" 2>/dev/null) || true
+            code=${code:-000}
+            if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
+              printf 'ok   %s  %s\n' "$code" "$u"
+            else
+              failed=1
+              printf 'DEAD %s  %s\n' "$code" "$u"
+              # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+              printf -- '- `%s` returned `%s`\n' "$u" "$code" >> "$report"
+            fi
+          done < sources.txt
+          printf '%s sources checked\n' "$n"
+
+          if [ "$failed" -ne 0 ]; then
+            { printf '### A cited source no longer resolves\n\n'
+              cat "$report"
+              printf '\nA dead link is not automatically a wrong claim: the source may have\n'
+              printf 'moved, and a package version may simply have been unpublished. Find where\n'
+              printf 'it went and update the citation, or record in\n'
+              # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+              printf '`design/85-considered-and-declined.md` that it is now unreachable.\n\n'
+            } > "$report.full"
+            mv "$report.full" "$report"
+          fi
+          {
+            echo "report<<REPORT_EOF"
+            cat "$report"
+            echo "REPORT_EOF"
+            echo "failed=$failed"
+          } >> "$GITHUB_OUTPUT"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY" || true
+          rm -f sources.txt skip.txt
+          exit "$failed"
+
+  report:
+    name: open an issue, but only if something moved
+    needs: [consistency, sources]
+    if: >-
+      always() && github.event_name == 'schedule' &&
+      (needs.consistency.outputs.failed == '1' || needs.sources.outputs.failed == '1')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: file or update one issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONSISTENCY: ${{ needs.consistency.outputs.report }}
+          SOURCES: ${{ needs.sources.outputs.report }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title='Weekly maintenance found something'
+          body=$(mktemp)
+          {
+            printf 'The weekly run found at least one check that no longer passes.\n\n'
+            printf 'Run: %s\n\n' "$RUN_URL"
+            printf '%s\n%s\n' "$CONSISTENCY" "$SOURCES"
+            printf -- '---\n\n'
+            printf 'What this run did **not** check: it did not re-screen the field, judge\n'
+            printf 'whether a value is still correct, render a single screen, or re-run the\n'
+            # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+            printf 'coverage cross-check. `README.md` states the boundary in full.\n'
+          } > "$body"
+
+          # One open issue, updated rather than duplicated, so a persistent failure does not
+          # produce one issue per week.
+          existing=$(gh issue list --state open --search "$title in:title" \
+                       --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file "$body"
+            echo "commented on #$existing"
+          else
+            gh issue create --title "$title" --body-file "$body" --label maintenance \
+              || gh issue create --title "$title" --body-file "$body"
+          fi
