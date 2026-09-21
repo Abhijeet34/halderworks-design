@@ -52,6 +52,7 @@ Newsreader's figures are already tabular (567 against 567), and a monospace face
 ## The scale
 
 Nine distinct sizes. Both display steps use Newsreader; everything else uses Public Sans.
+The one exception is [the mixed-face headline](75-spec-sheet.md#the-mixed-face-headline), a display step set in Public Sans around one Newsreader term.
 
 | step | size | line-height | tracking | weight | where |
 |---|---:|---:|---:|---:|---|
@@ -85,7 +86,7 @@ Measure is a real `ch` measurement of the rendered paragraph divided by the widt
 
 - **Weight carries hierarchy before size does.** 400 for text, 500 for a label or a control, 600 for a heading. 700 exists in the variable font and this system does not use it.
 - **Uppercase is only for `micro`**, and only for a column head or an eyebrow. An uppercase button label is shouting.
-- **Italic is for a term being defined or a quoted title**, never for emphasis. Emphasis is weight.
+- **Italic is for a term being defined or a quoted title**, never for emphasis. Emphasis is weight. In a mixed-face headline the face does the italic's job, and the term is not also italic.
 - **Headings get `text-wrap: balance`.** Long body text does not; balancing a paragraph makes its last lines ragged.
 - **Never letterspace lowercase text positively**, except `label` at 0.01em, which is there to keep 12px from closing up.
 

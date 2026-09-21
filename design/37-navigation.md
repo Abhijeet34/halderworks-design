@@ -20,7 +20,7 @@ page, forever. [35-layout.md](35-layout.md) puts a permanent rail in front of th
 
 ```css
 .hw-skip {
-  position: absolute; left: var(--hw-space-8); top: var(--hw-space-8);
+  position: absolute; inset-inline-start: var(--hw-space-8); top: var(--hw-space-8);
   z-index: var(--hw-z-dropdown);
   background: var(--hw-surface-raised); color: var(--hw-text);
   border: var(--hw-border-w) solid var(--hw-border-strong);

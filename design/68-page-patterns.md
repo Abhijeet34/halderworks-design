@@ -171,9 +171,9 @@ Measured on four sites on 2026-09-21, with the status read from
 - **One `h1`.** Stripe's 404 page declares 25 `h1` elements and no `h2`: the heading, each
   destination title and every navigation group. Here the heading is the only `h1` and each
   destination is a list item.
-- **No illustration and no apology.** [55-iconography.md](55-iconography.md#illustration-which-is-an-open-decision-rather-than-a-closed-refusal)
-  has no illustration set to draw one from, and [25-content.md](25-content.md#errors) refuses
-  "Oops".
+- **No illustration and no apology.** The one pictogram set in [55-iconography.md](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing)
+  is for a nothing-yet empty state and a 404 is not one, and [25-content.md](25-content.md#errors)
+  refuses "Oops".
 
 ### 404: what the consumer provides
 

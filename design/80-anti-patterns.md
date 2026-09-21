@@ -122,7 +122,7 @@ Several of them were in this system's own first two passes.
 | the tell | why models produce it | the house rule |
 |---|---|---|
 | **Decorative iconography that repeats the heading** | an icon beside a heading fills space and looks considered | a clipboard beside "Records" is noise with a colour. An icon earns its place by identifying a control or a state |
-| **An illustration per empty state** | it makes an empty screen feel designed | no illustration set exists here and inventing one per empty state is how a product ends up with six unrelated drawings <!-- covered-by: Illustration --> |
+| **An illustration per empty state** | it makes an empty screen feel designed | one set exists, Carbon's pictograms, named in [55-iconography.md](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing). A drawing chosen per screen from anywhere else is how a product ends up with six unrelated drawings |
 | **Emoji as section markers** | they read as friendly and cost nothing to type | never. A section is marked by a heading, a state by a colour token with a word beside it |
 | **Noise, grain or a paper texture under text** | it reads as crafted and expensive | a contrast ratio is computed against one background colour, and grain makes every certified number an approximation. 2 of 44 measured sites carry one, neither behind data. A ground may carry a pattern only where every pixel is a solved token and the ink is certified against the worst of them; a ground whose pixels are not enumerable carries no text at all. [75-spec-sheet.md](75-spec-sheet.md) has the three permitted styles |
 | **A mixed icon set** | whichever icon was to hand | one set, Lucide, ISC-licensed, at a painted 1.5px stroke at every size |

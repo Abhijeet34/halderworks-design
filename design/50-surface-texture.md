@@ -56,6 +56,28 @@ That asymmetry is the design, not an oversight.
 **If a thing cannot be dismissed, it does not float.**
 A card is not above the page. A table is not above the page. A section is not above the page.
 
+### Under forced colours
+
+`forced-colors: active` means the user agent has replaced this palette with the reader's system colours.
+Backgrounds flatten to one system colour and shadows are removed; borders and outlines are repainted in a system colour and survive.
+So flat loses nothing it had, bordered and floating keep their hairline, and **filled loses its only edge**: a card body, the app rail, a code block, a well and a disabled field all become the page.
+
+The filled level therefore carries a border it does not show:
+
+```css
+/* whichever selector a product gives its filled level */
+.card-body, .app-rail, .well { border: 1px solid transparent; }
+```
+
+In every normal rendering it is invisible, because the element's own fill paints under it; under forced colours the user agent repaints it and the edge comes back.
+It is a border rather than an outline because the outline is the focus ring in [60-states.md](60-states.md), and because a border keeps a filled box exactly the size of its bordered sibling, so moving a surface between the two levels shifts nothing.
+A filled element that already has a border, such as a field on the shared box model, needs nothing.
+
+**Taken:** from `govuk-frontend@6.5.0`, where 8 of 39 component stylesheets carry a `forced-colors: active` block and the source states the reason - "backgrounds and box-shadows disappear, so we need to ensure there's a transparent outline which will be set to a visible colour".
+**Left behind:** its use of an outline, which here would collide with the focus ring.
+
+No tool checks this rule: nothing in `tools/` reads a CSS snippet in this book, so review is its only enforcement until a lint over the snippets exists.
+
 ## Which step to use
 
 `--hw-surface` and `--hw-surface-sunken` are not interchangeable and the difference is direction.
