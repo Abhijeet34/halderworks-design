@@ -89,14 +89,18 @@ A table that loaded 400 of 500 rows shows the 400 with a banner above them namin
 
 ## Charts
 
-Six chart colours, `--hw-chart-1` to `--hw-chart-6`, held to the same 3:1 non-text bar as the focus ring because they are fills rather than text.
+Six chart colours, `--hw-chart-1` to `--hw-chart-6`, held to the same 3:1 non-text bar as the focus ring because they are fills rather than text, on every surface a chart is drawn on.
 
 | | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---:|---:|---:|---:|---:|---:|
-| on the light ground | 4.47 | 4.74 | 4.94 | 4.92 | 4.68 | 4.42 |
-| on the dark ground | 6.58 | 6.23 | 6.01 | 6.03 | 6.28 | 6.57 |
+| on the light ground | 3.29 | 8.13 | 3.62 | 8.41 | 3.43 | 7.55 |
+| on `--hw-surface-sunken`, the light theme's worst surface | 3.10 | 7.66 | 3.41 | 7.93 | 3.24 | 7.12 |
+| on the dark ground | 8.54 | 13.62 | 7.84 | 13.37 | 8.18 | 14.14 |
+| on `--hw-surface-raised`, the dark theme's worst surface | 7.31 | 11.65 | 6.71 | 11.44 | 7.00 | 12.10 |
 
-Their closest pair sits 8.9 apart in oklab distance times 100, which is the same separation `--hw-accent` keeps from `--hw-success`.
+Adjacent series alternate in lightness, by 0.20 in light and 0.15 in dark, so series two, four and six are the strong members in both themes.
+Every chart colour sits at least 8.0 in oklab distance times 100 from `--hw-success`, `--hw-warning` and `--hw-danger`, the bar `--hw-accent` is held to, and the closest chart pair sits 15.4 apart in light and 10.2 in dark.
+Until 2026-09-21 series four, five and six sat 1.6, 2.5 and 3.7 from danger, warning and success in light, because the chart hues rotate with the accent while the semantics stay put; `tools/build.py` now refuses an accent hue that would put any series that close.
 
 Rules:
 

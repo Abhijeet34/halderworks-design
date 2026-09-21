@@ -13,7 +13,7 @@ floors, so deleting a floor and moving its value was one edit that no tool refus
 The principle both instruments are built to: MEASURE THE ARTIFACT, NEVER THE INTENT. A number
 that was not re-measured in the exact form it will ship has not been certified.
 
-It runs three passes and exits non-zero if any fails:
+It runs four passes and exits non-zero if any fails:
 
   1. Every ratio the book publishes, re-derived. The tables in 15-color-combinations.md are
      parsed cell by cell rather than transcribed, so a published number that stops being true
@@ -25,16 +25,22 @@ It runs three passes and exits non-zero if any fails:
      3:1 for a control boundary. No tolerance, three decimals, and each pair is measured twice:
      on the unquantized value and on the 8-bit sRGB value a display receives, because a pair
      that clears 3:1 on floats and reads 2.999 in hex is not a pair any third-party checker
-     will agree about.
-  3. Every colour token is inside sRGB, and the @media (prefers-color-scheme: dark) block a
-     user with no explicit choice actually gets is identical to [data-theme="dark"]. That block
-     used to be discarded as a duplicate, which is a guess about a file this tool is here to
-     stop guessing about.
+     will agree about. The @media (prefers-contrast: more) blocks are held to the same pairs at
+     7:1 and 4.5:1.
+  3. The six chart colours are told apart from the three semantics and from each other, and
+     neighbours alternate in lightness. A chart hue is the accent plus a fixed rotation while
+     the semantics stay put, so a collision moves around the wheel with every accent rebuild;
+     until 2026-09-21 nothing measured it and three series sat within 1.6 to 4.4 of a semantic.
+     The text roles keep a visible lightness step, which raising the floors once erased.
+  4. Every colour token is inside sRGB, and each dark block a user with no explicit choice
+     actually gets, through a prefers-color-scheme query, is identical to the explicit one. That
+     copy used to be discarded as a duplicate, which is a guess about a file this tool is here
+     to stop guessing about.
 
   Pass 1 is measured at the shipped accent hue. Run against a set rebuilt at a different hue -
   `tools/build.py --accent-hue N` - the published ratios no longer describe that palette, so
   pass 1 reports itself skipped and names the hue rather than failing rows that were never
-  claimed about it. Passes 2 and 3 are hue-independent and always run; they are the certificate.
+  claimed about it. Passes 2 to 4 are hue-independent and always run; they are the certificate.
 
     python3 tools/contrast.py [tokens.css]
 """
@@ -126,32 +132,39 @@ def hexof(L, C, h):
 TOKEN_RE = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
 
-def parse_tokens(path):
-    """Return {'light': {...}, 'dark': {...}, 'media-dark': {...}}.
+# (media query, selector) -> block. A selector means nothing without the query it sits in: the
+# light selector appears twice, once plain and once under prefers-contrast, and reading the
+# second as the first would certify the high-contrast values as the default ones.
+MORE = "@media (prefers-contrast: more)"
+BLOCKS = {
+    (None, ':root, [data-theme="light"]'): "light",
+    (None, '[data-theme="dark"]'): "dark",
+    ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'): "media-dark",
+    (MORE, ':root, [data-theme="light"]'): "light-more",
+    (MORE, '[data-theme="dark"]'): "dark-more",
+    (MORE + " and (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
+        "media-dark-more",
+}
 
-    All three colour blocks, including the @media (prefers-color-scheme: dark) copy: pass 3
-    checks it against [data-theme="dark"] rather than assuming it is a duplicate."""
-    themes = {"light": {}, "dark": {}, "media-dark": {}}
-    cur, in_media = None, False
+
+def parse_tokens(path):
+    """Return {'light': {...}, 'dark': {...}, 'media-dark': {...}, and the three -more blocks}.
+
+    Every colour block, including both media-query copies of dark: pass 4 checks each against
+    the explicit block rather than assuming it is a duplicate."""
+    themes = {name: {} for name in BLOCKS.values()}
+    cur, media = None, None
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         s = line.strip()
-        if s.startswith("@media (prefers-color-scheme: dark)"):
-            in_media = True
+        if s.startswith("@media"):
+            media = s[:-1].strip()
             continue
         if s.endswith("{"):
-            sel = s[:-1].strip()
-            if in_media and sel.startswith(':root:not('):
-                cur = "media-dark"
-            elif sel == ':root, [data-theme="light"]':
-                cur = "light"
-            elif sel == '[data-theme="dark"]':
-                cur = "dark"
-            else:
-                cur = None
+            cur = BLOCKS.get((media, s[:-1].strip()))
             continue
         if s.startswith("}"):
             if cur is None:
-                in_media = False
+                media = None
             cur = None
             continue
         m = TOKEN_RE.match(line)
@@ -164,10 +177,14 @@ def parse_tokens(path):
 # The certificate lives here and nowhere else in this file's reach. tokens.seed.json carries the
 # same set as solver targets, and tests/invariants.py fails if the two ever disagree: two
 # declarations that must match is deliberate redundancy, the same reason a ledger has two sides.
-# It holds 158 pairs where the list it replaced held 112, and 77 cells of
-# design/15-color-combinations.md were certified by nothing at all.
+# It held 158 pairs where the list it replaced held 112, and 77 cells of
+# design/15-color-combinations.md were certified by nothing at all. The chart fills on the three
+# surfaces beside the ground and the ruled ground's two permitted inks took it to 198.
 
 AA, NON_TEXT = 4.5, 3.0
+# prefers-contrast: more raises text to WCAG 2.2 SC 1.4.6's 7:1. SC 1.4.11 has no enhanced level,
+# so a non-text pair is raised to 4.5:1, the next bar this file already holds.
+MORE_BAR = {AA: 7.0, NON_TEXT: AA}
 
 SURFACES = ["--hw-ground", "--hw-surface", "--hw-surface-raised", "--hw-surface-sunken",
             "--hw-surface-hover", "--hw-surface-active"]
@@ -182,7 +199,7 @@ def required():
     """(bar, foreground, background, what relies on it), every pair the book certifies.
 
     Grouped by the claim each group answers, so a reader can check the list against the prose
-    rather than against the seed. 79 pairs per theme, 158 over the two."""
+    rather than against the seed. 99 pairs per theme, 198 over the two."""
     for s in SURFACES:
         yield AA, "--hw-text", s, "body copy, label, legend, read-only value"
         yield AA, "--hw-text-secondary", s, "helper text"
@@ -205,9 +222,80 @@ def required():
         yield NON_TEXT, "--hw-text-disabled", s, "disabled field text"
     yield AA, "--hw-ink-text", "--hw-ink", "check glyph, switch thumb"
     yield AA, "--hw-ink-text", "--hw-ink-active", "check glyph on a pressed control"
-    # 10-color.md:77: the six chart colours are held to the same 3:1 as a control boundary.
+    # 10-color.md: the six chart colours are held to the same 3:1 as a control boundary, on
+    # every surface a chart is drawn on rather than on the page ground alone.
     for n in range(1, 7):
-        yield NON_TEXT, f"--hw-chart-{n}", "--hw-ground", f"chart series {n} against the page"
+        for s in SURFACES[:4]:
+            yield NON_TEXT, f"--hw-chart-{n}", s, f"chart series {n} on {s[5:]}"
+    # 75-spec-sheet.md#ruled: ink on the ruled ground can land on a rule, so it is certified
+    # against --hw-border, the ground's worst pixel.
+    for fg in ("--hw-text", "--hw-text-secondary"):
+        yield AA, fg, "--hw-border", "ink permitted on the ruled ground"
+
+
+def refused():
+    """(bar, foreground, background, why), pairs the book refuses because they fall BELOW the bar.
+
+    A published refusal is a claim too: if a re-solve lifted this pair over 4.5:1 the book would
+    go on refusing a pair that now passes, and nothing would say so."""
+    yield AA, "--hw-text-muted", "--hw-border", "75-spec-sheet.md#ruled refuses muted ink on a rule"
+
+
+# 10-color.md#why-hue-198's bar, in oklab distance times 100, and the lightness step adjacent
+# chart series alternate by. Declared here rather than read from the seed, for the same reason
+# the pairs are: 0.12 of lightness is a separation of 12 on its own, so neighbours stay apart
+# where hue is lost, in greyscale print or to a reader who cannot see it.
+SEPARATION, NEIGHBOUR_DL = 8.0, 0.12
+CHARTS = [f"--hw-chart-{n}" for n in range(1, 7)]
+
+
+def separation(a, b):
+    """Oklab distance times 100 between two oklch triples."""
+    (L1, C1, h1), (L2, C2, h2) = a, b
+    da = C1 * math.cos(math.radians(h1)) - C2 * math.cos(math.radians(h2))
+    db = C1 * math.sin(math.radians(h1)) - C2 * math.sin(math.radians(h2))
+    return 100 * math.hypot(L1 - L2, da, db)
+
+
+def separations(tokens):
+    """(failures, closest chart pair), for one theme's block.
+
+    hw-chart-1 shares the accent's hue by design, so it is not held apart from the accent; every
+    chart colour, and the accent, is held apart from each semantic."""
+    bad, closest = [], None
+    for fg in ["--hw-accent"] + CHARTS:
+        for sem in SEMANTICS[1:]:
+            d = separation(tokens[fg], tokens[f"--hw-{sem}"])
+            if d < SEPARATION:
+                bad.append(f"{fg} sits {d:.1f} from --hw-{sem}, below {SEPARATION}: a series "
+                           f"colour that reads as a state")
+    for i, a in enumerate(CHARTS):
+        for b in CHARTS[i + 1:]:
+            d = separation(tokens[a], tokens[b])
+            if closest is None or d < closest[0]:
+                closest = (d, a, b)
+            if d < SEPARATION:
+                bad.append(f"{a} sits {d:.1f} from {b}, below {SEPARATION}")
+        if i + 1 < len(CHARTS):
+            dl = abs(tokens[a][0] - tokens[CHARTS[i + 1]][0])
+            if dl < NEIGHBOUR_DL:
+                bad.append(f"{a} and {CHARTS[i + 1]} are adjacent series {dl:.3f} apart in "
+                           f"lightness, below {NEIGHBOUR_DL}")
+    return bad, closest
+
+
+# The text roles, most prominent first, and the smallest lightness step the default themes keep
+# between two of them (0.062 light, 0.068 dark, secondary to muted). Raising the floors pushes
+# neighbouring roles toward one bar, and a step under this is one role under two names.
+ROLE_LADDER, ROLE_STEP = ["--hw-text", "--hw-text-secondary", "--hw-text-muted"], 0.06
+BLOCKS_CERTIFIED = ["light", "dark", "light-more", "dark-more"]
+
+
+def roles(tokens):
+    return [f"{a} and {b} are {abs(tokens[a][0] - tokens[b][0]):.4f} apart in lightness, "
+            f"below the {ROLE_STEP} that keeps them two roles"
+            for a, b in zip(ROLE_LADDER, ROLE_LADDER[1:])
+            if abs(tokens[a][0] - tokens[b][0]) < ROLE_STEP]
 
 
 # --- pass 1: every ratio the book publishes -------------------------------------------------
@@ -237,11 +325,19 @@ PROSE = [
     ("dark", "--hw-accent-ring", "--hw-surface-raised", 3.05),
     ("light", "--hw-accent-ring", "--hw-surface-raised", 3.44),
     ("dark", "--hw-accent-ring", "--hw-surface-sunken", 3.70),
-    # 10-color.md:77, the six chart fills against each ground
-    *[("light", f"--hw-chart-{i}", "--hw-ground", v)
-      for i, v in enumerate([4.47, 4.74, 4.94, 4.92, 4.68, 4.42], 1)],
-    *[("dark", f"--hw-chart-{i}", "--hw-ground", v)
-      for i, v in enumerate([6.58, 6.23, 6.01, 6.03, 6.28, 6.57], 1)],
+    # 10-color.md:78-80 and the table in 70-data-display.md#charts, the six chart fills against
+    # each ground and against each theme's worst surface
+    *[(t, f"--hw-chart-{i}", f"--hw-{g}", v)
+      for t, g, row in (("light", "ground", [3.29, 8.13, 3.62, 8.41, 3.43, 7.55]),
+                        ("light", "surface-sunken", [3.10, 7.66, 3.41, 7.93, 3.24, 7.12]),
+                        ("dark", "ground", [8.54, 13.62, 7.84, 13.37, 8.18, 14.14]),
+                        ("dark", "surface-raised", [7.31, 11.65, 6.71, 11.44, 7.00, 12.10]))
+      for i, v in enumerate(row, 1)],
+    # 75-spec-sheet.md#ruled, ink on the ruled ground, certified against its rule
+    *[(t, f"--hw-{fg}", "--hw-border", v)
+      for fg, row in (("text", (12.17, 11.84)), ("text-secondary", (5.23, 5.06)),
+                      ("text-muted", (4.01, 3.89)))
+      for t, v in zip(("light", "dark"), row)],
     # 60-states.md:75-76, the disabled text table
     *[(t, "--hw-text-disabled", f"--hw-{g}", v)
       for t, row in (("light", [3.21, 3.42, 3.03]), ("dark", [3.51, 3.26, 3.64]))
@@ -323,8 +419,9 @@ def main(argv):
               f"ratios were measured at {PUBLISHED_HUE} and do not describe it.")
 
     checked, worst = 0, {}
-    for bar, fg, bg, why in required():
-        for theme in ("light", "dark"):
+    for base, fg, bg, why in required():
+        for theme in BLOCKS_CERTIFIED:
+            bar = MORE_BAR[base] if theme.endswith("-more") else base
             for token in (fg, bg):
                 if token not in themes[theme]:
                     failures.append(f"{theme} {token} is certified and is not in {path}")
@@ -340,26 +437,42 @@ def main(argv):
                 failures.append(f"{theme} {fg} on {bg}: {got:.3f} clears {bar} but reads "
                                 f"{got8:.3f} at 8-bit, {hexof(*themes[theme][fg])} on "
                                 f"{hexof(*themes[theme][bg])} ({why})")
-            key = ("text" if bar >= AA else "nontext", theme)
+            key = ("text" if base >= AA else "nontext", theme)
             if key not in worst or got < worst[key][0]:
                 worst[key] = (got, got8, fg, bg)
-    print(f"pass 2: {checked} certified pairs checked against AA {AA}:1 and "
-          f"non-text {NON_TEXT}:1, on the float value and at 8-bit")
+    for bar, fg, bg, why in refused():
+        for theme in ("light", "dark"):
+            got, got8 = ratio(themes[theme][fg], themes[theme][bg])
+            checked += 1
+            if got >= bar or got8 >= bar:
+                failures.append(f"{theme} {fg} on {bg}: {got:.3f} now clears {bar}, and the book "
+                                f"still refuses it ({why})")
+    print(f"pass 2: {checked} certified pairs checked against AA {AA}:1 and non-text "
+          f"{NON_TEXT}:1, and under prefers-contrast: more against {MORE_BAR[AA]}:1 and "
+          f"{MORE_BAR[NON_TEXT]}:1, on the float value and at 8-bit, "
+          f"{2 * len(list(refused()))} of them asserted below their bar")
     for (kind, theme), (got, got8, fg, bg) in sorted(worst.items()):
-        print(f"  worst {kind:8} {theme:5} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
+        print(f"  worst {kind:8} {theme:10} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
 
-    for theme in ("light", "dark"):
+    for theme in BLOCKS_CERTIFIED:
+        bad, (d, a, b) = separations(themes[theme])
+        bad += roles(themes[theme])
+        failures += [f"{theme} {f}" for f in bad]
+        print(f"pass 3: {theme:10} separation and role steps, {len(bad)} below bar; "
+              f"closest chart pair {d:.1f}, {a} / {b}")
+
+    for theme in BLOCKS_CERTIFIED:
         for token, (L, C, H) in sorted(themes[theme].items()):
             if not in_gamut(L, C, H):
                 failures.append(f"{theme} {token} oklch({L} {C} {H}) falls outside sRGB")
-    if themes["media-dark"] != themes["dark"]:
-        diff = sorted(set(themes["dark"].items()) ^ set(themes["media-dark"].items()))
-        failures.append("the @media (prefers-color-scheme: dark) block differs from "
-                        f'[data-theme="dark"] in {len(diff)} declaration(s): '
-                        + ", ".join(t for t, _ in diff[:6]))
-    print(f"pass 3: {len(themes['light']) + len(themes['dark'])} tokens inside sRGB; "
-          f"the media-dark block and [data-theme=\"dark\"] agree on "
-          f"{len(themes['media-dark'])} declarations")
+    for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
+        if themes[copy] != themes[block]:
+            diff = sorted(set(themes[block].items()) ^ set(themes[copy].items()))
+            failures.append(f"the {copy} block differs from {block} in {len(diff)} "
+                            f"declaration(s): " + ", ".join(t for t, _ in diff[:6]))
+    print(f"pass 4: {sum(len(themes[t]) for t in BLOCKS_CERTIFIED)} tokens inside sRGB; "
+          f"media-dark agrees with dark on {len(themes['media-dark'])} declarations and "
+          f"media-dark-more with dark-more on {len(themes['media-dark-more'])}")
 
     for f in failures:
         print("FAIL  " + f, file=sys.stderr)

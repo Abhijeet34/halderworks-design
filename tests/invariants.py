@@ -31,7 +31,7 @@ import build          # noqa: E402
 import contrast       # noqa: E402
 
 # The largest disagreement the two converters are allowed on a certified pair. Measured at
-# 0.00154 over the 158 pairs of the shipped set on 2026-09-21; 0.01 leaves room for a re-solve
+# 0.00154 over the 198 pairs of the shipped set on 2026-09-21; 0.01 leaves room for a re-solve
 # to move a value without anyone having to re-tune this file, and is still an order below the
 # 0.011 that would let a published two-decimal ratio round to the wrong cell.
 CONVERTER_BOUND = 0.01
@@ -67,7 +67,8 @@ def converters_agree(css, fails):
     if worst > CONVERTER_BOUND:
         fails.append(f"the two converters disagree by {worst:.5f} on {where}, past the "
                      f"{CONVERTER_BOUND} this file allows. One of them is wrong")
-    print(f"  agreement:    max |contrast - build| = {worst:.5f} over 158 pairs "
+    n = 2 * len(list(contrast.required()))
+    print(f"  agreement:    max |contrast - build| = {worst:.5f} over {n} pairs "
           f"(bound {CONVERTER_BOUND}), worst at {where}")
 
 
@@ -111,6 +112,11 @@ NAMED_CLAIMS = [
     # semantic, or hw-text."
     *[("hw-text", f"hw-{q}-quiet", 4.5) for q in ("accent", "success", "warning", "danger")],
     *[(f"hw-{q}", f"hw-{q}-quiet", 4.5) for q in ("accent", "success", "warning", "danger")],
+    # design/10-color.md: the chart colours are held to 3:1 on every surface a chart is drawn on
+    *[(f"hw-chart-{n}", s, 3.0) for n in range(1, 7)
+      for s in ("hw-surface", "hw-surface-raised", "hw-surface-sunken")],
+    # design/75-spec-sheet.md#ruled: ink on the ruled ground is certified against its rule
+    *[(fg, "hw-border", 4.5) for fg in ("hw-text", "hw-text-secondary")],
     # design/60-states.md: disabled text is held to the 3:1 non-text bar
     *[("hw-text-disabled", s, 3.0) for s in ("hw-ground", "hw-surface", "hw-surface-sunken")],
 ]

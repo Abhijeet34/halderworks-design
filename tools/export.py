@@ -168,19 +168,8 @@ CSS_VAR = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*([^;]+);")
 
 def shipped_css(root):
     """{theme: {name: value}} from tokens.css, the file products actually load."""
-    out, cur = {"light": {}, "dark": {}}, None
-    for line in (root / "tokens" / "tokens.css").read_text(encoding="utf-8").splitlines():
-        s = line.strip()
-        if s.startswith(':root, [data-theme="light"]'):
-            cur = "light"; continue
-        if s.startswith('[data-theme="dark"]'):
-            cur = "dark"; continue
-        if s.startswith("@media (prefers-color-scheme"):
-            cur = None; continue
-        m = CSS_VAR.match(line)
-        if m and cur:
-            out[cur][m.group(1)] = m.group(2).strip()
-    return out
+    blocks = base_blocks(root / "tokens" / "tokens.css")
+    return {"light": blocks["light"], "dark": blocks["dark"]}
 
 
 def verify(tokens, root):
@@ -214,13 +203,17 @@ def base_blocks(path):
     classes - is an override rather than a declaration, and reading one as a declaration is
     how a comparison reports four phantom differences.
     """
-    out, cur = {"light": {}, "dark": {}, "root": {}}, None
+    out, cur, depth = {"light": {}, "dark": {}, "root": {}}, None, 0
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         s = line.strip()
         if s.endswith("{"):
-            cur = BASE_SELECTORS.get(s[:-1].strip())
+            # Only a top-level selector declares. The light selector also opens a block inside
+            # @media (prefers-contrast: more), and reading that one would overwrite the default.
+            cur = BASE_SELECTORS.get(s[:-1].strip()) if depth == 0 else None
+            depth += 1
             continue
         if s.startswith("}"):
+            depth -= 1
             cur = None
             continue
         m = CSS_VAR.match(line)

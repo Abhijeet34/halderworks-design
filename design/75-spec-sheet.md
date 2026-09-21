@@ -93,14 +93,27 @@ Marketing, documentation, release notes and dated reports.
 **Taken:** a reading surface and a working surface are different products of the same system, and the honest way to say so is a permission list rather than a second stylesheet.
 **Left behind:** `ui.ux.jam`'s editorial register is carried by desaturated photography behind every headline. Ours is carried by measure, face and rhythm on a neutral ground, because [80-anti-patterns.md](80-anti-patterns.md) puts no photography in product surfaces and a photograph is a ground whose luminance is unknown.
 
-### High contrast, which is a named gap rather than a theme
+### High contrast, which answers `prefers-contrast: more` and nothing else
 
-**Not specified, and deliberately not sketched.**
-A real high-contrast overlay means re-solving all 33 colour tokens to a 7:1 AAA bar against the worst surface each one may sit on.
-`tools/build.py` can now emit a re-solved set, so the blocker has moved from the tool to the decision.
-The measurement that has to be settled first: two published systems answer high contrast in **opposite** directions - one re-solves per role and its distinct-value count goes **up**, the other surrenders the palette to the user agent and collapses 192 values onto 15. Those answer different media queries, and one overlay cannot answer both.
-Declaring the overlay before that is settled would mean choosing colours by eye, which is the single failure [90-evidence.md](90-evidence.md) records this system committing twice.
-It is filed as a partial in the coverage inventory, with the choice recorded under [its open decisions](05-coverage.md#open-decisions).
+Two published systems answer high contrast in **opposite** directions: one re-solves per role and its distinct-value count goes **up**, the other surrenders the palette to the user agent and collapses 192 values onto 15.
+Those answer different media queries, and one block cannot answer both.
+This one answers `prefers-contrast: more`, a reader asking for a stronger palette, with a per-role re-solve.
+
+`tokens/tokens.css` carries it under `@media (prefers-contrast: more)`, solved by `tools/build.py` from the same seed as the default themes rather than chosen by eye.
+Every 4.5:1 floor is raised to the 7:1 of WCAG 2.2 SC 1.4.6.
+Every 3:1 floor is raised to 4.5:1, because SC 1.4.11 has no enhanced level and 4.5:1 is the next bar this system already holds.
+The same 108 text pairs and 90 non-text pairs are certified at the raised bars by both instruments, on the float value and at 8-bit, with 0 below either: the worst text pair is 7.03:1 and the worst non-text pair 4.53:1.
+27 of the 64 colour values move, 42.2%, inside the 28 to 78% [90-evidence.md](90-evidence.md) measured across five vendors: 18 re-solved by the raised floors and 9 set by the per-role targets below.
+The grounds, the surfaces and the hairline border do not move at all.
+
+**Raising the floors alone merged roles**, and the first build said so.
+The solver keeps the lightness nearest each token's anchor, so two roles pushed toward one bar land on one value: `--hw-text-secondary` came out 0.033 from `--hw-text-muted` in light and 0.047 in dark, and three chart colours landed on the re-solved semantics.
+The seed now gives those roles their own targets under `contrastMore`, and both instruments refuse a step between `--hw-text`, `--hw-text-secondary` and `--hw-text-muted` smaller than 0.06, the smallest step the default themes keep (0.062 light, 0.068 dark).
+The chart and separation rules of [10-color.md](10-color.md) hold in this block unchanged.
+`--hw-border-strong` and `--hw-text-disabled` share one lightness here, 0.5348 in light, and that is not a merge this block introduced: they share `oklch(0.6350 0.006 198)` in the default light theme too, because a boundary and a disabled glyph are different forms at one weight.
+
+**What it does not answer.** `forced-colors: active` throws this palette away, and the answer there is the filled level's transparent border, which the user agent can repaint: [50-surface-texture.md](50-surface-texture.md#under-forced-colours).
+The files in `exports/` carry the default themes only; `tokens/tokens.css` is the one file that carries this block.
 
 ## 2. Surface and texture styles
 
@@ -580,7 +593,7 @@ All 112 entries in `tokens/tokens.json` carry one, and `exports/design-tokens.js
 
 ## What was declined, and why
 
-Eight devices were screened. Six became entries above, one - the high-contrast theme - is still a named gap, and one is declined outright.
+Eight devices were screened. Seven became entries above, the high-contrast theme among them, and one is declined outright.
 
 **The stacked-label overlay** - translucent pills layered over a photograph, each carrying one clause of a sentence - **does not ship, and it is the entry that failed the Left behind test.**
 

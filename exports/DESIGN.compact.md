@@ -50,12 +50,12 @@ A house design system: one token set, 2 themes, two densities. 33 colour tokens 
 | `--hw-warning-quiet` | `oklch(0.944 0.035 78)` | `oklch(0.25 0.035 78)` | Fill behind warning text in a badge or banner |
 | `--hw-danger` | `oklch(0.539 0.13 27)` | `oklch(0.643 0.11 27)` | Failed, revoked, destructive: a badge, a field error border, a destructive menu item, a negative delta |
 | `--hw-danger-quiet` | `oklch(0.947 0.023 27)` | `oklch(0.253 0.035 27)` | Fill behind danger text in a badge or banner |
-| `--hw-chart-1` | `oklch(0.545 0.085 198)` | `oklch(0.66 0.1 198)` | First data series |
-| `--hw-chart-2` | `oklch(0.545 0.115 268)` | `oklch(0.66 0.1 268)` | Second data series, in bars, lines, areas and their direct labels |
-| `--hw-chart-3` | `oklch(0.545 0.115 328)` | `oklch(0.66 0.1 328)` | Third data series, in bars, lines, areas and their direct labels |
-| `--hw-chart-4` | `oklch(0.545 0.115 28)` | `oklch(0.66 0.1 28)` | Fourth data series, in bars, lines, areas and their direct labels |
-| `--hw-chart-5` | `oklch(0.545 0.103 88)` | `oklch(0.66 0.1 88)` | Fifth data series, in bars, lines, areas and their direct labels |
-| `--hw-chart-6` | `oklch(0.545 0.115 148)` | `oklch(0.66 0.1 148)` | Sixth data series |
+| `--hw-chart-1` | `oklch(0.62 0.085 198)` | `oklch(0.73 0.1 198)` | First data series |
+| `--hw-chart-2` | `oklch(0.42 0.115 268)` | `oklch(0.88 0.0564 268)` | Second data series, in bars, lines, areas and their direct labels |
+| `--hw-chart-3` | `oklch(0.62 0.115 328)` | `oklch(0.73 0.1 328)` | Third data series, in bars, lines, areas and their direct labels |
+| `--hw-chart-4` | `oklch(0.42 0.115 28)` | `oklch(0.88 0.0614 28)` | Fourth data series, in bars, lines, areas and their direct labels |
+| `--hw-chart-5` | `oklch(0.62 0.103 88)` | `oklch(0.73 0.1 88)` | Fifth data series, in bars, lines, areas and their direct labels |
+| `--hw-chart-6` | `oklch(0.42 0.115 148)` | `oklch(0.88 0.1 148)` | Sixth data series |
 | `--hw-scrim` | `rgba(9, 12, 12, 0.45)` | `rgba(0, 0, 0, 0.65)` | Behind a dialog only |
 
 ### spacing

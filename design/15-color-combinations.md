@@ -102,7 +102,7 @@ Each of these is a real pairing an agent reaches for, and each is refused.
 | `hw-text-muted` on `hw-surface-active` | 4.60:1 clears AA, but muted text on a pressed row is text nobody was meant to read while pressing | `hw-text-secondary` |
 | any text on `--hw-scrim` | the scrim composites over unknown content | put the text in the dialog |
 | `hw-border` as an ink | it is 1.30:1 against its own surface by construction | `hw-text-muted` is the lightest ink that exists |
-| two chart colours adjacent as large fills | they are solved for separation against the ground, not against each other | keep `--hw-border` or a gap between chart segments |
+| two chart colours adjacent as large fills | they alternate in lightness and are held 8.0 apart, but neighbours still measure only 2.20 to 2.47:1 in light and 1.59 to 1.74:1 in dark, under the 3:1 a boundary needs | keep `--hw-border` or a gap between chart segments |
 
 ## A control's boundary, which is a third bar
 

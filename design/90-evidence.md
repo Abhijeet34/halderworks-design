@@ -75,11 +75,11 @@ Five defects it has caught that no eyeball would have, the first two in the firs
 4. `hw-success` on `hw-success-quiet` measured 4.46:1 in dark theme, the same cause.
 5. `hw-accent-ring` was solved against the ground alone and measured **2.56:1 on `hw-surface-raised`** in dark theme: a keyboard focus ring inside a dialog, at roughly half the bar it is supposed to clear.
 
-The final run: **104 text pairs across both themes, 0 below AA; 54 non-text pairs held to 3:1, 0 below it; 33 colour tokens, 0 outside sRGB.**
+The final run: **108 text pairs across both themes, 0 below AA; 90 non-text pairs held to 3:1, 0 below it; 33 colour tokens, 0 outside sRGB.**
 `tools/build.py` emits `tokens/tokens.json` and `tokens/tokens.css` from `tokens/tokens.seed.json`, re-measures every floor against the formatted strings before it writes them, and refuses to write either unless that holds.
 Rebuilt at the shipped hue it re-solves three tokens, because the solver now targets the bar plus a margin rather than the bar: a value solved to land exactly on its floor is a value that rounding, a second converter or an 8-bit display can each take below it.
 `tools/build.py --check` reproducing the two committed files byte for byte is the regression that proves the shipped set satisfies its own spec.
-Rebuilt at hue 318 it re-solves five tokens and the matrix still holds, and a sweep of all 360 accent hues finds 147 buildable, all 147 accepted by `tools/contrast.py` and none carrying a pair below its bar on an exact reading.
+Rebuilt at hue 318 it re-solves five tokens and the matrix still holds, and a sweep of all 360 accent hues finds 145 buildable, all 145 accepted by `tools/contrast.py` and none carrying a pair below its bar on an exact reading.
 
 ## Measurements taken directly
 
@@ -165,8 +165,8 @@ family, and it was left exactly as it stood. An unnecessary edit there would hav
 none.
 
 **Eight structural devices were taken from the three non-gradient accounts and judged one by one.**
-Six are specified in [75-spec-sheet.md](75-spec-sheet.md), one - the high-contrast theme - is still
-a named gap in [05-coverage.md](05-coverage.md), and one is declined outright with its reasoning. The accent hue, the faces and the scales are unchanged, and no entry introduced a colour.
+Seven are specified in [75-spec-sheet.md](75-spec-sheet.md), the high-contrast theme among them,
+and one is declined outright with its reasoning. The accent hue, the faces and the scales are unchanged, and no entry introduced a colour.
 
 **One standing decision did move**, and it is flagged here because a reader of an earlier version
 would not expect it: [50-surface-texture.md](50-surface-texture.md)'s blanket refusal of texture is
@@ -241,7 +241,7 @@ Fluent's product-axis row is the control that makes the rest readable: changing 
 the same contrast level moves 10.9% of tokens, and changing the contrast level moves 78%.
 Contrast is roughly seven times the move that identity is.
 
-### The two high-contrast strategies are opposite, and the open decision has to say which it answers
+### The two high-contrast strategies are opposite, and each media query gets its own answer
 
 | vendor | distinct values before | after | direction |
 |---|---:|---:|---|
@@ -260,6 +260,9 @@ The first asks for a stronger palette and a per-role re-solve answers it. The se
 thrown away, and the one-line `outline: <width> solid transparent` rule answers it.
 One theme cannot answer both, and this is the first time the distinction has been measured inside a
 token file rather than inferred from a media query.
+Both now ship: the per-role re-solve in `tokens/tokens.css`, specified in
+[75-spec-sheet.md](75-spec-sheet.md#high-contrast-which-answers-prefers-contrast-more-and-nothing-else),
+and the transparent border in [50-surface-texture.md](50-surface-texture.md#under-forced-colours).
 
 ### Two independent sources ship the exact reduced-motion error this system's rule was written against
 
@@ -621,7 +624,7 @@ A source that produced nothing says so here, because silence reads as never havi
 
 | source | what was read | taken | left, and where that is recorded |
 |---|---|---|---|
-| Four followed accounts: `janm_ux`, `ui.ux.jam`, `vectorayush`, `khushidotjpeg` | post grids and opened posts, two passes, 2026-09-21 | eight structural devices, of which six are entries in [75-spec-sheet.md](75-spec-sheet.md), one is a named gap in [05-coverage.md](05-coverage.md) and one is declined; the four-corner frame's first two instances | every colour, face and look; and the accounts as a standing input, [85-considered-and-declined.md](85-considered-and-declined.md#further-screening-of-social-design-accounts) |
+| Four followed accounts: `janm_ux`, `ui.ux.jam`, `vectorayush`, `khushidotjpeg` | post grids and opened posts, two passes, 2026-09-21 | eight structural devices, of which seven are entries in [75-spec-sheet.md](75-spec-sheet.md), the high-contrast theme among them, and one is declined; the four-corner frame's first two instances | every colour, face and look; and the accounts as a standing input, [85-considered-and-declined.md](85-considered-and-declined.md#further-screening-of-social-design-accounts) |
 | The request to follow those accounts' links and comments | bios of three of the four, the captions and comment threads of the posts opened | **nothing.** Zero outbound links in any bio, caption or thread read; the only non-Instagram anchors are the platform's own footer. On `ui.ux.jam` 9 of 24 posts gate a link behind commenting a keyword, and the keywords name AI build tools (Replit, Relume, Dreamina, Buzzy, CapCut), none a design reference | nothing to record elsewhere: the resources these accounts name are drawn on video frames or sent by direct message, never written where they can be followed |
 | Nine `ui.ux.jam` reels | four read frame by frame, 2026-09-21: `DdWwArCu2wL`, `DdB2dB5OvwC`, `Dc09UoeOz0x`, `DctRY7dt3I0` | ten tools named on the frames, none of them in any text on the page; each is judged in the table below | **Five reels were not extracted.** `DdJmu57IR6j` gates its link behind a comment, and nothing is ever posted from the account used to read it. The video of `Dcd0Q-stjjF`, `DcTl9qAN4Sk` and `DcQ5ySWNlwH` never loaded - `readyState` stayed 0 through a play call, a wait of up to 5 seconds and a click, after four clean loads - and `DcLw91ftPmM` was not attempted. Whatever those five name is not in this system |
 | `figma.expert` | ten posts, 2026-09-14 to 2026-09-20 | the four-corner frame as its third independent instance, in the [slide sequence](75-spec-sheet.md#slide-sequence) | every colour: its `Most Expensive Colour Pallet` is refused, [85-considered-and-declined.md](85-considered-and-declined.md#an-unsourced-superlative-as-a-palette-source). All ten advertised files are behind a direct message and none was obtained. Instagram labels the profile `AI-generated profile` |

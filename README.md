@@ -123,18 +123,15 @@ first publication was scrubbed and verified.
 
 ## What is open
 
-[design/05-coverage.md](design/05-coverage.md) is the full answer and it is checkable. Nine rows are
+[design/05-coverage.md](design/05-coverage.md) is the full answer and it is checkable. Eight rows are
 `partial`, each naming what is missing, and three decisions are recorded as open with the
 measurement already done and a recommendation on each - they are in
 [that file's open-decisions table](design/05-coverage.md#open-decisions), beside the ones since
-settled and why. The three worth knowing before you read anything else:
+settled and why. The two worth knowing before you read anything else:
 
 - **A localised, mirrored build** has no decision. Right-to-left text inside a left-to-right
   product is specified; whether any product ever mirrors its whole interface is open, and the
   recommendation is no.
-- **A high-contrast theme** is not built. Forced colours is answered by one rule; the
-  `prefers-contrast: more` re-solve waits on a minimum separation between roles, because the
-  solver run at a 7:1 bar puts secondary and muted text on one value.
 - **There is no logomark and no wordmark.** A mark is a commission rather than something an agent
   invents.
 

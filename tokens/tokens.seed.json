@@ -18,7 +18,14 @@
       "warning": 78,
       "danger": 27
     },
-    "minSemanticSeparation": 8.0
+    "minSemanticSeparation": 8.0,
+    "minChartNeighbourDeltaL": 0.12,
+    "roleLadder": [
+      "hw-text",
+      "hw-text-secondary",
+      "hw-text-muted"
+    ],
+    "minRoleStep": 0.06
   },
   "themes": [
     {
@@ -31,7 +38,7 @@
     }
   ],
   "color": {
-    "note": "Every colour is solved to a contrast target, not chosen and then checked. 104 text pairs across both themes, 0 below WCAG AA 4.5:1; 54 non-text pairs (focus ring, chart fills, disabled) held to 3:1, 0 below it; 33 tokens, 0 outside the sRGB gamut. Accent hue 198.",
+    "note": "Every colour is solved to a contrast target, not chosen and then checked. 108 text pairs across both themes, 0 below WCAG AA 4.5:1; 90 non-text pairs (focus ring, chart fills, disabled) held to 3:1, 0 below it; 33 tokens, 0 outside the sRGB gamut. Accent hue 198.",
     "tokens": [
       {
         "name": "hw-ground",
@@ -206,6 +213,12 @@
               "warning-quiet",
               "danger-quiet"
             ]
+          },
+          {
+            "bar": 4.5,
+            "on": [
+              "border"
+            ]
           }
         ],
         "usage": "Primary text. 14.83:1 on ground, 15.78:1 on surface, 13.98:1 on surface-sunken.",
@@ -223,6 +236,16 @@
           "L": "0.687",
           "C": "0.0072"
         },
+        "contrastMore": {
+          "light": {
+            "L": "0.36",
+            "C": "0.0060"
+          },
+          "dark": {
+            "L": "0.80",
+            "C": "0.0072"
+          }
+        },
         "hue": "accent",
         "floors": [
           {
@@ -234,6 +257,12 @@
               "surface-sunken",
               "surface-hover",
               "surface-active"
+            ]
+          },
+          {
+            "bar": 4.5,
+            "on": [
+              "border"
             ]
           }
         ],
@@ -392,6 +421,12 @@
         "dark": {
           "L": "0.619",
           "C": "0.096"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.39",
+            "C": "0.079"
+          }
         },
         "hue": "accent",
         "floors": [
@@ -615,19 +650,28 @@
         "name": "hw-chart-1",
         "kind": "oklch",
         "light": {
-          "L": "0.545",
+          "L": "0.62",
           "C": "0.085"
         },
         "dark": {
-          "L": "0.66",
+          "L": "0.73",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "dark": {
+            "L": "0.64",
+            "C": "0.1"
+          }
         },
         "hue": "accent",
         "floors": [
           {
             "bar": 3.0,
             "on": [
-              "ground"
+              "ground",
+              "surface",
+              "surface-raised",
+              "surface-sunken"
             ]
           }
         ],
@@ -639,19 +683,28 @@
         "name": "hw-chart-2",
         "kind": "oklch",
         "light": {
-          "L": "0.545",
+          "L": "0.42",
           "C": "0.115"
         },
         "dark": {
-          "L": "0.66",
+          "L": "0.88",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.32",
+            "C": "0.115"
+          }
         },
         "hue": "accent+70",
         "floors": [
           {
             "bar": 3.0,
             "on": [
-              "ground"
+              "ground",
+              "surface",
+              "surface-raised",
+              "surface-sunken"
             ]
           }
         ],
@@ -663,19 +716,28 @@
         "name": "hw-chart-3",
         "kind": "oklch",
         "light": {
-          "L": "0.545",
+          "L": "0.62",
           "C": "0.115"
         },
         "dark": {
-          "L": "0.66",
+          "L": "0.73",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "dark": {
+            "L": "0.64",
+            "C": "0.1"
+          }
         },
         "hue": "accent+130",
         "floors": [
           {
             "bar": 3.0,
             "on": [
-              "ground"
+              "ground",
+              "surface",
+              "surface-raised",
+              "surface-sunken"
             ]
           }
         ],
@@ -687,19 +749,28 @@
         "name": "hw-chart-4",
         "kind": "oklch",
         "light": {
-          "L": "0.545",
+          "L": "0.42",
           "C": "0.115"
         },
         "dark": {
-          "L": "0.66",
+          "L": "0.88",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.32",
+            "C": "0.115"
+          }
         },
         "hue": "accent+190",
         "floors": [
           {
             "bar": 3.0,
             "on": [
-              "ground"
+              "ground",
+              "surface",
+              "surface-raised",
+              "surface-sunken"
             ]
           }
         ],
@@ -711,19 +782,28 @@
         "name": "hw-chart-5",
         "kind": "oklch",
         "light": {
-          "L": "0.545",
+          "L": "0.62",
           "C": "0.103"
         },
         "dark": {
-          "L": "0.66",
+          "L": "0.73",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "dark": {
+            "L": "0.64",
+            "C": "0.1"
+          }
         },
         "hue": "accent+250",
         "floors": [
           {
             "bar": 3.0,
             "on": [
-              "ground"
+              "ground",
+              "surface",
+              "surface-raised",
+              "surface-sunken"
             ]
           }
         ],
@@ -735,19 +815,28 @@
         "name": "hw-chart-6",
         "kind": "oklch",
         "light": {
-          "L": "0.545",
+          "L": "0.42",
           "C": "0.115"
         },
         "dark": {
-          "L": "0.66",
+          "L": "0.88",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.32",
+            "C": "0.115"
+          }
         },
         "hue": "accent+310",
         "floors": [
           {
             "bar": 3.0,
             "on": [
-              "ground"
+              "ground",
+              "surface",
+              "surface-raised",
+              "surface-sunken"
             ]
           }
         ],

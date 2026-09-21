@@ -3,12 +3,16 @@
    its contrast floor in the same run and refuses to emit if one does not hold.
    Do not hand-edit this file or tokens/tokens.json; edit the seed and rebuild.
 
-   104 text pairs, both themes, 0 below WCAG AA 4.5:1.
-   54 non-text pairs (control boundary, focus ring, chart fills, disabled) held to
+   108 text pairs, both themes, 0 below WCAG AA 4.5:1.
+   90 non-text pairs (control boundary, focus ring, chart fills, disabled) held to
    3:1, 0 below it. Every one re-measured on these strings, on the float value and on the
    8-bit value a display receives, after they were formatted and before they were written.
    33 colour tokens, 32 of them solved in oklch, 0 outside sRGB.
-   Accent hue 198. */
+   Accent hue 198.
+
+   Under @media (prefers-contrast: more) the same pairs are solved again from the same seed:
+   108 text pairs held to WCAG AAA 7:1 and 90 non-text pairs to 4.5:1, 0 below
+   either, measured the same two ways. */
 
 :root {
   --hw-space-2: 2px;
@@ -156,12 +160,12 @@
   --hw-warning-quiet: oklch(0.944 0.035 78);
   --hw-danger: oklch(0.539 0.13 27);
   --hw-danger-quiet: oklch(0.947 0.023 27);
-  --hw-chart-1: oklch(0.545 0.085 198);
-  --hw-chart-2: oklch(0.545 0.115 268);
-  --hw-chart-3: oklch(0.545 0.115 328);
-  --hw-chart-4: oklch(0.545 0.115 28);
-  --hw-chart-5: oklch(0.545 0.103 88);
-  --hw-chart-6: oklch(0.545 0.115 148);
+  --hw-chart-1: oklch(0.62 0.085 198);
+  --hw-chart-2: oklch(0.42 0.115 268);
+  --hw-chart-3: oklch(0.62 0.115 328);
+  --hw-chart-4: oklch(0.42 0.115 28);
+  --hw-chart-5: oklch(0.62 0.103 88);
+  --hw-chart-6: oklch(0.42 0.115 148);
   --hw-scrim: rgba(9, 12, 12, 0.45);
   --hw-shadow-overlay: 0 1px 2px rgba(9, 12, 12, 0.06), 0 8px 24px -4px rgba(9, 12, 12, 0.10);
   --hw-shadow-dialog: 0 2px 4px rgba(9, 12, 12, 0.07), 0 24px 56px -12px rgba(9, 12, 12, 0.18);
@@ -194,12 +198,12 @@
   --hw-warning-quiet: oklch(0.25 0.035 78);
   --hw-danger: oklch(0.643 0.11 27);
   --hw-danger-quiet: oklch(0.253 0.035 27);
-  --hw-chart-1: oklch(0.66 0.1 198);
-  --hw-chart-2: oklch(0.66 0.1 268);
-  --hw-chart-3: oklch(0.66 0.1 328);
-  --hw-chart-4: oklch(0.66 0.1 28);
-  --hw-chart-5: oklch(0.66 0.1 88);
-  --hw-chart-6: oklch(0.66 0.1 148);
+  --hw-chart-1: oklch(0.73 0.1 198);
+  --hw-chart-2: oklch(0.88 0.0564 268);
+  --hw-chart-3: oklch(0.73 0.1 328);
+  --hw-chart-4: oklch(0.88 0.0614 28);
+  --hw-chart-5: oklch(0.73 0.1 88);
+  --hw-chart-6: oklch(0.88 0.1 148);
   --hw-scrim: rgba(0, 0, 0, 0.65);
   --hw-shadow-overlay: 0 1px 2px rgba(0, 0, 0, 0.50), 0 8px 24px -4px rgba(0, 0, 0, 0.55);
   --hw-shadow-dialog: 0 2px 4px rgba(0, 0, 0, 0.55), 0 24px 56px -12px rgba(0, 0, 0, 0.65);
@@ -233,15 +237,126 @@
     --hw-warning-quiet: oklch(0.25 0.035 78);
     --hw-danger: oklch(0.643 0.11 27);
     --hw-danger-quiet: oklch(0.253 0.035 27);
-    --hw-chart-1: oklch(0.66 0.1 198);
-    --hw-chart-2: oklch(0.66 0.1 268);
-    --hw-chart-3: oklch(0.66 0.1 328);
-    --hw-chart-4: oklch(0.66 0.1 28);
-    --hw-chart-5: oklch(0.66 0.1 88);
-    --hw-chart-6: oklch(0.66 0.1 148);
+    --hw-chart-1: oklch(0.73 0.1 198);
+    --hw-chart-2: oklch(0.88 0.0564 268);
+    --hw-chart-3: oklch(0.73 0.1 328);
+    --hw-chart-4: oklch(0.88 0.0614 28);
+    --hw-chart-5: oklch(0.73 0.1 88);
+    --hw-chart-6: oklch(0.88 0.1 148);
     --hw-scrim: rgba(0, 0, 0, 0.65);
     --hw-shadow-overlay: 0 1px 2px rgba(0, 0, 0, 0.50), 0 8px 24px -4px rgba(0, 0, 0, 0.55);
     --hw-shadow-dialog: 0 2px 4px rgba(0, 0, 0, 0.55), 0 24px 56px -12px rgba(0, 0, 0, 0.65);
+  }
+}
+
+/* More contrast, for a reader who has asked for it: every oklch colour re-solved
+   with each 4.5:1 floor raised to 7:1 and each 3:1 floor to 4.5:1. Literal colours
+   and shadows do not move, so they are not repeated here. */
+@media (prefers-contrast: more) {
+  :root, [data-theme="light"] {
+    --hw-ground: oklch(0.978 0.003 198);
+    --hw-surface: oklch(1.000 0 198);
+    --hw-surface-hover: oklch(0.972 0.003 198);
+    --hw-surface-active: oklch(0.958 0.003 198);
+    --hw-surface-raised: oklch(1.000 0 198);
+    --hw-surface-sunken: oklch(0.958 0.003 198);
+    --hw-border: oklch(0.912 0.0045 198);
+    --hw-border-strong: oklch(0.5348 0.0060 198);
+    --hw-text: oklch(0.254 0.0060 198);
+    --hw-text-secondary: oklch(0.36 0.0060 198);
+    --hw-text-muted: oklch(0.4339 0.0060 198);
+    --hw-text-disabled: oklch(0.5348 0.006 198);
+    --hw-ink: oklch(0.205 0.0060 198);
+    --hw-ink-hover: oklch(0.290 0.0060 198);
+    --hw-ink-active: oklch(0.360 0.0060 198);
+    --hw-ink-text: oklch(0.995 0 198);
+    --hw-accent: oklch(0.39 0.0659 198);
+    --hw-accent-hover: oklch(0.465 0.072 198);
+    --hw-accent-quiet: oklch(0.94 0.035 198);
+    --hw-accent-ring: oklch(0.5285 0.079 198);
+    --hw-success: oklch(0.4131 0.1080 152);
+    --hw-success-quiet: oklch(0.94 0.035 152);
+    --hw-warning: oklch(0.4273 0.0883 78);
+    --hw-warning-quiet: oklch(0.944 0.035 78);
+    --hw-danger: oklch(0.4397 0.13 27);
+    --hw-danger-quiet: oklch(0.947 0.023 27);
+    --hw-chart-1: oklch(0.5279 0.085 198);
+    --hw-chart-2: oklch(0.32 0.115 268);
+    --hw-chart-3: oklch(0.5505 0.115 328);
+    --hw-chart-4: oklch(0.32 0.115 28);
+    --hw-chart-5: oklch(0.5388 0.103 88);
+    --hw-chart-6: oklch(0.32 0.0915 148);
+  }
+  [data-theme="dark"] {
+    --hw-ground: oklch(0.152 0.006 198);
+    --hw-surface: oklch(0.196 0.006 198);
+    --hw-surface-hover: oklch(0.215 0.006 198);
+    --hw-surface-active: oklch(0.232 0.006 198);
+    --hw-surface-raised: oklch(0.232 0.006 198);
+    --hw-surface-sunken: oklch(0.118 0.006 198);
+    --hw-border: oklch(0.288 0.0084 198);
+    --hw-border-strong: oklch(0.6168 0.0084 198);
+    --hw-text: oklch(0.938 0.0072 198);
+    --hw-text-secondary: oklch(0.80 0.0072 198);
+    --hw-text-muted: oklch(0.7322 0.0072 198);
+    --hw-text-disabled: oklch(0.5945 0.0072 198);
+    --hw-ink: oklch(0.955 0.0030 198);
+    --hw-ink-hover: oklch(0.870 0.0030 198);
+    --hw-ink-active: oklch(0.800 0.0030 198);
+    --hw-ink-text: oklch(0.145 0.006 198);
+    --hw-accent: oklch(0.7312 0.096 198);
+    --hw-accent-hover: oklch(0.679 0.096 198);
+    --hw-accent-quiet: oklch(0.244 0.035 198);
+    --hw-accent-ring: oklch(0.6095 0.074 198);
+    --hw-success: oklch(0.7303 0.11 152);
+    --hw-success-quiet: oklch(0.244 0.035 152);
+    --hw-warning: oklch(0.7462 0.11 78);
+    --hw-warning-quiet: oklch(0.25 0.035 78);
+    --hw-danger: oklch(0.7566 0.11 27);
+    --hw-danger-quiet: oklch(0.253 0.035 27);
+    --hw-chart-1: oklch(0.64 0.1 198);
+    --hw-chart-2: oklch(0.88 0.0564 268);
+    --hw-chart-3: oklch(0.64 0.1 328);
+    --hw-chart-4: oklch(0.88 0.0614 28);
+    --hw-chart-5: oklch(0.64 0.1 88);
+    --hw-chart-6: oklch(0.88 0.1 148);
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --hw-ground: oklch(0.152 0.006 198);
+    --hw-surface: oklch(0.196 0.006 198);
+    --hw-surface-hover: oklch(0.215 0.006 198);
+    --hw-surface-active: oklch(0.232 0.006 198);
+    --hw-surface-raised: oklch(0.232 0.006 198);
+    --hw-surface-sunken: oklch(0.118 0.006 198);
+    --hw-border: oklch(0.288 0.0084 198);
+    --hw-border-strong: oklch(0.6168 0.0084 198);
+    --hw-text: oklch(0.938 0.0072 198);
+    --hw-text-secondary: oklch(0.80 0.0072 198);
+    --hw-text-muted: oklch(0.7322 0.0072 198);
+    --hw-text-disabled: oklch(0.5945 0.0072 198);
+    --hw-ink: oklch(0.955 0.0030 198);
+    --hw-ink-hover: oklch(0.870 0.0030 198);
+    --hw-ink-active: oklch(0.800 0.0030 198);
+    --hw-ink-text: oklch(0.145 0.006 198);
+    --hw-accent: oklch(0.7312 0.096 198);
+    --hw-accent-hover: oklch(0.679 0.096 198);
+    --hw-accent-quiet: oklch(0.244 0.035 198);
+    --hw-accent-ring: oklch(0.6095 0.074 198);
+    --hw-success: oklch(0.7303 0.11 152);
+    --hw-success-quiet: oklch(0.244 0.035 152);
+    --hw-warning: oklch(0.7462 0.11 78);
+    --hw-warning-quiet: oklch(0.25 0.035 78);
+    --hw-danger: oklch(0.7566 0.11 27);
+    --hw-danger-quiet: oklch(0.253 0.035 27);
+    --hw-chart-1: oklch(0.64 0.1 198);
+    --hw-chart-2: oklch(0.88 0.0564 268);
+    --hw-chart-3: oklch(0.64 0.1 328);
+    --hw-chart-4: oklch(0.88 0.0614 28);
+    --hw-chart-5: oklch(0.64 0.1 88);
+    --hw-chart-6: oklch(0.88 0.1 148);
   }
 }
 
