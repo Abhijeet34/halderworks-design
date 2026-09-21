@@ -33,7 +33,7 @@ date, and when any internal link or anchor in the book does not resolve.
 A row is a claim, and the script is what makes it a checkable one.
 
 Counts, which are what a reader should look at first, and which the script verifies against the
-table so they cannot drift:
+table so they cannot drift - here and in every other live copy, `README.md` and `SKILL.md` included:
 **149 surfaces, 115 covered, 8 partial, 26 excluded.**
 
 ## The cross-check manifest

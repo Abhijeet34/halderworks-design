@@ -354,6 +354,25 @@ case("C4 a covered row is re-pointed at an unrelated section that exists", "gree
      note="a limit the tool's own docstring discloses: it proves a section exists, not that it answers")
 
 
+def c5(repo):
+    """One more covered row and a counts line that moved with it, as a real inventory change
+    does; README.md is the copy left behind."""
+    def f(text):
+        text = re.sub(r"\*\*(\d+) surfaces, (\d+) covered",
+                      lambda m: f"**{int(m[1]) + 1} surfaces, {int(m[2]) + 1} covered", text)
+        row = next(l for l in text.splitlines() if "| covered |" in l)
+        return text.replace(row, row + "\n| Zoetrope carousel |" + row.split("|", 2)[2], 1)
+    cov_edit(repo, f)
+    p = repo / "SKILL.md"
+    p.write_text(re.sub(r"\b(\d+)(\**\s+(?:inventoried\s+)?surfaces)",
+                        lambda m: f"{int(m[1]) + 1}{m[2]}", p.read_text(encoding="utf-8")),
+                 encoding="utf-8")
+
+
+case("C5 the inventory gains a row, and README.md keeps the old surface count", "caught", c5,
+     note="#10 found three stale copies in three review rounds; rule 8 holds every copy")
+
+
 # ---------------------------------------------------------------- the CI workflow's own body
 def workflow_block(repo):
     """The `run every check` step body of consistency.yml, extracted verbatim and dedented.

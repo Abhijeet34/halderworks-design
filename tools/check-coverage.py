@@ -73,6 +73,19 @@ whole paragraph so a claim wrapped over two lines is still one claim. Each objec
 must match one covered or partial row whose SURFACE cell carries every content word of it:
 an excluded row is not an entry, and a note mentioning the word is not the surface.
 
+  8  every published copy of the counts must match the table
+
+The counts are copied, by hand, into the book's front doors: `README.md` and `SKILL.md` carry
+the surface count twice each, beside the inventory's own counts line. Only that line was
+checked, and one change to the inventory took three review rounds to find three stale copies.
+So every Markdown file is swept for "N surfaces", "N inventoried surfaces" and "N covered",
+"N partial", "N excluded", and each must equal the table. Checked rather than derived: the
+copies sit in prose and in `SKILL.md`'s frontmatter, which an agent reads raw, so deriving them
+would mean a writer rewriting hand-authored files and still a check to catch a stale write.
+`docs/` is not swept: it is a dated record of what shipped, and its counts are true of that day.
+A sentence that uses the phrase for something other than the inventory is reworded, because
+"N surfaces" in this book means the inventory.
+
 Exits non-zero, and names every failure, when any claim is unbacked.
 
     python3 tools/check-coverage.py [repo-root]
@@ -213,19 +226,11 @@ def check_inventory(inventory: Path, book: Path, failures: list):
             failures.append(f"{inventory.name}:{line_no}  {surface!r}: names {fname}#{anchor}, "
                             f"and {fname} has no such section")
 
-    total = sum(counts.values())
-    declared = re.search(r"\*\*(\d+) surfaces, (\d+) covered, (\d+) partial, (\d+) excluded\.\*\*",
-                         text)
-    if not declared:
+    # The numbers on it are held to the table by rule 8, with every other copy.
+    if not re.search(r"\*\*\d+ surfaces, \d+ covered, \d+ partial, \d+ excluded\.\*\*", text):
         failures.append(f"{inventory.name}  the counts line is missing or reworded; it must read "
                         f"**N surfaces, N covered, N partial, N excluded.**")
-    else:
-        want = (total, counts["covered"], counts["partial"], counts["excluded"])
-        got = tuple(int(g) for g in declared.groups())
-        if want != got:
-            failures.append(f"{inventory.name}  the counts line says {got} but the table holds "
-                            f"{want} (surfaces, covered, partial, excluded)")
-    return counts, total, claims
+    return counts, sum(counts.values()), claims
 
 
 def refusals_in(path: Path):
@@ -369,6 +374,30 @@ def check_admissions(book: Path, inventory: Path, failures: list):
     return swept, resolved
 
 
+COUNT = re.compile(r"\b(\d+)\**\s+(?:inventoried\s+)?(surfaces|covered|partial|excluded)\b", re.I)
+
+
+def check_counts(root: Path, counts: dict, total: int, failures: list):
+    """Rule 8. Every copy of a count, in every live Markdown file, against the table."""
+    want = {"surfaces": total, **counts}
+    files = sorted(f for f in root.rglob("*.md") if not {".git", "node_modules"} & set(f.parts)
+                   and f.relative_to(root).parts[0] != "docs")
+    checked = 0
+    for path in files:
+        # Paragraphs rather than lines, so a count wrapped across a line break is still read.
+        for starts, text in paragraphs(path):
+            for m in COUNT.finditer(text):
+                line_no = max(n for off, n in starts if off <= m.start())
+                checked += 1
+                noun = m.group(2).lower()
+                if int(m.group(1)) != want[noun]:
+                    failures.append(
+                        f"{path.relative_to(root)}:{line_no}  says {m.group(0)!r}, "
+                        f"and the table in 05-coverage.md holds {want[noun]} {noun}. Every "
+                        f"copy of a count moves with the inventory")
+    return checked
+
+
 def check_manifest(inventory: Path, failures: list):
     """Rule 5. The manifest is the section whose heading names the cross-check."""
     lines = inventory.read_text(encoding="utf-8").splitlines()
@@ -431,6 +460,7 @@ def main() -> int:
     counts, total, claims = check_inventory(inventory, book, failures)
     swept, resolved, waived = check_refusals(book, inventory, claims, failures)
     admitted, backed = check_admissions(book, inventory, failures)
+    copies = check_counts(root, counts, total, failures)
     lists = check_manifest(inventory, failures)
     links = check_links(root, failures)
 
@@ -442,6 +472,7 @@ def main() -> int:
           f"exists. {waived} sentence{'' if waived == 1 else 's'} declared not to be a "
           f"refusal.")
     print(f"{admitted} claims of an existing entry swept, {backed} resolved to a row.")
+    print(f"{copies} published copies of a count checked against the table.")
     print(f"{lists} external taxonomies named in the cross-check manifest.")
     print(f"{links} internal links and anchors checked.")
     print(f"{len(failures)} unbacked.")

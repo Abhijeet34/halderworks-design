@@ -61,7 +61,7 @@ that owns it.
    project takes [exports/theme.css](exports/theme.css) instead. Dark theme is
    `data-theme="dark"` on the root, compact density is `data-density="compact"` on any ancestor, and
    with neither set the page follows `prefers-color-scheme`.
-2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): 149 rows, each
+2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 149 surfaces, each
    `covered` with the section to read, `partial` with what is missing, or `excluded` with the
    reason. No row at all is a gap to report, not permission to invent.
 3. **Build from the component card**, not from a screenshot:
