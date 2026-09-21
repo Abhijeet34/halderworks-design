@@ -73,6 +73,7 @@ would have passed both, and the floors lived beside the values, so one seed edit
 chart fill to 1.2:1 and delete the floor that would have caught it with every tool still green.
 """
 import argparse
+import copy
 import itertools
 import json
 import math
@@ -179,16 +180,22 @@ def luminance(L, C, h):
 CHANNEL_DISAGREEMENT = 1e-3
 
 
-def luminance8(L, C, h):
-    """(lowest, highest) luminance of the 8-bit sRGB value a display receives, which is what a
-    hex-based checker is handed. A channel within CHANNEL_DISAGREEMENT of a rounding boundary is
-    taken both ways, because the second instrument may land on either side of it."""
+def rgb8(L, C, h):
+    """Every 8-bit sRGB value a display may receive for this colour. A channel within
+    CHANNEL_DISAGREEMENT of a rounding boundary is taken both ways, because the second
+    instrument may land on either side of it."""
     options = []
     for v in oklch_to_rgb(L, C, h):
         x = min(max(v, 0.0), 1.0) * 255
         near = abs(x - math.floor(x) - 0.5) < CHANNEL_DISAGREEMENT * 255
         options.append({math.floor(x), math.ceil(x)} if near else {round(x)})
-    lums = [luminance_rgb([c / 255 for c in rgb]) for rgb in itertools.product(*options)]
+    return list(itertools.product(*options))
+
+
+def luminance8(L, C, h):
+    """(lowest, highest) luminance of the 8-bit sRGB value a display receives, which is what a
+    hex-based checker is handed."""
+    lums = [luminance_rgb([c / 255 for c in rgb]) for rgb in rgb8(L, C, h)]
     return min(lums), max(lums)
 
 
@@ -201,6 +208,55 @@ def ratio8(a, b):
     """The worst 8-bit ratio between two luminance8() ranges. A pair that clears its bar on
     floats and reads 2.999 in hex, on either converter, is not certified."""
     return min(ratio_lum(x, y) for x in a for y in b)
+
+
+# --- painted colour difference ------------------------------------------------------------
+# The accent is held apart from the three states by CIEDE2000 on the 8-bit value a display
+# receives, measured on each element the accent paints; 10-color.md owns the bars and their
+# calibration, in "The three bars the accent is held to". This path is this file's own: linear sRGB to XYZ through the inverse of the
+# matrix above, and CIEDE2000 as Sharma, Wu and Dalal 2005 state it. tools/contrast.py carries a
+# second implementation, and tests/invariants.py holds both to the published test pairs.
+
+LRGB_TO_XYZ = inv3(XYZ_TO_LRGB)
+WHITE = [sum(row) for row in LRGB_TO_XYZ]
+
+
+def lab_of(rgb):
+    """CIELAB, D65, of one 8-bit sRGB triple."""
+    lin = [(c / 255) / 12.92 if c / 255 <= 0.04045 else ((c / 255 + 0.055) / 1.055) ** 2.4
+           for c in rgb]
+    f = [v ** (1 / 3) if v > (6 / 29) ** 3 else v / (3 * (6 / 29) ** 2) + 4 / 29
+         for v in (sum(LRGB_TO_XYZ[i][j] * lin[j] for j in range(3)) / WHITE[i]
+                   for i in range(3))]
+    return 116 * f[1] - 16, 500 * (f[0] - f[1]), 200 * (f[1] - f[2])
+
+
+def ciede2000(lab1, lab2):
+    (L1, a1, b1), (L2, a2, b2) = lab1, lab2
+    c7 = ((math.hypot(a1, b1) + math.hypot(a2, b2)) / 2) ** 7
+    g = 1.5 - 0.5 * math.sqrt(c7 / (c7 + 25 ** 7))
+    c1, c2 = math.hypot(a1 * g, b1), math.hypot(a2 * g, b2)
+    h1 = math.degrees(math.atan2(b1, a1 * g)) % 360 if c1 else 0.0
+    h2 = math.degrees(math.atan2(b2, a2 * g)) % 360 if c2 else 0.0
+    dh = 0.0 if c1 * c2 == 0 else (h2 - h1 + 180) % 360 - 180
+    hbar = h1 + h2 if c1 * c2 == 0 else (
+        (h1 + h2) / 2 if abs(h1 - h2) <= 180 else (h1 + h2 + (360 if h1 + h2 < 360 else -360)) / 2)
+    lbar, cbar = (L1 + L2) / 2 - 50, (c1 + c2) / 2
+    cos = [math.cos(math.radians(n * hbar + d)) for n, d in ((1, -30), (2, 0), (3, 6), (4, -63))]
+    t = 1 - 0.17 * cos[0] + 0.24 * cos[1] + 0.32 * cos[2] - 0.20 * cos[3]
+    dl = (L2 - L1) / (1 + 0.015 * lbar ** 2 / math.sqrt(20 + lbar ** 2))
+    dc = (c2 - c1) / (1 + 0.045 * cbar)
+    dhh = 2 * math.sqrt(c1 * c2) * math.sin(math.radians(dh / 2)) / (1 + 0.015 * cbar * t)
+    rt = (-2 * math.sqrt(cbar ** 7 / (cbar ** 7 + 25 ** 7))
+          * math.sin(math.radians(60 * math.exp(-((hbar - 275) / 25) ** 2))))
+    return math.sqrt(dl ** 2 + dc ** 2 + dhh ** 2 + rt * dc * dhh)
+
+
+def painted(a, b):
+    """The smallest CIEDE2000 between two oklch colours on any 8-bit value a display may
+    receive for each. A pair that clears its bar on one rounding and not the other is not
+    certified, for the reason ratio8() gives."""
+    return min(ciede2000(lab_of(x), lab_of(y)) for x in rgb8(*a) for y in rgb8(*b))
 
 
 # --- colour helpers ------------------------------------------------------------------------
@@ -281,12 +337,21 @@ def load_seed(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def resolve_hue(expr, accent):
+def resolve_hue(expr, accent, neutral=None):
+    """A token's hue: a number, the accent, the accent plus a rotation, or the neutral hue,
+    which is the accent's unless a brand names its own (12-brand.md#neutral-hue)."""
     if expr == "accent":
         return accent % 360
+    if expr == "neutral":
+        return (accent if neutral is None else neutral) % 360
     if isinstance(expr, str) and expr.startswith("accent+"):
         return (accent + int(expr[len("accent+"):])) % 360
     return int(expr) % 360
+
+
+def neutral_hue(seed, accent):
+    n = seed["seed"].get("neutralHue", "accent")
+    return accent if n == "accent" else n
 
 
 def theme_ids(seed):
@@ -308,6 +373,7 @@ class Solver:
 
     def __init__(self, seed, accent, theme, more=False):
         self.seed, self.accent, self.theme, self.more = seed, accent, theme, more
+        self.neutral = neutral_hue(seed, accent)
         self.label = f"{theme}, more contrast" if more else theme
         self.solved = {}      # short name -> (L, C, h)
         self.lums = {}        # short name -> (float luminance, 8-bit luminance)
@@ -373,7 +439,7 @@ class Solver:
         return Lq, written(snap(min(C0, max_chroma(Lq, h)), up=False), anchor["C"])
 
     def solve_one(self, entry):
-        h = resolve_hue(entry["hue"], self.accent)
+        h = resolve_hue(entry["hue"], self.accent, self.neutral)
         anchor = self.anchor(entry)
         L0, C0 = float(anchor["L"]), float(anchor["C"])
         C = min(C0, max_chroma(L0, h))
@@ -557,43 +623,64 @@ def check_floors(seed):
 
 
 CHARTS = [f"hw-chart-{n}" for n in range(1, 7)]
-
-
-def check_semantic_separation(seed, accent):
-    """The separation rules on the seed's anchors, before anything is solved."""
-    blocks = {}
-    for theme in theme_ids(seed):
-        blocks[theme] = {e["name"]: (float(e[theme]["L"]), float(e[theme]["C"]),
-                                     resolve_hue(e["hue"], accent))
-                         for e in seed["color"]["tokens"] if e["kind"] == "oklch"}
-    return check_separation(seed, blocks)
+STATES = ("success", "warning", "danger")
+# What the accent paints, and the state colours each element must never be mistaken for. The
+# ring is held to hw-danger alone because an error field is the one state drawn as a border
+# around a control, where a focus ring also sits; held to all three, the ring bar would close
+# the umber, rust and ochre accents 10-color.md opens, on hw-warning, a colour that is never
+# drawn as a border.
+ACCENT_ELEMENTS = (("ink", "hw-accent", "", STATES),
+                   ("fill", "hw-accent-quiet", "-quiet", STATES),
+                   ("ring", "hw-accent-ring", "", ("danger",)))
 
 
 def check_separation(seed, blocks):
-    """The accent and every chart colour stay clear of every semantic, which is 10-color.md's
-    own test; the chart colours stay that far from each other; and adjacent series alternate in
-    lightness. Run on the anchors and again on the emitted values, because a re-solve or a
-    chroma clamp can move a colour into its neighbour after the anchors passed."""
-    bar, step = seed["seed"]["minSemanticSeparation"], seed["seed"]["minChartNeighbourDeltaL"]
+    """The accent's three painted elements stay clear of the states, in CIEDE2000 on 8-bit
+    values; the focus ring stays clear of a control's own edge; each state's quiet fill stays
+    clear of the ground it sits on; every chart colour stays clear of every semantic and of
+    each other; and adjacent series alternate in lightness. Run on the emitted values of every
+    certified block, because a re-solve or a chroma clamp moves a colour after its anchor."""
+    sd = seed["seed"]
+    bars, step = sd["accentSeparation"], sd["minChartNeighbourDeltaL"]
     bad = []
-    for theme, t in blocks.items():
-        for name in ["hw-accent"] + CHARTS:
-            for sem in ("success", "warning", "danger"):
+    for block, t in blocks.items():
+        for kind, ours, suffix, states in ACCENT_ELEMENTS:
+            for sem in states:
+                d = painted(t[ours], t[f"hw-{sem}{suffix}"])
+                if d < bars[kind]:
+                    bad.append(f"hw-accent at hue {t['hw-accent'][2]:g}: its {kind}, {ours}, sits "
+                               f"{d:.1f} from hw-{sem}{suffix} in {block}, below the "
+                               f"{bars[kind]} CIEDE2000 this system requires "
+                               f"(10-color.md#the-three-bars-the-accent-is-held-to)")
+        d = painted(t["hw-accent-ring"], t["hw-border-strong"])
+        if d < sd["ringFromBorder"]:
+            bad.append(f"hw-accent-ring sits {d:.1f} from hw-border-strong in {block}, below the "
+                       f"{sd['ringFromBorder']} that tells a focused control from its own edge "
+                       f"(12-brand.md#the-focus-ring)")
+        for sem in STATES:
+            d = painted(t[f"hw-{sem}-quiet"], t["hw-ground"])
+            if d < sd["stateFillFromGround"]:
+                bad.append(f"hw-{sem}-quiet sits {d:.1f} from hw-ground in {block}, below the "
+                           f"{sd['stateFillFromGround']} that keeps a status fill off the ground "
+                           f"(12-brand.md#neutral-hue-and-chroma)")
+        bar = sd["chartSeparation"]
+        for name in CHARTS:
+            for sem in STATES:
                 d = separation(t[name], t[f"hw-{sem}"])
                 if d < bar:
                     bad.append(f"{name} at hue {t[name][2]:g} sits {d:.1f} from hw-{sem} in "
-                               f"{theme} theme, below the {bar} this system requires "
-                               f"(10-color.md#why-hue-198)")
+                               f"{block}, below the {bar} this system requires "
+                               f"(10-color.md#the-contrast-matrix)")
         for i, a in enumerate(CHARTS):
             for b in CHARTS[i + 1:]:
                 d = separation(t[a], t[b])
                 if d < bar:
-                    bad.append(f"{a} sits {d:.1f} from {b} in {theme} theme, below {bar}")
+                    bad.append(f"{a} sits {d:.1f} from {b} in {block}, below {bar}")
             if i + 1 < len(CHARTS):
                 dl = abs(t[a][0] - t[CHARTS[i + 1]][0])
                 if dl < step:
                     bad.append(f"{a} and {CHARTS[i + 1]} differ by {dl:.3f} in lightness in "
-                               f"{theme} theme, below the {step} adjacent series keep")
+                               f"{block}, below the {step} adjacent series keep")
     return bad
 
 
@@ -701,12 +788,15 @@ CSS_MOTION = '''
 '''
 
 
-def build_tokens_css(seed, resolved, accent, stats):
+def build_tokens_css(seed, resolved, accent, stats, brand="house"):
+    """`brand` names the set in the header, which is how tools/contrast.py tells the house file,
+    whose ratios the book publishes, from a brand's or a rebuild's, whose ratios it does not."""
     ids = theme_ids(seed)
     n_text = stats["text_pairs"]
     n_nontext = stats["nontext_pairs"]
     o = []
     o.append(f"""/* {seed['name']} - token definitions.
+   Brand: {brand}.
    Generated from tokens/tokens.seed.json by tools/build.py, which solves every colour against
    its contrast floor in the same run and refuses to emit if one does not hold.
    Do not hand-edit this file or tokens/tokens.json; edit the seed and rebuild.
@@ -813,7 +903,9 @@ def build_tokens_css(seed, resolved, accent, stats):
                      f"font-size: var(--hw-text-{n});")
             o.append(f"  line-height: var(--hw-leading-{n}); "
                      f"letter-spacing: var(--hw-tracking-{n});")
-            o.append(f"  font-weight: var(--hw-weight-{n}); }}")
+            adjust = seed["type"].get("sansSizeAdjust") if g["family"] == "sans" else None
+            o.append(f"  font-weight: var(--hw-weight-{n});"
+                     + (f" font-size-adjust: {adjust};" if adjust else "") + " }")
     o.append(CSS_MOTION.rstrip("\n"))
     return "\n".join(o) + "\n"
 
@@ -1106,7 +1198,7 @@ def check_extension(seed, ext):
     return bad
 
 
-def build_extension_css(seed, ext, solved, accent, source):
+def build_extension_css(seed, ext, solved, accent, source, brand="house"):
     ids = theme_ids(seed)
 
     def block(b, indent):
@@ -1115,11 +1207,11 @@ def build_extension_css(seed, ext, solved, accent, source):
 
     o = [f"""/* {ext['namespace']} - the product's own colour tokens.
    Load after the house tokens.css, never instead of it.
-   Generated from {source} by tools/build.py --extend, against the house set at accent hue {accent % 360}.
+   Generated from {source} by tools/build.py --extend, against the {brand} set at accent hue {accent % 360}.
    Do not hand-edit this file; edit the seed and rebuild.
 
    Every token clears each of its floors on the float value and at 8-bit, and sits at least
-   {seed['seed']['minSemanticSeparation']} in hue and chroma from every house colour its seed holds it apart from,
+   {seed['seed']['productSeparation']} in hue and chroma from every house colour its seed holds it apart from,
    in both themes and under prefers-contrast: more. */""",
          ':root, [data-theme="light"] {', *block(ids[0], "  "), "}"]
     for theme in ids[1:]:
@@ -1138,7 +1230,7 @@ def verify_extension(house_css, ext_css, seed, ext):
     """(failures, report): every product floor and separation, re-measured on the two files as
     they will be written, the house one supplying the grounds."""
     house, prod = parse_emitted(house_css), parse_emitted(ext_css)
-    bar = seed["seed"]["minSemanticSeparation"]
+    bar = seed["seed"]["productSeparation"]
     bad, report = [], []
     for block in certified_blocks(seed):
         for e in ext["color"]["tokens"]:
@@ -1187,7 +1279,7 @@ def extend(seed, accent, solvers, house_css, a):
         failures += s.failures
         for n in s.notes:
             print("solved  " + n)
-    css = build_extension_css(seed, ext, solved, accent, path.name)
+    css = build_extension_css(seed, ext, solved, accent, path.name, getattr(a, "label", "house"))
     bad, report = verify_extension(house_css, css, seed, ext)
     failures += bad
     for line in report:
@@ -1208,29 +1300,193 @@ def extend(seed, accent, solvers, house_css, a):
     target.write_text(css, encoding="utf-8")
     print(f"{len(ext['color']['tokens'])} {ext['namespace']} colour token(s) solved in "
           f"{len(solved)} blocks against accent hue {accent % 360}, 0 below a floor, 0 closer "
-          f"than {seed['seed']['minSemanticSeparation']} to a state colour.\n"
+          f"than {seed['seed']['productSeparation']} to a state colour.\n"
           f"  {target.name} {len(css):7,d} bytes")
     return 0
+
+
+# --- the brand tier -------------------------------------------------------------------------
+# A product's identity is a brand seed: eleven bounded inputs this build applies to a copy of the
+# house seed before solving that copy with the code above, so a brand is a rebuild and never a
+# hand-pick, and every brand ships the house's token names. 12-brand.md owns the rule. The
+# numeric bounds are pinned here rather than in the seed, for GRID_SCOPE's reason: a seed that
+# can widen a bound can switch the rule off.
+
+BRAND_INPUTS = ("accentHue", "accentChroma", "accentLightness", "quietChroma", "ring",
+                "neutralHue", "neutralChroma", "shape", "iconStroke", "display", "text")
+BOUNDS = {"accentChroma": (0.3, 1.3), "quietChroma": (0.3, 1.0), "neutralChroma": (0.0, 4.0)}
+# accentChroma scales the accent family. accentLightness moves the ink and its hover, in all four
+# blocks, by the brand's offset from the house accent: moved in the default blocks alone, a deep
+# warm accent is pulled back onto hw-warning by the 7:1 re-solve under prefers-contrast: more.
+ACCENT_FAMILY = ("hw-accent", "hw-accent-hover", "hw-accent-ring")
+ACCENT_INK = ("hw-accent", "hw-accent-hover")
+
+
+def brand_errors(seed, brand):
+    """Every way a brand seed cannot be trusted, checked once at the boundary."""
+    if not isinstance(brand, dict):
+        return [f"the brand seed is {brand!r}, not a JSON object"]
+    kit = seed["brand"]
+    bad = [f"{k!r} is not a brand input. A brand seed names {', '.join(BRAND_INPUTS)}, and "
+           f"nothing else; a house token is never set by name (95-extending.md)"
+           for k in brand if k not in BRAND_INPUTS + ("name", "note")]
+    name = brand.get("name")
+    if not (isinstance(name, str) and NAMESPACE.match(name) and name != "hw"):
+        bad.append(f"name {name!r} is not a product's own name: one lowercase word, never hw")
+    for k in ("accentHue", "neutralHue"):
+        v = brand.get(k, 0)
+        if isinstance(v, bool) or not isinstance(v, int) or not 0 <= v < 360:
+            bad.append(f"{k} {v!r} is not a whole number of degrees from 0 to 359")
+    for k, (lo, hi) in BOUNDS.items():
+        v = finite_number(brand.get(k, 1.0)) if not isinstance(brand.get(k), str) else None
+        if v is None or not lo <= v <= hi:
+            bad.append(f"{k} {brand.get(k)!r} is outside {lo} to {hi} times the house anchors "
+                       f"(12-brand.md#the-eleven-inputs)")
+    if "accentLightness" in brand:
+        v = brand["accentLightness"]
+        if not (isinstance(v, dict) and set(v) == set(theme_ids(seed))
+                and all(finite_number(x) is not None and not isinstance(x, str)
+                        and 0 < x < 1 for x in v.values())):
+            bad.append(f"accentLightness {v!r} is not one lightness between 0 and 1 for each of "
+                       f"{', '.join(theme_ids(seed))}")
+    for k, allowed in (("ring", ("accent", "ink")), ("shape", tuple(kit["registers"])),
+                       ("iconStroke", tuple(kit["iconStrokes"])),
+                       ("display", tuple(kit["faces"])), ("text", tuple(kit["faces"]))):
+        if k in brand and brand[k] not in allowed:
+            bad.append(f"{k} {brand[k]!r} is not one of {', '.join(map(repr, allowed))}")
+    return bad
+
+
+def anchors(entry):
+    """(theme, anchor) for every lightness and chroma anchor a token carries, both tiers."""
+    for t in ("light", "dark"):
+        yield t, entry[t]
+    for t, anchor in entry.get("contrastMore", {}).items():
+        yield t, anchor
+
+
+def house_face(seed, family):
+    """The roster name of the face a house type family sets."""
+    return next(n for n, f in seed["brand"]["faces"].items()
+                if f["stack"] == seed["type"]["families"][family])
+
+
+def apply_brand(seed, brand):
+    """A copy of the house seed with one brand's inputs applied; nothing else changes."""
+    s = copy.deepcopy(seed)
+    kit, sd = s["brand"], s["seed"]
+    sd["accentHue"] = brand.get("accentHue", sd["accentHue"])
+    sd["neutralHue"] = brand.get("neutralHue", sd["neutralHue"])
+    s["name"] = f"{seed['name']}, {brand['name']} brand"
+    house = {e["name"]: e for e in seed["color"]["tokens"]}
+    offset = {t: v - float(house["hw-accent"][t]["L"])
+              for t, v in brand.get("accentLightness", {}).items()}
+    for e in s["color"]["tokens"]:
+        if e["kind"] != "oklch":
+            continue
+        k = (brand.get("neutralChroma", 1.0) if e["hue"] == "neutral" else
+             brand.get("accentChroma", 1.0) if e["name"] in ACCENT_FAMILY else
+             brand.get("quietChroma", 1.0) if e["name"] == "hw-accent-quiet" else 1.0)
+        for theme, anchor in anchors(e):
+            if k != 1.0:
+                anchor["C"] = f"{float(anchor['C']) * k:.4f}"
+            if offset and e["name"] in ACCENT_INK:
+                anchor["L"] = f"{min(max(float(anchor['L']) + offset[theme], 0.0), 1.0):.4f}"
+    if "ring" in brand:
+        # "accent": the ring is the accent ink itself, as a product whose focus ring is its one
+        # colour draws it. "ink": the ring takes the text ink, so it is as visible as the most
+        # visible neutral and leaves hue to the states. Either way it is still solved to its
+        # own floors and held to its own bars.
+        ring, source = (next(e for e in s["color"]["tokens"] if e["name"] == n)
+                        for n in ("hw-accent-ring",
+                                  "hw-accent" if brand["ring"] == "accent" else "hw-text"))
+        ring["hue"] = source["hue"]
+        ring.update({t: dict(source[t]) for t in theme_ids(s)})
+        ring.pop("contrastMore", None)
+        if "contrastMore" in source:
+            ring["contrastMore"] = copy.deepcopy(source["contrastMore"])
+    for e in s["radius"]["tokens"]:
+        e["value"] = kit["registers"][brand.get("shape", "house")].get(e["name"], e["value"])
+    for e in s["icon"]["tokens"]:
+        if e["name"] == "hw-icon-stroke" and "iconStroke" in brand:
+            e["value"] = brand["iconStroke"]
+    for family, key in (("display", "display"), ("sans", "text")):
+        if key in brand:
+            s["type"]["families"][family] = kit["faces"][brand[key]]["stack"]
+    if brand.get("text", house_face(seed, "sans")) != house_face(seed, "sans"):
+        # 20-type.md: a text face other than the house's is held to the house x-height.
+        s["type"]["sansSizeAdjust"] = kit["faces"][house_face(seed, "sans")]["xHeight"]
+    return s
+
+
+def load_brand(path, seed):
+    """(failures, brand) for a brand seed file."""
+    try:
+        brand = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        return [f"{path} could not be read: {exc.strerror or exc}"], None
+    except json.JSONDecodeError as exc:
+        return [f"{path} is not valid JSON: {exc}"], None
+    return brand_errors(seed, brand), brand
+
+
+def lightness_held(seed, brand, resolved):
+    """A brand's accentLightness is a lightness the floors already accept, or it is refused:
+    the solver would otherwise move it silently, and an input the build discards is a claim
+    the file does not keep."""
+    bad = []
+    accent = next(e for e in seed["color"]["tokens"] if e["name"] == "hw-accent")
+    for t, want in brand.get("accentLightness", {}).items():
+        got = resolved[t]["hw-accent"][0]
+        if abs(got - float(accent[t]["L"])) > EPS:
+            bad.append(f"accentLightness {t} {want} does not clear hw-accent's floors at hue "
+                       f"{resolved[t]['hw-accent'][2]:g}; the nearest lightness that does is "
+                       f"{got:.4f} (12-brand.md#accent-lightness)")
+    return bad
+
+
+def rel(path):
+    path = Path(path).resolve()
+    return path.relative_to(ROOT) if path.is_relative_to(ROOT) else Path(path.name)
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--accent-hue", type=int, default=None,
                     help="override the seed's accent hue and re-solve the whole set")
+    ap.add_argument("--brand", metavar="SEED", default=None,
+                    help="solve the whole set under a product's brand seed and write it to "
+                         "tokens/ beside that seed unless --out is given")
     ap.add_argument("--check", action="store_true",
                     help="emit nothing; exit non-zero if the committed files are stale")
     ap.add_argument("--out", default=None, help="write into this directory instead of tokens/")
     ap.add_argument("--extend", metavar="SEED", default=None,
-                    help="solve a product's own colour seed against the house set and write "
-                         "only <namespace>.tokens.css, beside the seed unless --out is given")
+                    help="solve a product's own colour seed against the house set, or the "
+                         "--brand set, and write only <namespace>.tokens.css, beside the seed "
+                         "unless --out is given")
     a = ap.parse_args(argv)
 
-    seed = load_seed(ROOT / "tokens" / "tokens.seed.json")
+    seed, brand = load_seed(ROOT / "tokens" / "tokens.seed.json"), None
+    a.label = "house"
+    if a.brand:
+        failures, brand = load_brand(Path(a.brand), seed)
+        if a.accent_hue is not None:
+            failures.append("--accent-hue and --brand together: a brand seed names its own hue")
+        if failures:
+            for f in failures:
+                print("FAIL  " + f, file=sys.stderr)
+            print(f"\nrefusing to solve {Path(a.brand).name}: {len(failures)} check(s) failed",
+                  file=sys.stderr)
+            return 1
+        seed = apply_brand(seed, brand)
+        a.label = f"{brand['name']}, from {rel(a.brand)}"
     accent = a.accent_hue if a.accent_hue is not None else seed["seed"]["accentHue"]
+    if not a.brand and accent % 360 != seed["seed"]["accentHue"]:
+        a.label = f"house, rebuilt at accent hue {accent % 360}"
 
     # The floors are checked before anything is solved against them: a solver that has already
     # skipped a misnamed ground cannot report it afterwards.
-    failures = check_floors(seed) + check_semantic_separation(seed, accent) + check_grid(seed)
+    failures = check_floors(seed) + check_grid(seed)
     if failures:
         for f in failures:
             print("FAIL  " + f, file=sys.stderr)
@@ -1245,10 +1501,12 @@ def main(argv=None):
             resolved[key], solvers[key] = s.run(), s
             (more_notes if more else notes).extend(s.notes)
             failures += s.failures
+    if brand:
+        failures += lightness_held(seed, brand, resolved)
 
     stats = count_pairs(seed, resolved)
     js = build_tokens_json(seed, resolved)
-    css = build_tokens_css(seed, resolved, accent, stats)
+    css = build_tokens_css(seed, resolved, accent, stats, a.label)
     failures += verify_emitted(css, seed)
 
     if a.extend and not failures:
@@ -1261,7 +1519,8 @@ def main(argv=None):
         print(f"\nrefusing to write: {len(failures)} check(s) failed", file=sys.stderr)
         return 1
 
-    out = Path(a.out) if a.out else ROOT / "tokens"
+    out = Path(a.out) if a.out else (Path(a.brand).parent / "tokens" if a.brand
+                                      else ROOT / "tokens")
     out.mkdir(parents=True, exist_ok=True)
     targets = {"tokens.json": js, "tokens.css": css}
 
@@ -1269,7 +1528,7 @@ def main(argv=None):
         stale = [n for n, text in targets.items()
                  if not (out / n).exists() or (out / n).read_text(encoding="utf-8") != text]
         for n in stale:
-            print(f"FAIL  tokens/{n} is not what the seed builds", file=sys.stderr)
+            print(f"FAIL  {rel(out / n)} is not what the seed builds", file=sys.stderr)
         print(f"\n{len(targets) - len(stale)} of {len(targets)} token files match the seed.")
         return 1 if stale else 0
 
@@ -1277,7 +1536,7 @@ def main(argv=None):
         (out / n).write_text(text, encoding="utf-8")
 
     n_col = len(seed["color"]["tokens"])
-    print(f"accent hue {accent % 360}; {n_col} colour tokens solved across "
+    print(f"{a.label}: accent hue {accent % 360}; {n_col} colour tokens solved across "
           f"{len(theme_ids(seed))} themes, {len(notes)} re-solved.")
     print(f"{stats['text_pairs']} pairs held to WCAG AA 4.5:1 and "
           f"{stats['nontext_pairs']} to 3:1, 0 below bar. 0 outside sRGB.")
@@ -1289,7 +1548,7 @@ def main(argv=None):
     print(f"{on} space and size values on the {seed['grid']['unit']}px unit, "
           f"{off} off it and all {off} declared with a reason.")
     for n in targets:
-        print(f"  tokens/{n:12s} {len(targets[n]):7,d} bytes")
+        print(f"  {rel(out / n)}  {len(targets[n]):7,d} bytes")
     return 0
 
 

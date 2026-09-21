@@ -78,7 +78,8 @@ first pass did, it measured 2.99:1 in dark on the ground and 2.56:1 on `hw-surfa
 The six chart colours are fills rather than text, so they are held to the same 3:1 on all four surfaces a chart is drawn on: ground, surface, raised and sunken.
 Against the light ground they measure 3.29, 8.13, 3.62, 8.41, 3.43, 7.55, and no pair falls below 3.10, which is `hw-chart-1` on `hw-surface-sunken`.
 Against the dark ground they measure 8.54, 13.62, 7.84, 13.37, 8.18, 14.14, and no pair falls below 6.71, which is `hw-chart-3` on `hw-surface-raised`.
-Adjacent series alternate in lightness, 0.20 apart in light and 0.15 in dark, and every chart colour sits at least 8.0 in oklab distance times 100 from each semantic, the bar the accent is held to.
+Adjacent series alternate in lightness, 0.20 apart in light and 0.15 in dark, and every chart colour sits at least 8.0 in oklab distance times 100 from each semantic.
+That is the bar the accent was held to until [the three bars](#the-three-bars-the-accent-is-held-to) replaced it, and the charts keep it: a chart colour is an ink with no fill and no ring, and the house ramp comes as close as 8.7 in CIEDE2000 to a state, which the accent's 14 would refuse.
 Their closest pair sits 15.4 apart in light and 10.2 in dark.
 
 ## Why the ground is neutral
@@ -112,9 +113,58 @@ Two measurements settled it. The figures are oklab distance times 100 between th
 | 240, azure | 16.2 | 23.1 | rejected on occupancy. It is the centre of the crowded corridor |
 | **198, cyan-teal** | **8.2 dark, 8.9 light** | **20.7** | chosen. Every separation above 8, and outside the corridor |
 
-Read in hue and chroma alone, with lightness left out, the accent keeps the same 8.9 and 8.2, because it sits at the semantics' own lightness.
-Under `prefers-contrast: more` in light it is re-solved to L 0.39 and keeps 7.8 that way, with lightness carrying it to 8.2.
-A product's own colour is held to the reading without lightness, and [95-extending.md](95-extending.md#why-the-separation-leaves-lightness-out) says why.
+That table is the choice, and it stands.
+The bar the build then enforced from it, 8.0 in oklab distance, did not survive being tested, and [the next section](#the-three-bars-the-accent-is-held-to) replaces it.
+
+### The three bars the accent is held to
+
+The 8.0 bar had three faults, each measured by the constraint audit of 2026-09-21.
+It was **bracketed by one rejection and one acceptance**, teal 172 at 3.8 and 198 at 8.2, so nothing between them had ever been looked at, and renders at 6.2 to 7.3 read as distinct.
+It was **blind to lightness by construction**: every ink is solved to the same 4.5:1 floor, so every ink shares a lightness, and the one freedom that could separate a warm accent from the states, a deeper or lighter accent, never registered.
+And it **measured one of the three things the accent paints**, the ink, while the first to collide is the selected-row fill: every quiet fill sits at L 0.94, C 0.035, so fills sit about a third as far apart as inks, and 198's own fill is 2.7 in oklab from `hw-success-quiet`.
+
+So the accent is held apart from the three states on each element it paints, in CIEDE2000, the difference formula built to track how far apart two colours look, on the 8-bit value a display receives, in all four blocks:
+
+| element | held apart from | bar | calibrated between, light and dark as the audit rendered them |
+|---|---|---:|---|
+| the ink, `hw-accent` | each state ink | 14 | teal 172 at 10.5, where Live and Passed read as one family, and 186 at 14.3, which reads as its own colour |
+| the selected-row fill, `hw-accent-quiet` | each state's quiet fill | 5 | a full-chroma 52 at 4.9, whose peach row reads as a status, and a rust 50 at 5.4, whose warm-grey row does not |
+| the focus ring, `hw-accent-ring` | `hw-danger`, the error border | 17 | an oxblood at 14.7, whose ring reads as the error border, and the rust at 17.4, whose ring reads brown |
+
+The ring is held to `hw-danger` alone because an error field is the one state drawn as a border around a control, where a focus ring also sits.
+Held to all three states, the ring bar would close umber, ochre and rust on `hw-warning`, a colour that is never drawn as a border.
+The three numbers were set by one viewer on the rendered accents below, and they are the system owner's decision of 2026-09-21; if one of them reads wrong on a render, the bar moves, not the render.
+
+The house clears all three with room: ink 18.7, fill 8.2, ring 44.6 at its worst block.
+Every accent the audit rendered and judged, measured by `tools/contrast.py` at its worst of the four blocks; the old reading is the 8.0 bar's, light and dark only:
+
+| accent | old reading | ink | fill | ring from danger | ring from border | as rendered | the build |
+|---|---:|---:|---:|---:|---:|---|---|
+| **198, the house** | 8.2 | 18.7 | 8.2 | 44.6 | 16.0 | chosen | builds |
+| 186 | 6.2 | 14.1 | 6.0 | 46.2 | 16.6 | its own colour | builds |
+| 116 | 6.3 | 14.2 | 6.5 | 37.3 | 15.9 | its own colour | builds |
+| 350 | 6.7 | 16.0 | 6.5 | 20.0 | 16.7 | its own colour | builds |
+| 172, teal | 3.8 | 8.1 | 3.3 | 47.0 | 16.7 | Live and Passed read as one family | refuses ink and fill |
+| 152 | 1.4 | 1.8 | 0.0 | 45.8 | 16.8 | the selected row is a passed row | refuses ink and fill |
+| 27 | 1.8 | 2.1 | 0.6 | 12.2 | 16.3 | the ring is the error border | refuses all three |
+| 52, full chroma | 4.7 | 11.8 | 4.9 | 16.4 | 15.9 | the peach row reads as a status | refuses all three |
+| 70 umber, deep, quiet | 13.7 | 14.3 | 6.9 | 22.4 | 9.7 | dark brown; selection a warm grey | builds with the accent or ink ring |
+| 115 moss, deep | 9.4 | 15.1 | 7.1 | 35.2 | 13.5 | its own colour | builds with the accent or ink ring |
+| 5 rose | 5.5 | 10.9 | 3.8 | 17.5 | 12.8 | the pink-grey row reads as a failed row | refuses ink and fill |
+| 30 oxblood, deep | 12.2 | 12.0 | 0.9 | 14.2 | 13.7 | the ring reads as the error border | refuses all three |
+
+The umber is hue 70 at 0.6 times the house chroma, L 0.38 and 0.76, with its fill at 0.3; the moss is hue 115 at 0.8, L 0.44 and 0.70; the rose is hue 5 at 0.7 with its fill at 0.4; the oxblood is hue 30 at 0.8, L 0.38 and 0.76.
+Every verdict the render reached, the build reaches: the three that read as their own colour build, and the six that read as a state refuse, on the element the render named.
+The umber and the moss refuse only the ring's distance from a control's own edge, which [12-brand.md](12-brand.md#the-focus-ring) owns, and build with either of the rings it offers.
+
+**What this opens is warm colour.** Umber, bronze, ochre, olive and moss build with a deeper accent, the way two shipped products already set theirs, and a quieter fill; rust opens at hue 55.
+A warm accent needs an input the old rule never had, because the fill, not the ink, is what binds it: for hues 0 to 95 the fill tops out at 4.7 at the house chroma whatever the ink does.
+**What stays closed is red and pink**, on the evidence of the renders rather than on principle.
+
+Under simulated colour-vision deficiency the house already fails any bar like these, and survives on words: the shipped `hw-success` and `hw-danger` fills sit 0.9 apart under deuteranopia, three tan pills told apart by Passed, Retried and Failed.
+That is the book's design ([15-color-combinations.md](15-color-combinations.md)), so the bars refuse on normal vision only.
+
+A product's own colour is held to a different reading, 8.0 in hue and chroma with lightness left out, and [95-extending.md](95-extending.md#why-the-separation-leaves-lightness-out) says why.
 
 ## How colour is spent
 

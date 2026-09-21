@@ -43,6 +43,9 @@ rather than once per transition. Intensity is not answered and is not a question
 **What would change it:** a product surface where two moves of the same direction genuinely need
 different emphasis, with the pair named. That has not happened.
 
+One named large transition in a product's own namespace, which [40-motion.md](40-motion.md#a-products-own-transition)
+allows, is not a second axis: it is one move, owned by one product, and adds no curve to the house set.
+
 ## Contrast as integer arithmetic on the token name
 
 **Declined on transferability, not on correctness.**
@@ -226,9 +229,9 @@ measurement.
 
 **Why it is declined even if the palette is there.** A colour query answers "what do sites at this
 hue look like", and this system asks a colour question once per product, when a product takes its
-own accent. That question is already answered by measurement - the hue corridor in
-[10-color.md](10-color.md#why-hue-198) - and by `tools/build.py --accent-hue`, which refuses a hue too
-close to a semantic colour. A screenshot at the same hue adds a look to copy, which is the input
+own brand. That question is already answered by measurement - the hue corridor in
+[10-color.md](10-color.md#why-hue-198) - and by `tools/build.py --brand`, which refuses an accent
+too close to a semantic colour on any element it paints. A screenshot at the same hue adds a look to copy, which is the input
 [75-spec-sheet.md](75-spec-sheet.md) refuses to take.
 
 **What would change it:** palettes published as data that can be read in bulk. 4,000 sites with

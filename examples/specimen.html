@@ -1,0 +1,122 @@
+<!doctype html>
+<!--
+  One product screen per brand, drawn from nothing but that brand's emitted tokens, for the render
+  12-brand.md asks for before a release. Open it as specimen.html?brand=papertrace&theme=dark;
+  prefers-contrast: more is the browser's own setting, or &contrast=more over http.
+  It follows the book: selected-row text stays hw-text (60-states.md), a badge is micro 11px/600
+  with a dot (65-components.md), and only an accent badge drops its pill on a selected row
+  (15-color-combinations.md). The self-hosted faces load from the upstream files 20-type.md cites;
+  a product ships its own copy instead.
+-->
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Brand specimen</title>
+<style>
+@font-face { font-family: "Public Sans"; font-weight: 100 900; src: url("https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf"); }
+@font-face { font-family: "Newsreader"; font-weight: 200 800; src: url("https://raw.githubusercontent.com/google/fonts/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf"); }
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 200 800; src: url("https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz,wdth,wght%5D.ttf"); }
+@font-face { font-family: "Instrument Sans"; font-weight: 400 700; src: url("https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/InstrumentSans%5Bwdth,wght%5D.ttf"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; src: url("https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-Regular.ttf"); }
+html { background: var(--hw-ground); color: var(--hw-text); font: 400 var(--hw-text-body-sm)/var(--hw-leading-body-sm) var(--hw-font-sans); }
+body { margin: 0; padding: var(--hw-space-24); }
+p { margin: 0 0 var(--hw-space-12); }
+a { color: var(--hw-accent); text-decoration: underline; text-underline-offset: 3px; }
+.word { font: 500 var(--hw-text-display-2)/var(--hw-leading-display-2) var(--hw-font-display); letter-spacing: var(--hw-tracking-display-2); margin: 0; }
+.eyebrow { font: 600 var(--hw-text-micro)/var(--hw-leading-micro) var(--hw-font-sans); letter-spacing: var(--hw-tracking-micro); text-transform: uppercase; color: var(--hw-text-muted); margin: var(--hw-space-8) 0 var(--hw-space-24); }
+.panel { background: var(--hw-surface); border: 1px solid var(--hw-border); border-radius: var(--hw-radius-lg); padding: var(--hw-space-16); margin-top: var(--hw-space-16); }
+h1 { margin: 0 0 var(--hw-space-12); }
+.live { display: flex; align-items: center; gap: var(--hw-icon-gap); color: var(--quoth-live); font-weight: 500; }
+.mono { font-family: var(--hw-font-mono); font-variant-numeric: tabular-nums; font-size: var(--hw-text-label); color: var(--hw-text-secondary); margin-left: auto; }
+ul { list-style: none; margin: var(--hw-space-16) 0; padding: 0; border: 1px solid var(--hw-border); border-radius: var(--hw-radius-md); overflow: hidden; }
+li { display: flex; align-items: center; gap: var(--hw-space-8); min-height: var(--hw-row-h); padding: 0 var(--hw-space-12); border-top: 1px solid var(--hw-border); }
+li:first-child { border-top: 0; }
+li[aria-selected="true"] { background: var(--hw-accent-quiet); }
+.what { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.35; }
+.what b { font-weight: 500; }
+.what small { font-size: var(--hw-text-label); color: var(--hw-text-secondary); }
+li[aria-selected="true"] small { color: var(--hw-text); }
+.badge { display: inline-flex; align-items: center; gap: 5px; font: 600 var(--hw-text-micro)/1.35 var(--hw-font-sans); padding: var(--hw-space-2) 7px; border-radius: var(--hw-radius-sm); white-space: nowrap; }
+.badge i { width: 6px; height: 6px; border-radius: var(--hw-radius-full); background: currentColor; }
+.accent { color: var(--hw-accent); background: var(--hw-accent-quiet); }
+.success { color: var(--hw-success); background: var(--hw-success-quiet); }
+.warning { color: var(--hw-warning); background: var(--hw-warning-quiet); }
+.danger { color: var(--hw-danger); background: var(--hw-danger-quiet); }
+li[aria-selected="true"] .badge.accent { background: none; }
+label { display: block; font: 500 var(--hw-text-label)/var(--hw-leading-label) var(--hw-font-sans); margin: 0 0 var(--hw-space-4); }
+.field { margin: 0 0 var(--hw-space-12); }
+.input { box-sizing: border-box; height: var(--hw-control-h); padding: 0 var(--hw-space-12); display: flex; align-items: center; background: var(--hw-surface); border: 1px solid var(--hw-border-strong); border-radius: var(--hw-radius-md); }
+.focus { outline: var(--hw-focus-w) solid var(--hw-accent-ring); outline-offset: var(--hw-focus-offset); }
+.error { border-color: var(--hw-danger); }
+.msg { font-size: var(--hw-text-label); margin: var(--hw-space-4) 0 0; color: var(--hw-danger); }
+.actions { display: flex; gap: var(--hw-space-8); }
+button { height: var(--hw-control-h); padding: 0 var(--hw-space-12); font: 500 var(--hw-text-body-sm) var(--hw-font-sans); border-radius: var(--hw-radius-md); }
+.primary { background: var(--hw-ink); color: var(--hw-ink-text); border: 0; }
+.secondary { background: var(--hw-surface); color: var(--hw-text); border: 1px solid var(--hw-border-strong); }
+.hw-icon { width: var(--hw-icon); height: var(--hw-icon); flex: none; stroke: currentColor; fill: none; stroke-width: calc(var(--hw-icon-stroke) * 24 / var(--hw-icon)); stroke-linecap: round; stroke-linejoin: round; }
+</style>
+<body>
+<main id="screen"></main>
+<script>
+const q = new URLSearchParams(location.search);
+const brand = q.get("brand") || "papertrace";
+document.documentElement.dataset.theme = q.get("theme") || "light";
+// prefers-contrast: more cannot be emulated from every driver, so ?contrast=more applies the same
+// emitted blocks by rewriting their media condition once each sheet has loaded. It needs an http
+// origin, because a file:// sheet's rules are not readable.
+const sheets = [`${brand}/tokens/tokens.css`, ...(brand === "quoth" ? ["quoth/quoth.tokens.css"] : [])];
+let pending = sheets.length;
+for (const href of sheets) {
+  const l = Object.assign(document.createElement("link"), {rel: "stylesheet", href});
+  l.onload = () => {
+    if (q.get("contrast") === "more")
+      for (const rule of l.sheet.cssRules)
+        if (rule.media && rule.media.mediaText.includes("prefers-contrast: more"))
+          rule.media.mediaText = rule.media.mediaText.replace("(prefers-contrast: more)", "all");
+    if (--pending === 0) document.documentElement.dataset.ready = "1";
+  };
+  document.head.prepend(l);
+}
+const ICON = {
+  mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
+  pointer: '<path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/>'};
+const COPY = {
+  quoth: ["quoth.", "Dictation that stays on your Mac", "mic", "History", "Search history",
+    [["Standup notes", "Today, 09:12", "Pasted", "success"], ["Reply to Mira", "Today, 08:47", "Live", "accent"],
+     ["Grocery list", "Yesterday, 18:03", "Retried", "warning"], ["Voice memo", "Yesterday, 11:30", "Failed", "danger"]]],
+  papertrace: ["papertrace", "Evidence, not a verdict", "file", "Report", "Find in manuscript",
+    [["Chapter 3, methods", "412 passages measured", "Clear", "success"], ["Chapter 2, review", "Shared passage", "Shared", "accent"],
+     ["Appendix B", "3 citations unresolved", "Check", "warning"], ["Chapter 4, results", "Figure reused", "Flagged", "danger"]]],
+  pointback: ["pointback", "Point at it. The agent gets it.", "pointer", "Review", "Find a note",
+    [["Header spacing", "Note 3, pricing page", "Sent", "success"], ["Button label", "Note 4, checkout", "Live", "accent"],
+     ["Empty state", "Note 5, dashboard", "Retried", "warning"], ["Broken link", "Note 6, footer", "Failed", "danger"]]]};
+const [word, tag, icon, title, find, rows] = COPY[brand];
+const svg = n => `<svg class="hw-icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+document.getElementById("screen").innerHTML = `
+  <p class="word">${word}</p><p class="eyebrow">${tag}</p>
+  <p>Every value on this screen comes from one brand file. <a href="#">How this is measured</a></p>
+  <section class="panel"><h1 class="hw-title-2">${title}</h1>
+  ${brand === "quoth" ? `<p class="live">${svg("mic")}<span>Recording</span><span class="mono">00:07</span></p>` : ""}
+  <div class="field"><label>Search</label><div class="input focus">${find}</div></div>
+  <ul role="listbox">${rows.map(([a, s, st, k], i) => `<li role="option" aria-selected="${i === 0}">${svg(icon)}
+    <span class="what"><b>${a}</b><small>${s}</small></span><span class="badge ${k}"><i></i>${st}</span></li>`).join("")}</ul>
+  <div class="field"><label>Fingerprint</label><div class="input error">9f2c1a</div>
+    <p class="msg">Expected 64 hex characters. That value is 6.</p></div>
+  <div class="actions"><button class="primary">Export</button><button class="secondary">Cancel</button></div></section>`;
+// Every hw- colour as this browser's CSS engine resolves it into sRGB, before any display profile:
+// a canvas read-back goes through the compositor's colour management, which paints white as 254.
+window.painted = () => {
+  const probe = document.body.appendChild(document.createElement("i")), out = {};
+  for (const sheet of document.styleSheets) for (const rule of sheet.cssRules)
+    for (const name of rule.style || []) if (/^--(hw|quoth)-/.test(name) && !(name in out) &&
+        getComputedStyle(document.documentElement).getPropertyValue(name).trim().startsWith("oklch")) {
+      probe.style.color = `color-mix(in srgb, var(${name}) 100%, transparent)`;
+      out[name] = getComputedStyle(probe).color.match(/[\d.e-]+/g).slice(0, 3).map(Number);
+    }
+  probe.remove();
+  return out;
+};
+</script>
+</body>
+</html>

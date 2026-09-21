@@ -31,7 +31,8 @@ jobs:
   consistency:
     name: the system agrees with itself
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # tests/run.py alone took 314s locally once the brand tier added its sweep corners and cases.
+    timeout-minutes: 20
     outputs:
       report: ${{ steps.collect.outputs.report }}
       failed: ${{ steps.collect.outputs.failed }}
@@ -71,12 +72,26 @@ jobs:
             python3 tools/build.py --check
           run "A published contrast ratio no longer holds" \
             python3 tools/contrast.py
-          # The worked product seed: solved against this set, and verified by the second
-          # instrument, so a house change that breaks a product's own colour is caught here.
+          # The example brands: each solved from its seed, certified by the second instrument
+          # and exported, so a house change that breaks a product's identity is caught here.
+          for seed in examples/*/brand.seed.json; do
+            dir=${seed%/brand.seed.json}
+            run "The $dir brand no longer builds from its seed" \
+              python3 tools/build.py --check --brand "$seed"
+            run "The $dir brand no longer holds" \
+              python3 tools/contrast.py "$dir/tokens/tokens.css"
+            run "The $dir exporter refused to emit" python3 tools/export.py "$dir"
+          done
+          run "Two example brands paint as one" \
+            python3 tools/distinct.py tokens/tokens.css examples/*/tokens/tokens.css
+          # The worked product colour: solved against quoth's brand set, and verified by the
+          # second instrument against that set.
           run "The worked product colour no longer builds from its seed" \
-            python3 tools/build.py --check --extend examples/quoth.seed.json
-          run "The worked product colour no longer holds against the house set" \
-            python3 tools/contrast.py --extend examples/quoth.seed.json
+            python3 tools/build.py --check --brand examples/quoth/brand.seed.json \
+              --extend examples/quoth/quoth.seed.json
+          run "The worked product colour no longer holds against its brand set" \
+            python3 tools/contrast.py examples/quoth/tokens/tokens.css \
+              --extend examples/quoth/quoth.seed.json
           run "The coverage inventory, its refusals, its manifest or a link" \
             python3 tools/check-coverage.py
           run "The source classifier no longer agrees with its fixtures" \
@@ -95,18 +110,19 @@ jobs:
           # nobody. `git diff --quiet` is also blind to an untracked file, so a new export that
           # was never committed was invisible; `git status --porcelain` sees it.
           run "The exporter refused to emit" python3 tools/export.py
-          drift=$(git status --porcelain -- exports/)
+          drift=$(git status --porcelain -- exports/ examples/)
           if [ -n "$drift" ]; then
             failed=1
             # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
             {
               printf '### An export no longer matches its source\n\n'
-              printf 'Regenerating `exports/` changed the working tree. Run '
-              printf '`python3 tools/export.py` and commit the result.\n\n```text\n%s\n```\n\n' "$drift"
+              printf 'Regenerating `exports/` or `examples/*/exports/` changed the working tree. '
+              printf 'Run `python3 tools/export.py`, and `python3 tools/export.py examples/NAME` '
+              printf 'for each brand, and commit the result.\n\n```text\n%s\n```\n\n' "$drift"
             } >> "$report"
             printf '::error title=export drift::exports/ is stale\n'
           fi
-          git checkout -- exports/ 2>/dev/null || true
+          git checkout -- exports/ examples/ 2>/dev/null || true
 
           {
             echo "report<<REPORT_EOF"

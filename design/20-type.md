@@ -1,6 +1,6 @@
 # Type
 
-Three faces with three jobs, all from Google Fonts so any product can actually load them.
+Three faces with three jobs, each an open-licensed file a product hosts itself, so no screen waits on a font service.
 
 | role | face | what it does |
 |---|---|---|
@@ -81,6 +81,38 @@ Display line-height in the same set runs 0.909 to 1.20. Both steps here sit insi
 | long-form: docs, release notes, reports | **68ch** | measured on five documentation sites: Stripe 50ch, shadcn 64ch, Radix 67ch, Tailwind 76ch, Vercel 80ch, median 67ch |
 
 Measure is a real `ch` measurement of the rendered paragraph divided by the width of `0` in its own font, not a character count, because a character count means nothing for a proportional face.
+
+## A brand's faces
+
+A brand may name its own display face and its own text face ([12-brand.md](12-brand.md#the-eleven-inputs)); the mono face is the house's in every product, so every hash and timestamp is set alike.
+A face is an entry in the roster in `tokens/tokens.seed.json`, and an entry is a face **plus its delivery**:
+
+- **self-hosted**: the product ships the file. The roster cites the upstream file by URL and pins its sha256, so the metrics below were read from a file a reader can fetch and check.
+- **system**: a named stack that loads nothing, for a product that makes no network request and ships no font, which is what papertrace's report and pointback's chrome both promise.
+
+| roster entry | delivery | x-height, read from the file | upstream file |
+|---|---|---:|---|
+| Public Sans | self-hosted | 0.517 | [PublicSans[wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf) |
+| Newsreader | self-hosted | 0.426 | [Newsreader[opsz,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf) |
+| Bricolage Grotesque | self-hosted | 0.528 | [BricolageGrotesque[opsz,wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz,wdth,wght%5D.ttf) |
+| Instrument Sans | self-hosted | 0.510 | [InstrumentSans[wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/InstrumentSans%5Bwdth,wght%5D.ttf) |
+| system serif | system | | `"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif` |
+| system sans | system | | `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
+
+All four files are under the SIL Open Font License 1.1, read from each family's `OFL.txt` upstream; the repository vendors none of them.
+The x-heights are the fonts' own `OS/2` values at their default instance: Newsreader reads 0.426 from its file against 44.0 in the browser table above, a variable face whose optical-size axis the browser sets per size, and the build uses no x-height but Public Sans's.
+Public Sans reads 0.517 from its file and 51.7 in the browser, the same number two ways, which is what makes the file reading trustworthy.
+
+**A text face other than Public Sans is held to Public Sans's x-height.**
+Every size in the scale above was derived from that x-height, so a text face with a smaller one would set every row half a step small.
+A brand whose text face differs gets `font-size-adjust: 0.517` on every `.hw-*` type class of the text family in its `tokens.css`, which scales whatever face renders, a system face included, until its x-height is the house's.
+A product that sets `--hw-font-sans` outside those classes sets the same declaration beside it.
+
+```bash
+python3 tools/faces.py --check PublicSans[wght].ttf    # the file's x-height and sha256 against its roster entry
+```
+
+The display face is a brand's to choose because it is the one face the brand is recognised by; the text face is a brand's too, because quoth already ships Instrument Sans as its interface and papertrace sets its report in a serif, and a tier that took either away would delete an identity each product already has.
 
 ## Rules
 

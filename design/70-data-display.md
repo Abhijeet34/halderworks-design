@@ -99,7 +99,7 @@ Six chart colours, `--hw-chart-1` to `--hw-chart-6`, held to the same 3:1 non-te
 | on `--hw-surface-raised`, the dark theme's worst surface | 7.31 | 11.65 | 6.71 | 11.44 | 7.00 | 12.10 |
 
 Adjacent series alternate in lightness, by 0.20 in light and 0.15 in dark, so series two, four and six are the strong members in both themes.
-Every chart colour sits at least 8.0 in oklab distance times 100 from `--hw-success`, `--hw-warning` and `--hw-danger`, the bar `--hw-accent` is held to, and the closest chart pair sits 15.4 apart in light and 10.2 in dark.
+Every chart colour sits at least 8.0 in oklab distance times 100 from `--hw-success`, `--hw-warning` and `--hw-danger`, the bar the accent was held to before [three painted bars](10-color.md#the-three-bars-the-accent-is-held-to) replaced it, and the closest chart pair sits 15.4 apart in light and 10.2 in dark.
 Until 2026-09-21 series four, five and six sat 1.6, 2.5 and 3.7 from danger, warning and success in light, because the chart hues rotate with the accent while the semantics stay put; `tools/build.py` now refuses an accent hue that would put any series that close.
 
 Rules:

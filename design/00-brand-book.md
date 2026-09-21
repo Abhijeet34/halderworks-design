@@ -2,7 +2,7 @@
 
 The house design system for everything Halderworks ships: quoth, papertrace, pointback, treadling, foliot, gates and the tools around them.
 One system, one set of tokens, two themes, two densities.
-A product may take a different accent hue; nothing else is negotiable.
+A product takes its identity from a brand seed of eleven bounded inputs, solved by the same build and certified by the same second instrument ([12-brand.md](12-brand.md)); nothing else is negotiable.
 
 ## The rule that matters most
 
@@ -15,13 +15,13 @@ A token with no rationale is the thing this replaces.
 ## What these products are, and why the system looks like this
 
 Everything in this portfolio is an instrument of record.
-quoth captures speech and writes it down. papertrace attests what an artifact is and where it came from. pointback carries a reviewer's pointing back to an agent. treadling records what an agent was asked to do, did, and decided. foliot orchestrates that work. gates refuses a change that cannot prove itself.
+quoth captures speech and writes it down. papertrace checks a manuscript's integrity on the author's own machine and reports the evidence rather than a verdict. pointback carries a reviewer's pointing back to an agent. treadling records what an agent was asked to do, did, and decided. foliot orchestrates that work. gates refuses a change that cannot prove itself.
 
 The common job is not to be admired. It is to be trusted about a number, a state or a record.
 
 So the system behaves like a calibrated instrument rather than like a brochure:
 
-- **The ground is neutral**, because a tinted ground biases every reading placed on it.
+- **The house ground is neutral**, because a tinted ground biases every reading placed on it. A brand may warm or cool its own within the bound [12-brand.md](12-brand.md#neutral-hue-and-chroma) measures, and data still never sits on the tint.
 - **Colour means something or it is not there.** The loudest control on a screen carries no hue at all.
 - **Nothing is decorated to look important.** Weight, size and position carry hierarchy; shadow and colour do not.
 - **The type is set to be read for a long time**, not to be photographed once.
@@ -46,14 +46,15 @@ Three rules cover most of what goes wrong:
 | | |
 |---|---|
 | **Colour** | 33 tokens per theme. Ground and five surfaces, two borders, four text weights including a solved disabled, an ink triple for primary action, four accent tokens, three semantics with their fills, a six-step chart ramp and a scrim. 108 text pairs checked, 0 below AA; 90 non-text pairs at 3:1, 0 below it; 0 outside sRGB. Accent hue 198. |
-| **Type** | Public Sans for interface and text, Newsreader for display, IBM Plex Mono for machine output. Nine distinct sizes. Running text at 56ch in product, 68ch in long-form. |
+| **Type** | Public Sans for interface and text, Newsreader for display, IBM Plex Mono for machine output, all self-hosted. A brand may name its own display and text face. Nine distinct sizes. Running text at 56ch in product, 68ch in long-form. |
 | **Space** | Base unit 4px, ten steps, 2px for one case only. |
-| **Radius** | Three sizes and a pill, each bound to a role. |
+| **Radius** | Three sizes and a pill, each bound to a role, in one of three registers a brand may take. |
 | **Elevation** | Border first. Two shadows exist, light-theme only inside a window, and kept in both themes for a panel floating over the user's desktop. |
 | **Motion** | 150ms is the default. Four durations, three easings, and a reduced-motion rule that keeps feedback while removing movement. |
 | **Layout** | Twelve columns above 1024px, six above 768px, four below. Five breakpoints, three container widths, two page shells. |
 | **Density** | Comfortable and compact. One attribute, four tokens, and a written list of what does not change. |
-| **Icons** | Lucide, ISC-licensed, 16px default, painted 1.5px stroke at every size. |
+| **Icons** | Lucide, ISC-licensed, 16px default, painted 1.5px stroke at every size, or a brand's 1.75px or 2px. |
+| **Brand** | Eleven bounded inputs a product's brand seed may set, solved and certified like the house set. Three product brands, quoth, papertrace and pointback, and three reserved slots. |
 | **States** | Nine states for every interactive element, as a matrix. |
 | **Forms** | Fourteen controls, the furniture around them, and validation as its own layer. |
 | **Form factors** | The app shell, the menu-bar panel, the marketing page and touch, plus what is out of scope and why. |
@@ -86,6 +87,6 @@ An icon that needs a legend is a label that should have been written.
 ## The mark
 
 There is no logomark and no wordmark yet, and none has been drawn here, because a mark is a commission rather than something an agent invents. <!-- covered-by: Logomark and wordmark -->
-Until one exists, the name is set plainly in the display face at `display-2` weight 500, as the cover shows.
+Until one exists, the name is set plainly in the display face at `display-2` weight 500, as the cover shows; a product's name is set the same way in its brand's display face.
 `halderworks.com` is the registered umbrella domain, and it is a name here rather than a link: its mail resolves, and no web host answers the apex yet.
 The visual identity that will sit on it is open work.

@@ -11,12 +11,13 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 | `tokens/tokens.seed.json` | the source of every token value |
 | `tokens/tokens.css`, `tokens/tokens.json` | generated from the seed by `tools/build.py`; never edited by hand |
 | `exports/` | generated from `tokens/tokens.json` by `tools/export.py`; never edited by hand |
-| `examples/` | a product's own colour seed, `quoth.seed.json`, and the `quoth.tokens.css` that `tools/build.py --extend` writes from it. The worked example for [design/95-extending.md](design/95-extending.md#a-colour-of-the-products-own) and the fixture CI solves on every change; quoth owns the copy it ships |
-| `tools/` | six standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
+| `examples/` | one directory per product brand: its `brand.seed.json`, and the `tokens/` and `exports/` that `tools/build.py --brand` and `tools/export.py` write from it; `examples/quoth/` also holds quoth's own colour seed and the `quoth.tokens.css` that `--extend` solves against quoth's set. `examples/specimen.html` draws one product screen from any brand's files, for the render a release needs. The worked examples for [design/12-brand.md](design/12-brand.md) and [design/95-extending.md](design/95-extending.md#a-colour-of-the-products-own), and the fixtures CI builds and certifies on every change; each product owns the copy it ships |
+| `tools/` | eight standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
 | `tests/` | the suite that checks the tools rather than the tokens, adopted from the 2026-09-21 audit; `tests/run.py` is the one command |
 | `.github/rulesets/`, `.github/settings/` | what this repository enforces on the forge, as files. Nothing applies them on its own; see "The settings that are not files" below |
 | `scripts/apply-repo-settings.sh` | the one command that sends those files to GitHub |
 | `docs/publication-record.md` | the one-off record of the first publication; not maintained |
+| `docs/brand-tier-record.md` | the one-off record of the first browser render of the three product brands, from `examples/specimen.html`; not maintained |
 
 ## The tools, which are the checks
 
@@ -26,14 +27,22 @@ Python 3, no dependencies. Only `check-sources.py` uses the network.
 python3 tools/build.py            # tokens/tokens.seed.json -> tokens.json + tokens.css
 python3 tools/build.py --check    # emit nothing; fail if the committed files are stale
 python3 tools/contrast.py         # re-derive every published ratio from the CSS, independently
-python3 tools/build.py --check --extend examples/quoth.seed.json   # a product's own colour, still solved
-python3 tools/contrast.py --extend examples/quoth.seed.json        # and still holding, independently
+python3 tools/build.py --check --brand examples/papertrace/brand.seed.json   # a brand, still solved
+python3 tools/contrast.py examples/papertrace/tokens/tokens.css            # and still holding, independently
+python3 tools/build.py --check --brand examples/quoth/brand.seed.json --extend examples/quoth/quoth.seed.json
+python3 tools/contrast.py examples/quoth/tokens/tokens.css --extend examples/quoth/quoth.seed.json
+python3 tools/distinct.py tokens/tokens.css examples/*/tokens/tokens.css   # how far apart the brands paint
 python3 tools/export.py           # regenerate exports/ and refuse if it diverges from the CSS
+python3 tools/export.py examples/papertrace   # the same, per brand
 python3 tools/check-coverage.py   # the inventory, its refusals, its claimed entries, its manifest, every link
 python3 tools/test-check-sources.py  # the source classifier, against a local server
 python3 tools/check-sources.py    # every cited source still resolves. THE ONE THAT LEAVES THE MACHINE
 python3 tests/run.py              # the checks on the tools: invariants, hue sweep, mutations
+python3 tools/faces.py --check FONT...   # a roster face's x-height and sha256, against a copy of its file
 ```
+
+The build does the same for every brand in `examples/`, and CI loops over `examples/*/brand.seed.json`
+rather than naming them, so a new product brand is covered by adding its directory.
 
 `check-sources.py` is the weekly job's and is not run per change; everything above it is. It
 answers in three classes rather than two, and the middle one is the point: `ok` for 2xx/3xx,
@@ -47,16 +56,17 @@ port, so a merge cannot quietly widen or narrow either.
 
 The tools above check the token set. `tests/run.py` checks the tools, because a refusal
 nobody has watched fail is a refusal nobody has tested: the 2026-09-21 audit ran 21 mutation
-cases against this repository and 17 wrong inputs left every tool green. Its three suites take
-about 21 seconds together - `tests/invariants.py` on the two instruments, `tests/hue_sweep.py`
-over all 360 accent hues, `tests/mutation_tests.py` over a set of deliberately wrong inputs (its
+cases against this repository and 17 wrong inputs left every tool green. Its three suites took
+314 seconds together on 2026-09-21 - `tests/invariants.py` on the two instruments, `tests/hue_sweep.py`
+over all 360 accent hues and every fifth hue at four brand corners, `tests/mutation_tests.py` over a set of deliberately wrong inputs (its
 own run prints "N cases: N as expected, 0 improved, 0 failed" for the current count) - and two
 further diagnostics, `tests/coverage_probe.py` and `tests/ident_sweep.py`, print rather than
 refuse and are run on demand.
 
 `build.py` and `contrast.py` are deliberately two instruments rather than one, and two things make
 them two. They share no arithmetic: `build.py` inverts the original Oklab matrices, `contrast.py`
-uses the CSS Color 4 reference path a browser implements. And they read different declarations of
+uses the CSS Color 4 reference path a browser implements, and each carries its own CIEDE2000 for
+the painted separation bars, both held to the published Sharma test pairs by `tests/invariants.py`. And they read different declarations of
 what must hold: the build solves against the floors in the seed, `contrast.py` carries its own list
 of every pair the book certifies and never opens the seed, so a floor cannot be weakened in the same
 edit as the value it guards. A build that passes while a contrast run fails means the seed is wrong,
@@ -68,23 +78,28 @@ certified, so `build.py` re-reads the CSS it is about to write and refuses if it
 its own numbers, and `contrast.py` measures every pair twice - on the float value and on the 8-bit
 value a display receives.
 
-Taking a different accent hue is a rebuild, never a hand-pick:
+A product's identity is a rebuild, never a hand-pick: a brand seed of eleven bounded inputs
+([design/12-brand.md](design/12-brand.md)), solved by the same code as the house set, with
+`--accent-hue` kept as the one-input form:
 
 ```bash
+python3 tools/build.py --brand examples/papertrace/brand.seed.json
+python3 tools/contrast.py examples/papertrace/tokens/tokens.css
 python3 tools/build.py --accent-hue 318 --out ./my-tokens
-python3 tools/contrast.py ./my-tokens/tokens.css
 ```
 
 At hue 318 five tokens re-solve and all 198 certified pairs still clear their bar. At hue 150 the
-build refuses, because that hue sits 4.4 from `hw-success` against the 8.0 separation
-[design/10-color.md](design/10-color.md) requires - which is what makes "a product cannot take hue
-150" an executable rule rather than a sentence.
+build refuses, because that hue's ink sits 6.1 CIEDE2000 from `hw-success` and its selected-row
+fill 0.3 from `hw-success-quiet`, against the 14 and 5
+[design/10-color.md](design/10-color.md#the-three-bars-the-accent-is-held-to) requires - which is
+what makes "a product cannot take hue 150" an executable rule rather than a sentence.
 
 ## Rules a change is held to
 
 Read [design/95-extending.md](design/95-extending.md) first. In short:
 
-- **Never redefine an `hw-` token.** A product extends in its own namespace, `--quoth-`, `--gates-`.
+- **Never redefine an `hw-` token.** A product extends in its own namespace, `--quoth-`, `--gates-`,
+  and takes its identity from a brand seed, which names inputs and never a token.
 - **A new token needs four things**: a name in the scale it belongs to, a usage note saying where it
   may and may not be used, a number with a derivation, and its row in the verification.
 - **Never hand-edit `tokens/tokens.css` or `tokens/tokens.json`.** Both are generated. Edit
@@ -213,10 +228,11 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 |---|---|
 | the token files still build from the seed | `build.py --check` finds a committed file the seed does not produce |
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
-| the worked product colour still solves and holds | `build.py --check --extend examples/quoth.seed.json` refuses the seed or finds `examples/quoth.tokens.css` stale, or `contrast.py --extend` finds a product colour under 3:1 or its claimed bar on a house surface, closer than 8.0 in hue and chroma to a state colour, or declaring an `hw-` token |
+| every example brand still solves, holds and exports | `build.py --check --brand` refuses a brand seed or finds its `tokens/` stale, `contrast.py` finds a brand's pair under its bar, an accent element under its CIEDE2000 bar, or a shape or stroke outside the house's own, `export.py` refuses a brand's exports, or `distinct.py` finds two brands that paint as one |
+| the worked product colour still solves and holds | `build.py --check --brand examples/quoth/brand.seed.json --extend examples/quoth/quoth.seed.json` refuses the seed or finds `examples/quoth/quoth.tokens.css` stale, or `contrast.py --extend` finds a product colour under 3:1 or its claimed bar on a surface of quoth's set, closer than 8.0 in hue and chroma to a state colour or the accent, or declaring an `hw-` token |
 | every published contrast ratio still holds | `contrast.py` re-derives all 193 published ratios from the two files that tabulate them and the prose list, and all 198 certified pairs from the CSS, on the float value and at 8-bit; the same pairs at 7:1 and 4.5:1 in the `prefers-contrast: more` block; chart and accent separation from the semantics, and the text-role step, in all four blocks |
-| every export still matches its source | `export.py` exits non-zero, or regenerating `exports/` leaves anything in `git status --porcelain` |
-| every refusal the system depends on still refuses | `tests/run.py`: the two instruments share code or stop agreeing, a buildable accent hue emits a palette `contrast.py` refuses, or a deliberately wrong input leaves every tool green |
+| every export still matches its source | `export.py` exits non-zero, or regenerating `exports/` or a brand's exports leaves anything in `git status --porcelain` |
+| every refusal the system depends on still refuses | `tests/run.py`: the two instruments share code or stop agreeing, a buildable accent hue or brand corner emits a palette `contrast.py` refuses, or a deliberately wrong input leaves every tool green |
 | the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a claim of an existing entry resolving to no covered or partial row, a manifest with no lists or no date, a copy of a count anywhere outside `docs/` ("N surfaces", "N covered", "N partial", "N excluded") that the table does not hold, prose calling a surface a gap with no `<!-- status: row is status -->` declaration, or with one its row no longer matches (`STATUS_CLAIM` in the script lists the phrases) |
 | every internal link and anchor | the same script, across every Markdown file in the repository |
 | every cited external source still resolves | an HTTP request per distinct URL in the book, failing on 404, 410, any other error status, or no response. A 401, 403 or 429 is reported as alive-but-refusing and does not fail |
@@ -240,6 +256,14 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 
 **A field re-screen is a monthly job for a person**, and the green tick on this workflow is not
 evidence one happened.
+
+## Releasing
+
+Before tagging, render every example brand in a browser from its emitted `tokens/tokens.css`, in
+both themes and under `prefers-contrast: more`, and look at the three side by side.
+`tools/distinct.py` reports how far apart the brands paint and refuses only one brand built twice;
+whether two brands read as two products is a render looked at, which no tool in `tools/` can do
+because none of them rasterises ([design/12-brand.md](design/12-brand.md#telling-brands-apart)).
 
 ## Maintaining this file
 

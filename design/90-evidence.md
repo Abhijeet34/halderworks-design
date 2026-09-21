@@ -241,6 +241,12 @@ Fluent's product-axis row is the control that makes the rest readable: changing 
 the same contrast level moves 10.9% of tokens, and changing the contrast level moves 78%.
 Contrast is roughly seven times the move that identity is.
 
+This system's own product axis measures the same way. Rebuilt from their brand seeds
+([12-brand.md](12-brand.md)), quoth and papertrace each move 31 of the 145 token names in
+`tokens.css` and pointback 29, 20.0 to 21.4%, adding none and removing none. Colour is most of it;
+the rest is the two faces and the three radii, or the two faces and the icon stroke. That is twice
+Fluent's product axis, and under the smallest contrast-level move above, 27.5%.
+
 ### The two high-contrast strategies are opposite, and each media query gets its own answer
 
 | vendor | distinct values before | after | direction |
@@ -660,6 +666,29 @@ Each file was fetched from its repository and its first line read.
 | Octicons | `primer/octicons/main/LICENSE`, 1068 bytes | `MIT License` |
 | Radix Icons | `radix-ui/icons/master/LICENSE`, 1063 bytes | `MIT License` |
 | Carbon | `carbon-design-system/carbon/main/LICENSE`, 11339 bytes | `Apache License` |
+
+The four self-hosted faces in [20-type.md](20-type.md#a-brands-faces)'s roster were read the same
+way, each family's `OFL.txt` under `google/fonts/main/ofl/`: `publicsans` 4390 bytes, `newsreader`
+4394, `bricolagegrotesque` 4403 and `instrumentsans` 4403, every one stating
+`This Font Software is licensed under the SIL Open Font License, Version 1.1.`
+
+## The painted separation bars
+
+The accent's three bars ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)) are
+CIEDE2000 as Gaurav Sharma, Wencheng Wu and Edul Dalal state it in "The CIEDE2000 color-difference
+formula: implementation notes, supplementary test data, and mathematical observations", *Color
+Research and Application* 30(1), 2005.
+Taken: the formula, and six of the paper's test pairs, 1, 7, 9, 16, 17 and 25, which both
+instruments reproduce to four decimals in `tests/invariants.py`, the hue-wrap pair included.
+Left: the paper's discussion of where the formula is discontinuous, which a four-decimal match on
+the wrap pair already exercises.
+
+The three numbers were not taken from any paper. They were bracketed by one viewer on the rendered
+product screen of the constraint audit of 2026-09-21, one accent at a time, with the real
+components: a selected row, a status badge with its word, a link, a focused field and an error
+field. That audit also simulated colour-vision deficiency with Machado, Oliveira and Fernandes 2009
+at full severity, and the bars do not refuse on it, because the house's own states already collapse
+under it and survive on their words.
 
 ## What still cannot be reached
 

@@ -35,6 +35,17 @@ Two rules keep it coherent:
 The reference set backs the small end: the dominant radius is 3px at Radix (401 uses), 4px at Vercel and Stripe, 6px at 21st.dev's component views, 8px at Railway and Arc.
 Pills appear as a second radius for buttons and count chips (Linear 9999px, 51 uses), never as the only one.
 
+A brand takes one of three registers, never a free number, because a 1px radius change is invisible and a free number invites one ([12-brand.md](12-brand.md#shape-and-stroke)):
+
+| register | `sm` | `md` | `lg` | from |
+|---|---:|---:|---:|---|
+| `crisp` | 2px | 3px | 6px | the 3px of Radix and the 4px of Vercel and Stripe |
+| `house` | 4px | 6px | 10px | the table above |
+| `soft` | 6px | 8px | 14px | the 8px of Railway and Arc |
+
+Each keeps both rules above, and `md` tops out at 8px, under the 12px at which a 24px compact control turns into a pill.
+`tools/contrast.py` refuses any other triple in an emitted token file.
+
 ## Elevation
 
 Border first. The measurement here is blunt: across the 14 reference products, **73 of 75 sampled heading, body and button elements carry `box-shadow: none`, and 74 of the 75 paint no visible shadow at all**. The two exceptions are both on Arc.

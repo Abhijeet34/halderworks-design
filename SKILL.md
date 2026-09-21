@@ -5,7 +5,7 @@ description: >-
   interface - a screen, a route, a component, a form, a table, a landing page, an email sign-in,
   a settings page, a chart, an icon row, a piece of UI copy - and before proposing a colour, a
   size, a radius, a duration, a breakpoint or a z-index. It carries one token set, two themes, two
-  densities, 149 inventoried surfaces, and a rule that no value is invented: a value the system
+  densities, 154 inventoried surfaces, and a rule that no value is invented: a value the system
   lacks is a gap to report, not a number to guess. Also load it when asked whether this system
   covers a surface at all, when a contrast ratio or an accessibility keyboard behaviour is in
   question, or when extending the system.
@@ -36,7 +36,7 @@ component library, and no dependency on which model or tool is reading it. Read 
 
 **Before you build a surface, check whether this system already answers it.**
 
-`design/05-coverage.md` lists **149 surfaces**, each marked `covered`, `partial` or `excluded`, and
+`design/05-coverage.md` lists **154 surfaces**, each marked `covered`, `partial` or `excluded`, and
 it was audited against six external component and accessibility taxonomies so that it can report
 what it does not have. Searching it takes one read and returns one of four answers:
 
@@ -58,6 +58,7 @@ invent. That is why the inventory exists and why it is checked by a script.
 | understand what these products are and why the system looks like this | `design/00-brand-book.md` |
 | build or restyle any screen | `design/00-brand-book.md`, `design/35-layout.md`, then the component's section in `design/65-components.md` |
 | pick a colour | `design/10-color.md` for the token, `design/15-color-combinations.md` for what it may sit on. **The pairing table is permission, not documentation** |
+| build a screen for quoth, papertrace or pointback, or give a product its own identity | `design/12-brand.md`, then load `examples/<product>/tokens/tokens.css` in place of `tokens/tokens.css`. A brand changes values, never token names |
 | set type | `design/20-type.md`. The tabular-figures rule is the one most often missed |
 | write the words in it | `design/25-content.md` |
 | space, round or elevate anything | `design/30-space-radius-elevation.md` |
@@ -110,15 +111,13 @@ Read `exports/DESIGN.compact.md` first and the specific file second. Do not read
 
 ## Loading the tokens into a product
 
-```html
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-```
-
 ```css
-@import "tokens.css";          /* the house system: tokens/tokens.css in this repository */
+@import "tokens.css";          /* the house set, or examples/<brand>/tokens/tokens.css for a brand */
 @import "quoth/tokens.css";    /* the product's own namespace, loaded AFTER, never instead */
 ```
+
+Fonts are self-hosted from the upstream files `design/20-type.md` cites, never loaded from a font
+service; `design/95-extending.md#loading-the-system-in-a-product` has the `@font-face` rules.
 
 Every token is prefixed `hw-`, so it cannot collide with a framework's variables.
 Dark theme is `[data-theme="dark"]`, and the system follows `prefers-color-scheme` when the page
@@ -130,19 +129,22 @@ W3C DTCG with a `$description` on every token.
 
 ## What you may and may not change
 
-**One thing is a product's to change: the accent hue.**
-Take it by regenerating, never by hand-picking a colour:
+**A product's identity is its brand seed, and nothing else.**
+Eleven bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
+neutral hue and chroma, a shape register, an icon stroke, a display face and a text face - solved
+into the house's own token names ([design/12-brand.md](design/12-brand.md)). Take it by
+regenerating, never by hand-picking a colour:
 
 ```bash
-python3 tools/build.py --accent-hue 318 --out ./my-tokens
-python3 tools/contrast.py ./my-tokens/tokens.css
+python3 tools/build.py --brand examples/papertrace/brand.seed.json
+python3 tools/contrast.py examples/papertrace/tokens/tokens.css
 ```
 
 The build re-solves every affected token against its contrast floor and **refuses to write** if one
-does not hold. It also refuses a hue that sits closer than 8 in oklab distance to a semantic
-colour, so a product cannot take a green that competes with "passed".
+does not hold. It also refuses an accent whose ink, selected-row fill or focus ring sits too close to
+a state colour in CIEDE2000, so a product cannot take a green that competes with "passed".
 The second line is not a formality and it is not a second opinion from the same head: `contrast.py` shares no arithmetic with the build and carries its own list of what must hold.
-Of the 360 integer hues, 145 build, and `contrast.py` accepts all 145.
+Of the 360 integer hues at the house anchors, 127 build, and `contrast.py` accepts all 127.
 
 **Everything else goes in the product's own namespace**, `--quoth-`, `--gates-`, never by
 redefining an `hw-` token. `design/95-extending.md` is the whole procedure. A colour the house has

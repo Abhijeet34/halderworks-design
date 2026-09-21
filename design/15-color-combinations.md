@@ -62,6 +62,12 @@ badge. On a row already carrying that fill the badge drops its own fill and keep
 word. This was found by rendering the app shell, not by reading the table, which is the argument
 for rendering every pairing rather than certifying it on paper.
 
+**A status badge on a selected row keeps its pill.**
+The rule above is about the accent badge alone.
+A success, warning or danger badge on a row filled with `hw-accent-quiet` keeps its own quiet fill, so its ink sits on its own fill, the pair certified in the table above, and never on `hw-accent-quiet`, which no pair in this book certifies.
+Dropping the pill instead leaves the state ink on the selected row, and in one candidate brand that pair measured 4.531:1 at 8-bit: clear of AA by luck rather than by a solve.
+The pill stays visible on the row by construction, because every state's quiet fill sits at least 5 CIEDE2000 from `hw-accent-quiet` in every brand, the fill bar [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) holds.
+
 ## Accent and its ground
 
 The accent is spent on four things and nothing else: a link, a selected row, a live state, and the focus ring.

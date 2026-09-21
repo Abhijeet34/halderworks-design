@@ -5,6 +5,7 @@
   "note": "The source tools/build.py reads. Colour is a hue seed plus, per token, a lightness and chroma anchor and the contrast floor it must hold. The build clamps chroma into sRGB and re-solves lightness when a floor fails, so a changed accent hue produces a full set rather than an unverified one.",
   "seed": {
     "accentHue": 198,
+    "neutralHue": "accent",
     "chartRotation": [
       0,
       70,
@@ -18,7 +19,15 @@
       "warning": 78,
       "danger": 27
     },
-    "minSemanticSeparation": 8.0,
+    "accentSeparation": {
+      "ink": 14,
+      "fill": 5,
+      "ring": 17
+    },
+    "ringFromBorder": 14,
+    "stateFillFromGround": 6,
+    "chartSeparation": 8.0,
+    "productSeparation": 8.0,
     "minChartNeighbourDeltaL": 0.12,
     "roleLadder": [
       "hw-text",
@@ -51,7 +60,7 @@
           "L": "0.152",
           "C": "0.006"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "The page or window background. Every screen starts here.",
         "state": "active",
         "introduced": "1.0.0"
@@ -67,7 +76,7 @@
           "L": "0.196",
           "C": "0.006"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "Cards, panels and table bodies: one step off the ground.",
         "state": "active",
         "introduced": "1.0.0"
@@ -83,7 +92,7 @@
           "L": "0.215",
           "C": "0.006"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "The hover fill of a row, a menu item or a quiet button. 1.08:1 off surface in light, 1.04:1 in dark: a step the eye finds and the layout does not.",
         "state": "active",
         "introduced": "1.0.0"
@@ -99,7 +108,7 @@
           "L": "0.232",
           "C": "0.006"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "The pressed fill, and the skeleton fill while content loads. One step past hover.",
         "state": "active",
         "introduced": "1.0.0"
@@ -115,7 +124,7 @@
           "L": "0.232",
           "C": "0.006"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "Things that float over content and can be dismissed: dialogs, popovers, menus. In light theme this is the same white as surface on purpose - what separates them there is the shadow. In dark theme it is a real lightness step, because a shadow on a dark ground is invisible.",
         "state": "active",
         "introduced": "1.0.0"
@@ -131,7 +140,7 @@
           "L": "0.118",
           "C": "0.006"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "Wells that recede: sidebars, code blocks, an input at rest.",
         "state": "active",
         "introduced": "1.0.0"
@@ -147,7 +156,7 @@
           "L": "0.288",
           "C": "0.0084"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "The 1px hairline: card and panel edges, table and cell borders, the tab baseline, chart axes and gridlines, the masthead rule, a framed quotation. Separates a container from its ground without being read as an edge.",
         "state": "active",
         "introduced": "1.0.0"
@@ -163,7 +172,7 @@
           "L": "0.516",
           "C": "0.0084"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "floors": [
           {
             "bar": 3.0,
@@ -192,7 +201,7 @@
           "L": "0.938",
           "C": "0.0072"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "floors": [
           {
             "bar": 4.5,
@@ -246,7 +255,7 @@
             "C": "0.0072"
           }
         },
-        "hue": "accent",
+        "hue": "neutral",
         "floors": [
           {
             "bar": 4.5,
@@ -281,7 +290,7 @@
           "L": "0.619",
           "C": "0.0072"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "floors": [
           {
             "bar": 4.5,
@@ -310,7 +319,7 @@
           "L": "0.516",
           "C": "0.0072"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "floors": [
           {
             "bar": 3.0,
@@ -336,7 +345,7 @@
           "L": "0.955",
           "C": "0.0030"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "floors": [
           {
             "bar": 3.0,
@@ -365,7 +374,7 @@
           "L": "0.870",
           "C": "0.0030"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "Hover state of a primary action.",
         "state": "active",
         "introduced": "1.0.0"
@@ -381,7 +390,7 @@
           "L": "0.800",
           "C": "0.0030"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "usage": "The pressed fill of a primary button. One step past hover in the same direction, so a press is distinguishable from a hover on the one control that commits an action.",
         "state": "active",
         "introduced": "1.0.0"
@@ -397,7 +406,7 @@
           "L": "0.145",
           "C": "0.006"
         },
-        "hue": "accent",
+        "hue": "neutral",
         "floors": [
           {
             "bar": 4.5,
@@ -426,6 +435,10 @@
           "light": {
             "L": "0.39",
             "C": "0.079"
+          },
+          "dark": {
+            "L": "0.7312",
+            "C": "0.096"
           }
         },
         "hue": "accent",
@@ -506,7 +519,17 @@
         ],
         "usage": "The focus ring, at 2px with a 2px offset. Held to the WCAG 2.2 non-text bar of 3:1 against the surface CLOSEST to it in lightness, not against the ground: solved against the ground alone it measured 2.56:1 on hw-surface-raised in dark theme.",
         "state": "active",
-        "introduced": "1.0.0"
+        "introduced": "1.0.0",
+        "contrastMore": {
+          "light": {
+            "L": "0.5285",
+            "C": "0.079"
+          },
+          "dark": {
+            "L": "0.6095",
+            "C": "0.074"
+          }
+        }
       },
       {
         "name": "hw-success",
@@ -1533,7 +1556,74 @@
       "hw-field-pad-y": "Consequence, not choice. --hw-control-h is the token and the padding is what is left after the line box and the border; 65-components.md records the 35.5px field beside a 32px button that this rule was written from.",
       "hw-field-pad-y-compact": "The same consequence at the compact control height.",
       "hw-cell-pad-y-compact": "The same consequence at the compact row height: 19.5px of line box plus 6px above and below is the 32px compact row.",
-      "hw-icon-stroke": "A line weight rather than a distance. 55-iconography.md solves it to a constant 1.5px painted stroke at every rendered size."
+      "hw-icon-stroke": "A line weight rather than a distance. 55-iconography.md solves it to a constant painted stroke at every rendered size: 1.5px in the house, and 1.75px or 2px in a brand that takes one."
+    }
+  },
+  "brand": {
+    "note": "What a product's brand seed may choose from. tools/build.py --brand checks every input against its bound, applies it to a copy of this seed, and solves that copy with the same code as the house set, so a brand is a rebuild and never a hand-pick. design/12-brand.md owns the rule; the bounds on the numeric inputs are pinned in tools/build.py rather than here, so an edit to this file cannot widen them.",
+    "registers": {
+      "crisp": {
+        "hw-radius-sm": "2px",
+        "hw-radius-md": "3px",
+        "hw-radius-lg": "6px"
+      },
+      "house": {
+        "hw-radius-sm": "4px",
+        "hw-radius-md": "6px",
+        "hw-radius-lg": "10px"
+      },
+      "soft": {
+        "hw-radius-sm": "6px",
+        "hw-radius-md": "8px",
+        "hw-radius-lg": "14px"
+      }
+    },
+    "iconStrokes": [
+      "1.5px",
+      "1.75px",
+      "2px"
+    ],
+    "faces": {
+      "Public Sans": {
+        "stack": "\"Public Sans\", \"Libre Franklin\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "d75a7dc1a27eb9e336d5b33f55489d2ecb5621bf694d5c43b2415bce2ca830a8",
+        "xHeight": 0.517
+      },
+      "Newsreader": {
+        "stack": "\"Newsreader\", \"Iowan Old Style\", \"Source Serif 4\", Georgia, \"Times New Roman\", serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1",
+        "xHeight": 0.426
+      },
+      "Bricolage Grotesque": {
+        "stack": "\"Bricolage Grotesque\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz,wdth,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "413e7357809ddd12fd80a96a8a396de0e401638d4acd3cb3e37532f0472ac682",
+        "xHeight": 0.528
+      },
+      "Instrument Sans": {
+        "stack": "\"Instrument Sans\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/InstrumentSans%5Bwdth,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1",
+        "xHeight": 0.51
+      },
+      "system serif": {
+        "stack": "\"Iowan Old Style\", \"Palatino Linotype\", Palatino, Georgia, \"Times New Roman\", serif",
+        "delivery": "system"
+      },
+      "system sans": {
+        "stack": "system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+        "delivery": "system"
+      }
     }
   }
 }
