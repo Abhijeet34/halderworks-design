@@ -27,6 +27,7 @@ Organised by surface, because that is how a screen is reviewed.
 | **The whole page painted in the accent** | colour reads as "designed", so more colour reads as more designed | four jobs and no others: a link, a selected row, a live state, the focus ring. A screen with no state on it should have no hue on it |
 | **A semantic colour used as a brand colour** | green is available and looks healthy | a green that also means "this is our brand" cannot also mean "this passed". Semantics are permanently separate from the accent |
 | **A coloured dot with no word beside it** | it is compact and looks like a dashboard | every state carries a word. A row of dots fails for roughly 8% of men and for anyone reading a screenshot |
+| **Progress painted green, or an unfinished step painted amber** | green reads as encouragement and amber as "not done yet" | progress is a count in a neutral colour, `2 of 4 done`. `hw-success` means a check passed and `hw-warning` a real problem named in words; an unfinished step is neither ([10-color.md](10-color.md#how-colour-is-spent)) |
 | **Text placed on a tinted fill that was never solved for it** | the fill looked light enough | [15-color-combinations.md](15-color-combinations.md) is the permission list. The first pass of this system made exactly this mistake and shipped `hw-accent` on `hw-accent-quiet` at 4.37:1 in dark theme |
 
 ## Type
@@ -47,7 +48,9 @@ Organised by surface, because that is how a screen is reviewed.
 
 | the tell | why models produce it | the house rule |
 |---|---|---|
-| **Everything centred** | centring hides the fact that nothing was aligned to anything | left-aligned by default. Centre only a single-element empty state or a dialog's action row |
+| **Everything centred** | centring hides the fact that nothing was aligned to anything | left-aligned by default. Centre only a single-element empty state, a dialog's action row, or a column that is the whole screen: sign-in and first run |
+| **Two things competing for first look** | each block was designed on its own and given the size that made it look finished | one primary focus per screen, nameable in one sentence and carrying the largest weight ([35-layout.md](35-layout.md#one-primary-focus-per-screen)) |
+| **A setup checklist off to one side of the product's main control** | the main control is the product's signature, so it is drawn first and setup is fitted around it | setup is the only focus: one centred column at `--hw-measure-ui`, and the main control appears only in the task that uses it ([68-page-patterns.md](68-page-patterns.md#first-run-and-setup)) |
 | **A uniform full-width section rhythm, every section the same height and padding** | one repeated block is one decision instead of six, and it looks orderly scrolling past | vertical padding is chosen per section from `--hw-space-48`, `--hw-space-64`, `--hw-space-96` by what the section carries. A page whose every section is the same height has had no editing done to it |
 | **Three feature cards in a row, an icon, a bold noun, two lines of filler** | it is the single most probable block on any product page | a card groups things read together and acted on together. Three cards that exist because three fits the grid are one paragraph that was afraid to be a paragraph |
 | **A hero that is a headline over a gradient with two buttons** | it is the default opening of the genre | the page opens with what the product does, set in type, on the ground. One primary action, never two side by side |
@@ -71,6 +74,7 @@ Organised by surface, because that is how a screen is reviewed.
 | **Zebra striping** | it looks like a data product | a 1px border per row is quieter and does the same job. Striping adds a surface that means nothing |
 | **`outline: none` on focus** | the default ring is ugly and removing it is one line | never removed. `outline: none` is the most common focus declaration in the whole capture, 294 declarations across 26 of 41 sites, and the ring here is solved to 3:1 precisely so it can stay on |
 | **Disabled as 45% opacity** | it is one property and it looks inactive | a solved `--hw-text-disabled` per theme. The same 45% composites to 1.73:1 in light and 7.40:1 in dark: one opacity cannot mean one thing in two themes |
+| **A disabled control as the largest object on the screen** | the control is the product's reason to exist, so it is placed before what it depends on is done | a control that cannot work yet is not shown, or is shown at its ordinary size beside the reason. The largest interactive element on a screen is enabled ([60-states.md](60-states.md#disabled-is-a-solved-colour-not-an-opacity)) |
 | **A spinner for every wait** | it is the universal "loading" glyph | a skeleton at the shape of the real content. A spinner that spins forever says only that the product does not know either |
 
 ## Forms
@@ -126,6 +130,7 @@ Several of them were in this system's own first two passes.
 | **Emoji as section markers** | they read as friendly and cost nothing to type | never. A section is marked by a heading, a state by a colour token with a word beside it |
 | **Noise, grain or a paper texture under text** | it reads as crafted and expensive | a contrast ratio is computed against one background colour, and grain makes every certified number an approximation. 2 of 44 measured sites carry one, neither behind data. A ground may carry a pattern only where every pixel is a solved token and the ink is certified against the worst of them; a ground whose pixels are not enumerable carries no text at all. [75-spec-sheet.md](75-spec-sheet.md) has the three permitted styles |
 | **A mixed icon set** | whichever icon was to hand | one set, Lucide, ISC-licensed, at a painted 1.5px stroke at every size |
+| **Several marks on one screen** | each part arrived with its own branding slot: a header, a sidebar card, a splash | one mark per screen, the product's own name set in its brand's display face ([00-brand-book.md](00-brand-book.md#the-mark)) |
 | **Stock photography of people at laptops** | the slot exists in the template | no photography in product surfaces |
 
 ## Copy
@@ -138,6 +143,7 @@ Several of them were in this system's own first two passes.
 | **`Submit`, `Confirm`, `OK`, `Continue`** | they are the generic safe labels | the control says what will happen. `Revoke key`, then `Key revoked` |
 | **`An error occurred`, `Something went wrong`, `Oops!`** | a real message needs a real cause | what failed, why, and the next action, with the specifics |
 | **Lorem ipsum, or plausible-but-fake data shipped as real** | a filled table demos better than an empty one | never. Fabricated records in an instrument of record are the one failure this portfolio cannot survive. Use an empty state, or data marked as sample on its face |
+| **Reward copy: points, streaks, a percentage, `You're almost there`** | it is the default register of consumer onboarding | state the count, `2 of 4 done`, and nothing else. An instrument reports that setup is done; it does not congratulate |
 | **An exclamation mark** | it reads as enthusiastic | none. The product is not excited; it is telling you something |
 | **A different noun for the same thing on three screens** | each screen was written on its own | one name per concept per product |
 
@@ -159,7 +165,7 @@ A **no** is not a judgement call to weigh; it is a defect with a named rule abov
 4. Is there no gradient, no `backdrop-filter`, and no shadow on anything that cannot be dismissed, and does any patterned ground carry only ink certified against its own worst pixel?
 5. Is every type size one of the nine steps, and is running text inside its measure?
 6. Does every column of numbers carry `tabular-nums` and right alignment?
-7. Is the content left-aligned, with centring only on a single-element empty state or a dialog's action row?
+7. Is the content left-aligned, with centring only on a single-element empty state, a dialog's action row, or a column that is the whole screen?
 8. Does the vertical rhythm vary by what each section carries, rather than repeating one value?
 9. Is every card a group of things read together and acted on together, rather than a shape the grid suggested?
 10. Does every interactive element answer all nine states, disabled and loading and read-only included?
@@ -190,18 +196,26 @@ And five more, which the surfaces specified in [37-navigation.md](37-navigation.
 29. Does a bulk selection say what it selected, and does selecting everything beyond the loaded page take a second explicit act that states the count?
 30. Does every failure message say only what the reader is entitled to know - so that an authentication failure names the pair rather than which half was wrong?
 
-**The test underneath all thirty:** if this could be any AI product's screen, something on this list is in it.
+And five more on what the screen is for, which a review of a first-run screen added to the gate:
+
+31. Can the screen's primary focus be named in one sentence, and is the largest element on it part of that focus?
+32. Is every disabled control smaller than the largest enabled one, so nothing the reader cannot press carries the most weight?
+33. Does the screen carry exactly one mark, the product's own?
+34. Is progress a count in words in a neutral colour, with `hw-success` only on a check that passed and `hw-warning` only on a real problem that is named?
+35. On a first-run or setup screen: is setup the only thing on it, in one centred column, with every task saying why it is needed, every optional task skippable, and the product's main control absent until the task that uses it?
+
+**The test underneath all thirty-five questions:** if this could be any AI product's screen, something on this list is in it.
 
 ## What this checklist does, and what it cannot do
 
 Stated plainly, because a gate that is believed to do more than it does is worse than no gate.
 
-**A screen that fails one of the thirty is reliably generic.** Every item names a specific failure
+**A screen that fails one of the thirty-five questions is reliably generic.** Every item names a specific failure
 with a measured rule above it, and each is the shape a default takes when nobody decided. That
 direction of the test is strong and it is the direction that matters most, because generic is what
 this system exists to prevent.
 
-**A screen that answers all thirty is not automatically good.** The list removes failures; it does
+**A screen that answers all thirty-five questions is not automatically good.** The list removes failures; it does
 not supply judgement. It cannot tell you that the heading is the wrong heading, that the table
 should have been three columns, that the screen is answering a question nobody asked, or that a
 gap of 24px was right where you used 16px - every one of those passes every item above.

@@ -88,5 +88,10 @@ An icon that needs a legend is a label that should have been written.
 
 There is no logomark and no wordmark yet, and none has been drawn here, because a mark is a commission rather than something an agent invents. <!-- covered-by: Logomark and wordmark -->
 Until one exists, the name is set plainly in the display face at `display-2` weight 500, as the cover shows; a product's name is set the same way in its brand's display face.
+
+**One mark per screen, and it is the product's own.**
+A mark answers whose screen this is, and a screen that answers twice makes the reader choose.
+On a product's screen the mark is the product's name, set as above or at the header's `title-3` ([37-navigation.md](37-navigation.md#site-header)), once; the house name, another product's name and an app icon beside the name are not added as further marks.
+Checked on the render: count the elements that set a product or house name as a mark or draw a logo, and the count is one.
 `halderworks.com` is the registered umbrella domain, and it is a name here rather than a link: its mail resolves, and no web host answers the apex yet.
 The visual identity that will sit on it is open work.

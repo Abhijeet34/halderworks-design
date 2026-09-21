@@ -1,6 +1,6 @@
 # Page patterns
 
-Four whole-page compositions this book had no entry for. The first two every product with a rail
+Five whole-page compositions this book had no entry for. The first three every product with a rail
 ships; the last two every product with a public address ships. None is a component: each is a
 layout, a set of existing components and the two or three decisions that go wrong when nobody has
 written them down.
@@ -65,6 +65,89 @@ the form is the whole screen. Everything inside the column is still left-aligned
 `autocomplete` on every field (`username`, `current-password`, `new-password`), which is what makes
 a password manager work and is the single most commonly missed attribute on this screen. Also the
 `<form>` element itself, the submit handler, and the rate limiting.
+
+## First run and setup
+
+The screen between the way in and the product's first real screen: the permissions, the folder or
+model to choose, the one test that proves the product works on this machine. Every product that
+needs something from the machine before it can do its job ships one.
+
+**It is a page, never a modal wizard and never a tour.** A tour's coachmarks point at controls the
+reader cannot use yet, and [05-coverage.md](05-coverage.md#ruled-out-with-the-reason) rules one out.
+
+This entry came from a review rather than a sweep. On 2026-09-21 the system's owner reviewed a
+product's first-run screen, a setup checklist: a disabled primary control, a large microphone orb,
+was the biggest object on the screen, the checklist that was the only thing the reader could do sat
+off-centre beside it, reward copy competed in a sidebar, and three different marks appeared on one
+screen. Each of those is a rule below, and the three that hold on every screen are stated where
+they belong: [one primary focus](35-layout.md#one-primary-focus-per-screen),
+[a disabled control's weight](60-states.md#disabled-is-a-solved-colour-not-an-opacity) and
+[one mark](00-brand-book.md#the-mark).
+
+### First run: anatomy
+
+| part | token | derivation |
+|---|---|---|
+| shell | the sign-in page's: the site header with the nav removed, the mark only, and no rail | until setup is done every destination a rail offers opens onto a nothing-yet empty state, so a rail here is a column of dead ends |
+| column width | `--hw-measure-ui`, 56ch, centred horizontally | each task carries one sentence of explanation, which is running text in product UI, and [56ch is its measure](35-layout.md#measure). The sign-in column's 352px is sized for two fields, not for a sentence |
+| vertical placement | `--hw-space-96` from the header | the sign-in column's placement |
+| heading | `title-2` (21px/600), naming what is being set up in the product's words: `Set up papertrace` | [25-content.md](25-content.md#naming) names things the way the person does |
+| progress | one `body-sm` line under the heading in `--hw-text-secondary`, `2 of 4 done`, `tabular-nums` | a count is exact and reads aloud as written; a bar or a ring over four tasks draws a precision it does not have |
+| the tasks | one [list row](65-components.md#list-row) per task, in the order they must be done, all of them visible from the start | the reader sees the whole cost of setup before paying any of it |
+| a task's state | a leading 16px Lucide mark in `currentColor` and a trailing word: `check` and `Done`, `circle` and `To do`, `Skipped` for a skipped optional task; a finished or waiting task's title in `--hw-text-secondary` | every state carries a word, and the words are neutral |
+| the current task | its row expanded: one sentence of what the task does and why the product needs it, then its one action as `primary` at `--hw-control-h` | the screen's one primary action is always the current task's |
+
+Centred for the sign-in page's reason: the column is the whole screen. Everything inside it is
+left-aligned.
+
+### First run: rules
+
+- **The setup task is the only focus.** No sidebar, no feature preview, no tip and no view of the
+  product waiting behind it. [One primary focus](35-layout.md#one-primary-focus-per-screen) is
+  the general rule; here the setup list is the focus by construction, because it is the only thing
+  the reader can do.
+- **The product's main control does not appear until the step that uses it.** A record button, a
+  microphone or a run control that cannot work yet is not drawn disabled at full size: it is
+  absent, and it appears inside the task that tests it, at that task's action size, enabled. This
+  is the screen where a disabled control is most likely to carry the most weight, because the main
+  control is the product's signature and is the first thing drawn.
+- **Progress is a count in a neutral colour.** A finished task is not a passed check, so it takes
+  `--hw-text-secondary` and the word `Done`, never `--hw-success`, and a column of green ticks is
+  the one [67-validation.md](67-validation.md#success-and-pending) already refuses on a form.
+  `--hw-warning` appears only on a task blocked by a real problem, with its mark and a sentence
+  naming the problem and the fix: `Microphone access is off. Turn it on in System Settings, Privacy
+  and Security, Microphone.` A task not yet reached is not a problem, and a task that failed takes
+  `--hw-danger` as [the state table](15-color-combinations.md#semantic-and-its-quiet-fill) assigns it.
+- **No reward copy.** No points, streaks, levels, percentages, `You're almost there`, and no
+  celebration when setup ends. An instrument reports that setup is done; it does not congratulate,
+  and [25-content.md](25-content.md) refuses the exclamation mark such copy ends in.
+- **One mark, the product's own**, in the header and nowhere else on the screen.
+
+**The dead-end rules**, because a setup screen is the one place a reader can be stuck before the
+product has done anything for them:
+
+- **Every task says why it is needed** in its one sentence, before its action. A permission asked
+  for with no reason is the one a reader refuses.
+- **An optional task can be skipped** with a `quiet` `Skip for now`, it then reads `Skipped`, and
+  the settings page reaches it again. A required task says that it is required and why, and has no
+  skip.
+- **A task blocked outside the product says where to fix it, and notices the fix**: it re-checks
+  when the window regains focus, or offers `Check again`. It never asks the reader to restart the
+  product.
+- **A task that fails says what failed and offers the retry in place**, in the shape
+  [25-content.md](25-content.md#errors) gives an error. The reader is never sent back to the first
+  task.
+- **Setup can always be left.** Quitting or signing out stays reachable, and a reader who comes
+  back resumes at the first unfinished task with the finished ones still `Done`.
+- **The last task lands on the product's first screen**, the nothing-yet
+  [empty state](65-components.md#empty-state) of whatever setup made possible, never a completion
+  page with a `Get started` button.
+
+### First run: what the consumer provides
+
+Which tasks exist, which are required and in what order, how each task's completion is detected - a
+permission API, a file on disk, a test that passed - and the persistence that lets a reader resume
+across launches.
 
 ## The settings page
 
