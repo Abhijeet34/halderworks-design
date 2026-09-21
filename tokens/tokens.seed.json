@@ -19,7 +19,13 @@
       "danger": 27
     },
     "minSemanticSeparation": 8.0,
-    "minChartNeighbourDeltaL": 0.12
+    "minChartNeighbourDeltaL": 0.12,
+    "roleLadder": [
+      "hw-text",
+      "hw-text-secondary",
+      "hw-text-muted"
+    ],
+    "minRoleStep": 0.06
   },
   "themes": [
     {
@@ -230,6 +236,16 @@
           "L": "0.687",
           "C": "0.0072"
         },
+        "contrastMore": {
+          "light": {
+            "L": "0.37",
+            "C": "0.0060"
+          },
+          "dark": {
+            "L": "0.79",
+            "C": "0.0072"
+          }
+        },
         "hue": "accent",
         "floors": [
           {
@@ -405,6 +421,12 @@
         "dark": {
           "L": "0.619",
           "C": "0.096"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.39",
+            "C": "0.079"
+          }
         },
         "hue": "accent",
         "floors": [
@@ -635,6 +657,12 @@
           "L": "0.73",
           "C": "0.1"
         },
+        "contrastMore": {
+          "dark": {
+            "L": "0.64",
+            "C": "0.1"
+          }
+        },
         "hue": "accent",
         "floors": [
           {
@@ -661,6 +689,12 @@
         "dark": {
           "L": "0.88",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.32",
+            "C": "0.115"
+          }
         },
         "hue": "accent+70",
         "floors": [
@@ -689,6 +723,12 @@
           "L": "0.73",
           "C": "0.1"
         },
+        "contrastMore": {
+          "dark": {
+            "L": "0.64",
+            "C": "0.1"
+          }
+        },
         "hue": "accent+130",
         "floors": [
           {
@@ -715,6 +755,12 @@
         "dark": {
           "L": "0.88",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.32",
+            "C": "0.115"
+          }
         },
         "hue": "accent+190",
         "floors": [
@@ -743,6 +789,12 @@
           "L": "0.73",
           "C": "0.1"
         },
+        "contrastMore": {
+          "dark": {
+            "L": "0.64",
+            "C": "0.1"
+          }
+        },
         "hue": "accent+250",
         "floors": [
           {
@@ -769,6 +821,12 @@
         "dark": {
           "L": "0.88",
           "C": "0.1"
+        },
+        "contrastMore": {
+          "light": {
+            "L": "0.32",
+            "C": "0.115"
+          }
         },
         "hue": "accent+310",
         "floors": [

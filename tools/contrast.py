@@ -130,32 +130,39 @@ def hexof(L, C, h):
 TOKEN_RE = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
 
-def parse_tokens(path):
-    """Return {'light': {...}, 'dark': {...}, 'media-dark': {...}}.
+# (media query, selector) -> block. A selector means nothing without the query it sits in: the
+# light selector appears twice, once plain and once under prefers-contrast, and reading the
+# second as the first would certify the high-contrast values as the default ones.
+MORE = "@media (prefers-contrast: more)"
+BLOCKS = {
+    (None, ':root, [data-theme="light"]'): "light",
+    (None, '[data-theme="dark"]'): "dark",
+    ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'): "media-dark",
+    (MORE, ':root, [data-theme="light"]'): "light-more",
+    (MORE, '[data-theme="dark"]'): "dark-more",
+    (MORE + " and (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
+        "media-dark-more",
+}
 
-    All three colour blocks, including the @media (prefers-color-scheme: dark) copy: pass 3
-    checks it against [data-theme="dark"] rather than assuming it is a duplicate."""
-    themes = {"light": {}, "dark": {}, "media-dark": {}}
-    cur, in_media = None, False
+
+def parse_tokens(path):
+    """Return {'light': {...}, 'dark': {...}, 'media-dark': {...}, and the three -more blocks}.
+
+    Every colour block, including both media-query copies of dark: pass 4 checks each against
+    the explicit block rather than assuming it is a duplicate."""
+    themes = {name: {} for name in BLOCKS.values()}
+    cur, media = None, None
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         s = line.strip()
-        if s.startswith("@media (prefers-color-scheme: dark)"):
-            in_media = True
+        if s.startswith("@media"):
+            media = s[:-1].strip()
             continue
         if s.endswith("{"):
-            sel = s[:-1].strip()
-            if in_media and sel.startswith(':root:not('):
-                cur = "media-dark"
-            elif sel == ':root, [data-theme="light"]':
-                cur = "light"
-            elif sel == '[data-theme="dark"]':
-                cur = "dark"
-            else:
-                cur = None
+            cur = BLOCKS.get((media, s[:-1].strip()))
             continue
         if s.startswith("}"):
             if cur is None:
-                in_media = False
+                media = None
             cur = None
             continue
         m = TOKEN_RE.match(line)
@@ -173,6 +180,9 @@ def parse_tokens(path):
 # surfaces beside the ground and the ruled ground's two permitted inks took it to 198.
 
 AA, NON_TEXT = 4.5, 3.0
+# prefers-contrast: more raises text to WCAG 2.2 SC 1.4.6's 7:1. SC 1.4.11 has no enhanced level,
+# so a non-text pair is raised to 4.5:1, the next bar this file already holds.
+MORE_BAR = {AA: 7.0, NON_TEXT: AA}
 
 SURFACES = ["--hw-ground", "--hw-surface", "--hw-surface-raised", "--hw-surface-sunken",
             "--hw-surface-hover", "--hw-surface-active"]
@@ -270,6 +280,20 @@ def separations(tokens):
                 bad.append(f"{a} and {CHARTS[i + 1]} are adjacent series {dl:.3f} apart in "
                            f"lightness, below {NEIGHBOUR_DL}")
     return bad, closest
+
+
+# The text roles, most prominent first, and the smallest lightness step the default themes keep
+# between two of them (0.062 light, 0.068 dark, secondary to muted). Raising the floors pushes
+# neighbouring roles toward one bar, and a step under this is one role under two names.
+ROLE_LADDER, ROLE_STEP = ["--hw-text", "--hw-text-secondary", "--hw-text-muted"], 0.06
+BLOCKS_CERTIFIED = ["light", "dark", "light-more", "dark-more"]
+
+
+def roles(tokens):
+    return [f"{a} and {b} are {abs(tokens[a][0] - tokens[b][0]):.4f} apart in lightness, "
+            f"below the {ROLE_STEP} that keeps them two roles"
+            for a, b in zip(ROLE_LADDER, ROLE_LADDER[1:])
+            if abs(tokens[a][0] - tokens[b][0]) < ROLE_STEP]
 
 
 # --- pass 1: every ratio the book publishes -------------------------------------------------
@@ -393,8 +417,9 @@ def main(argv):
               f"ratios were measured at {PUBLISHED_HUE} and do not describe it.")
 
     checked, worst = 0, {}
-    for bar, fg, bg, why in required():
-        for theme in ("light", "dark"):
+    for base, fg, bg, why in required():
+        for theme in BLOCKS_CERTIFIED:
+            bar = MORE_BAR[base] if theme.endswith("-more") else base
             for token in (fg, bg):
                 if token not in themes[theme]:
                     failures.append(f"{theme} {token} is certified and is not in {path}")
@@ -410,7 +435,7 @@ def main(argv):
                 failures.append(f"{theme} {fg} on {bg}: {got:.3f} clears {bar} but reads "
                                 f"{got8:.3f} at 8-bit, {hexof(*themes[theme][fg])} on "
                                 f"{hexof(*themes[theme][bg])} ({why})")
-            key = ("text" if bar >= AA else "nontext", theme)
+            key = ("text" if base >= AA else "nontext", theme)
             if key not in worst or got < worst[key][0]:
                 worst[key] = (got, got8, fg, bg)
     for bar, fg, bg, why in refused():
@@ -420,30 +445,32 @@ def main(argv):
             if got >= bar or got8 >= bar:
                 failures.append(f"{theme} {fg} on {bg}: {got:.3f} now clears {bar}, and the book "
                                 f"still refuses it ({why})")
-    print(f"pass 2: {checked} certified pairs checked against AA {AA}:1 and "
-          f"non-text {NON_TEXT}:1, on the float value and at 8-bit, "
+    print(f"pass 2: {checked} certified pairs checked against AA {AA}:1 and non-text "
+          f"{NON_TEXT}:1, and under prefers-contrast: more against {MORE_BAR[AA]}:1 and "
+          f"{MORE_BAR[NON_TEXT]}:1, on the float value and at 8-bit, "
           f"{2 * len(list(refused()))} of them asserted below their bar")
     for (kind, theme), (got, got8, fg, bg) in sorted(worst.items()):
-        print(f"  worst {kind:8} {theme:5} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
+        print(f"  worst {kind:8} {theme:10} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
 
-    for theme in ("light", "dark"):
+    for theme in BLOCKS_CERTIFIED:
         bad, (d, a, b) = separations(themes[theme])
+        bad += roles(themes[theme])
         failures += [f"{theme} {f}" for f in bad]
-        print(f"pass 3: {theme:5} chart and semantic separation, {len(bad)} below bar; "
+        print(f"pass 3: {theme:10} separation and role steps, {len(bad)} below bar; "
               f"closest chart pair {d:.1f}, {a} / {b}")
 
-    for theme in ("light", "dark"):
+    for theme in BLOCKS_CERTIFIED:
         for token, (L, C, H) in sorted(themes[theme].items()):
             if not in_gamut(L, C, H):
                 failures.append(f"{theme} {token} oklch({L} {C} {H}) falls outside sRGB")
-    if themes["media-dark"] != themes["dark"]:
-        diff = sorted(set(themes["dark"].items()) ^ set(themes["media-dark"].items()))
-        failures.append("the @media (prefers-color-scheme: dark) block differs from "
-                        f'[data-theme="dark"] in {len(diff)} declaration(s): '
-                        + ", ".join(t for t, _ in diff[:6]))
-    print(f"pass 4: {len(themes['light']) + len(themes['dark'])} tokens inside sRGB; "
-          f"the media-dark block and [data-theme=\"dark\"] agree on "
-          f"{len(themes['media-dark'])} declarations")
+    for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
+        if themes[copy] != themes[block]:
+            diff = sorted(set(themes[block].items()) ^ set(themes[copy].items()))
+            failures.append(f"the {copy} block differs from {block} in {len(diff)} "
+                            f"declaration(s): " + ", ".join(t for t, _ in diff[:6]))
+    print(f"pass 4: {sum(len(themes[t]) for t in BLOCKS_CERTIFIED)} tokens inside sRGB; "
+          f"media-dark agrees with dark on {len(themes['media-dark'])} declarations and "
+          f"media-dark-more with dark-more on {len(themes['media-dark-more'])}")
 
     for f in failures:
         print("FAIL  " + f, file=sys.stderr)

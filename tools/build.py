@@ -90,6 +90,15 @@ MARGIN = 0.03
 # rather than silently counted as the lower one.
 NON_TEXT_BAR, AA_BAR = 3.0, 4.5
 
+# What a reader who asks for more contrast gets: every text floor raised to the 7:1 of WCAG 2.2
+# SC 1.4.6, and every non-text floor to 4.5:1. 1.4.11 has no enhanced level, so the non-text bar
+# is raised to the next one this system already recognises rather than to a number invented here.
+AAA_BAR = 7.0
+
+
+def raised(bar):
+    return max(bar, AAA_BAR) if bar >= AA_BAR else AA_BAR
+
 # How far inside the sRGB boundary the chroma clamp stops. max_chroma() explains the number.
 GAMUT_MARGIN = 0.005
 
@@ -271,8 +280,9 @@ class UnsolvedGround(Exception):
 class Solver:
     """Resolves one theme's colour tokens: hue, then chroma clamp, then lightness."""
 
-    def __init__(self, seed, accent, theme):
-        self.seed, self.accent, self.theme = seed, accent, theme
+    def __init__(self, seed, accent, theme, more=False):
+        self.seed, self.accent, self.theme, self.more = seed, accent, theme, more
+        self.label = f"{theme}, more contrast" if more else theme
         self.solved = {}      # short name -> (L, C, h)
         self.lums = {}        # short name -> (float luminance, 8-bit luminance)
         self.notes = []
@@ -291,6 +301,15 @@ class Solver:
         return [e for e in entries if not e.get("floors")] + \
                [e for e in entries if e.get("floors")]
 
+    def anchor(self, entry):
+        """A role that the raised bars would push onto its neighbour carries its own target."""
+        return entry.get("contrastMore", {}).get(self.theme, entry[self.theme]) if self.more \
+            else entry[self.theme]
+
+    def floors(self, entry):
+        return [dict(f, bar=raised(f["bar"])) for f in entry.get("floors", [])] if self.more \
+            else entry.get("floors")
+
     def meets(self, L, C, h, floors, margin=0.0):
         """(ok, worst_ratio, worst_ground), on both readings of every pair.
 
@@ -305,7 +324,7 @@ class Solver:
                 if g not in self.lums:
                     raise UnsolvedGround(
                         f"floor names --hw-{g}, which is not a solved colour at this point in "
-                        f"the {self.theme} pass")
+                        f"the {self.label} pass")
                 gl, gl8 = self.lums[g]
                 r = ratio_lum(lum, gl)
                 if worst is None or r < worst:
@@ -329,10 +348,10 @@ class Solver:
 
     def solve_one(self, entry):
         h = resolve_hue(entry["hue"], self.accent)
-        anchor = entry[self.theme]
+        anchor = self.anchor(entry)
         L0, C0 = float(anchor["L"]), float(anchor["C"])
         C = min(C0, max_chroma(L0, h))
-        floors = entry.get("floors")
+        floors = self.floors(entry)
 
         if not floors:
             return L0, C, h, (abs(C - C0) > EPS)
@@ -365,12 +384,12 @@ class Solver:
         if best is None:
             _, worst, where = self.meets(L0, C, h, floors)
             self.failures.append(
-                f"{entry['name']} ({self.theme}): no lightness at hue {h} clears its floor with "
+                f"{entry['name']} ({self.label}): no lightness at hue {h} clears its floor with "
                 f"{MARGIN} to spare; worst {worst:.3f} on --hw-{where}")
             return L0, C, h, True
         L, C = best
         self.notes.append(
-            f"{entry['name']} ({self.theme}): re-solved L {L0:.4f} -> {L:.4f}, "
+            f"{entry['name']} ({self.label}): re-solved L {L0:.4f} -> {L:.4f}, "
             f"C {C0:.4f} -> {C:.4f} at hue {h}")
         return L, C, h, True
 
@@ -383,7 +402,7 @@ class Solver:
             out[e["name"]] = (L, C, h, moved, e)
         for name, (L, C, h, _, _) in out.items():
             if not in_gamut(L, C, h):
-                self.failures.append(f"{name} ({self.theme}): oklch({L} {C} {h}) is outside sRGB")
+                self.failures.append(f"{name} ({self.label}): oklch({L} {C} {h}) is outside sRGB")
         return out
 
 
@@ -552,10 +571,39 @@ def check_separation(seed, blocks):
     return bad
 
 
+def check_roles(seed, blocks):
+    """Each step of a role ladder stays a visible step in every block.
+
+    The solver keeps the acceptable lightness nearest a token's anchor, so two roles pushed
+    toward one bar land on one value: raising the floors to 7:1 put hw-text-secondary and
+    hw-text-muted both at L 0.4355. A ladder whose rungs coincide is one role under two names."""
+    ladder, step = seed["seed"]["roleLadder"], seed["seed"]["minRoleStep"]
+    bad = []
+    for block, t in blocks.items():
+        for a, b in zip(ladder, ladder[1:]):
+            d = abs(t[a][0] - t[b][0])
+            if d < step:
+                bad.append(f"{a} and {b} are {d:.4f} apart in lightness in {block}, below the "
+                           f"{step} that keeps them two roles")
+    return bad
+
+
 # --- emitters ------------------------------------------------------------------------------
 
-def value_string(L, C, h, entry, theme):
-    anchor = entry[theme]
+def more_key(theme):
+    return f"{theme}-more"
+
+
+def anchor_of(entry, block):
+    """The seed anchor a block's value was solved from, whose decimals fmt() keeps."""
+    if block.endswith("-more"):
+        theme = block[:-len("-more")]
+        return entry.get("contrastMore", {}).get(theme, entry[theme])
+    return entry[block]
+
+
+def value_string(L, C, h, entry, block):
+    anchor = anchor_of(entry, block)
     return f"oklch({fmt(L, anchor['L'])} {fmt(C, anchor['C'])} {h})"
 
 
@@ -642,7 +690,11 @@ def build_tokens_css(seed, resolved, accent, stats):
    3:1, 0 below it. Every one re-measured on these strings, on the float value and on the
    8-bit value a display receives, after they were formatted and before they were written.
    {len(seed['color']['tokens'])} colour tokens, {len(resolved[ids[0]])} of them solved in oklch, 0 outside sRGB.
-   Accent hue {accent % 360}. */
+   Accent hue {accent % 360}.
+
+   Under @media (prefers-contrast: more) the same pairs are solved again from the same seed:
+   {n_text} text pairs held to WCAG AAA 7:1 and {n_nontext} non-text pairs to 4.5:1, 0 below
+   either, measured the same two ways. */
 """)
     o.append(":root {")
     for fam in SCALAR_FAMILIES:
@@ -702,6 +754,31 @@ def build_tokens_css(seed, resolved, accent, stats):
     o += colour_block(ids[-1], indent="    ")
     o.append("  }")
     o.append("}")
+    o.append("")
+    o.append("/* More contrast, for a reader who has asked for it: every oklch colour re-solved with")
+    o.append("   each 4.5:1 floor raised to 7:1 and each 3:1 floor to 4.5:1. Literal colours and")
+    o.append("   shadows do not move, so they are not repeated here. */")
+
+    def more_block(theme, indent):
+        return [f"{indent}--{e['name']}: "
+                f"{value_string(*resolved[more_key(theme)][e['name']][:3], e, more_key(theme))};"
+                for e in seed["color"]["tokens"] if e["kind"] == "oklch"]
+
+    o.append("@media (prefers-contrast: more) {")
+    o.append('  :root, [data-theme="light"] {')
+    o += more_block(ids[0], "    ")
+    o.append("  }")
+    for theme in ids[1:]:
+        o.append(f'  [data-theme="{theme}"] {{')
+        o += more_block(theme, "    ")
+        o.append("  }")
+    o.append("}")
+    o.append("")
+    o.append("@media (prefers-contrast: more) and (prefers-color-scheme: dark) {")
+    o.append('  :root:not([data-theme="light"]) {')
+    o += more_block(ids[-1], "    ")
+    o.append("  }")
+    o.append("}")
     o.append(CSS_TAIL.rstrip("\n"))
     for g in seed["type"]["groups"]:
         for s in g["styles"]:
@@ -742,28 +819,37 @@ def count_pairs(seed, resolved):
 CSS_TOKEN = re.compile(r"^\s*--(hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
 
+MORE = "@media (prefers-contrast: more)"
+EMITTED_BLOCKS = {
+    (None, ':root, [data-theme="light"]'): "light",
+    (None, '[data-theme="dark"]'): "dark",
+    ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'): "media-dark",
+    (MORE, ':root, [data-theme="light"]'): "light-more",
+    (MORE, '[data-theme="dark"]'): "dark-more",
+    (MORE + " and (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
+        "media-dark-more",
+}
+
+
 def parse_emitted(css):
     """Read the colour blocks back out of the CSS text this build is about to write.
 
     Deliberately a second reader rather than a record of what the solver decided: it is the only
     way a value written into the wrong theme block, a token dropped by an emitter change, or a
     dark block that has drifted from its media-query copy becomes visible."""
-    blocks = {"light": {}, "dark": {}, "media-dark": {}}
-    cur, in_media = None, False
+    blocks = {name: {} for name in EMITTED_BLOCKS.values()}
+    cur, media = None, None
     for line in css.splitlines():
         s = line.strip()
-        if s.startswith("@media (prefers-color-scheme: dark)"):
-            in_media = True
+        if s.startswith("@media"):
+            media = s[:-1].strip()
             continue
         if s.endswith("{"):
-            sel = s[:-1].strip()
-            cur = ("media-dark" if in_media and sel.startswith(":root:not(")
-                   else "light" if sel == ':root, [data-theme="light"]'
-                   else "dark" if sel == '[data-theme="dark"]' else None)
+            cur = EMITTED_BLOCKS.get((media, s[:-1].strip()))
             continue
         if s.startswith("}"):
             if cur is None:
-                in_media = False
+                media = None
             cur = None
             continue
         m = CSS_TOKEN.match(line)
@@ -783,26 +869,30 @@ def verify_emitted(css, seed):
     write it.
     """
     blocks = parse_emitted(css)
-    bad = check_separation(seed, {t: blocks[t] for t in theme_ids(seed)})
-    for theme in theme_ids(seed):
-        tokens = blocks[theme]
+    names = [b for t in theme_ids(seed) for b in (t, more_key(t))]
+    bad = check_separation(seed, {b: blocks[b] for b in names})
+    bad += check_roles(seed, {b: blocks[b] for b in names})
+    for block in names:
+        tokens = blocks[block]
         for e in seed["color"]["tokens"]:
             for floor in e.get("floors", []):
+                bar = raised(floor["bar"]) if block.endswith("-more") else floor["bar"]
                 for g in floor["on"]:
                     fg, bg = tokens.get(e["name"]), tokens.get(f"hw-{g}")
                     if fg is None or bg is None:
-                        bad.append(f"{e['name']} on --hw-{g} ({theme}): the emitted CSS does "
+                        bad.append(f"{e['name']} on --hw-{g} ({block}): the emitted CSS does "
                                    f"not declare both tokens in that block")
                         continue
                     r = ratio_lum(luminance(*fg), luminance(*bg))
                     r8 = ratio_lum(luminance8(*fg), luminance8(*bg))
-                    if r < floor["bar"] or r8 < floor["bar"]:
-                        bad.append(f"{e['name']} on --hw-{g} ({theme}): the value about to be "
+                    if r < bar or r8 < bar:
+                        bad.append(f"{e['name']} on --hw-{g} ({block}): the value about to be "
                                    f"written measures {r:.3f} ({r8:.3f} at 8-bit), below its "
-                                   f"{floor['bar']}:1 floor")
-    if blocks["media-dark"] != blocks[theme_ids(seed)[-1]]:
-        bad.append("the @media (prefers-color-scheme: dark) block about to be written differs "
-                   'from [data-theme="dark"]')
+                                   f"{bar}:1 floor")
+    last = theme_ids(seed)[-1]
+    for media, block in (("media-dark", last), ("media-dark-more", more_key(last))):
+        if blocks[media] != blocks[block]:
+            bad.append(f"the {media} block about to be written differs from {block}")
     return bad
 
 
@@ -827,19 +917,20 @@ def main(argv=None):
         print(f"\nrefusing to solve: {len(failures)} check(s) failed", file=sys.stderr)
         return 1
 
-    resolved, notes = {}, []
+    resolved, notes, more_notes = {}, [], []
     for theme in theme_ids(seed):
-        s = Solver(seed, accent, theme)
-        resolved[theme] = s.run()
-        notes += s.notes
-        failures += s.failures
+        for more in (False, True):
+            s = Solver(seed, accent, theme, more)
+            resolved[more_key(theme) if more else theme] = s.run()
+            (more_notes if more else notes).extend(s.notes)
+            failures += s.failures
 
     stats = count_pairs(seed, resolved)
     js = build_tokens_json(seed, resolved)
     css = build_tokens_css(seed, resolved, accent, stats)
     failures += verify_emitted(css, seed)
 
-    for n in notes:
+    for n in notes + more_notes:
         print("solved  " + n)
     if failures:
         for f in failures:
@@ -867,6 +958,10 @@ def main(argv=None):
           f"{len(theme_ids(seed))} themes, {len(notes)} re-solved.")
     print(f"{stats['text_pairs']} pairs held to WCAG AA 4.5:1 and "
           f"{stats['nontext_pairs']} to 3:1, 0 below bar. 0 outside sRGB.")
+    print(f"prefers-contrast: more: the same {stats['text_pairs']} pairs held to AAA "
+          f"{AAA_BAR}:1 and {stats['nontext_pairs']} to {AA_BAR}:1, {len(more_notes)} of "
+          f"{2 * sum(1 for e in seed['color']['tokens'] if e['kind'] == 'oklch')} values "
+          f"re-solved, 0 below bar.")
     on, off = grid_stats(seed)
     print(f"{on} space and size values on the {seed['grid']['unit']}px unit, "
           f"{off} off it and all {off} declared with a reason.")

@@ -65,14 +65,15 @@ def main():
             # emitted CSS with no tolerance, because a green run of an instrument that rounds is
             # what the old tolerance bought.
             tokens = contrast.parse_tokens(css)
-            bad = [(round(r, 4), t, fg, bg, bar)
-                   for fg, bg, bar in floors for t in ("light", "dark")
+            bad = [(round(r, 4), t, fg, bg, want)
+                   for fg, bg, bar in floors for t in contrast.BLOCKS_CERTIFIED
+                   for want in [contrast.MORE_BAR.get(bar, bar) if t.endswith("-more") else bar]
                    for r in [contrast.ratio(tokens[t]["--" + fg], tokens[t]["--" + bg])[0]]
-                   if r < bar]
+                   if r < want]
             if bad:
                 under[hue] = sorted(bad)[:4]
-            collide = [f"{t} {f}" for t in ("light", "dark")
-                       for f in contrast.separations(tokens[t])[0]]
+            collide = [f"{t} {f}" for t in contrast.BLOCKS_CERTIFIED
+                       for f in contrast.separations(tokens[t])[0] + contrast.roles(tokens[t])]
             if collide:
                 collisions[hue] = collide
     finally:
