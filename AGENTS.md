@@ -104,9 +104,24 @@ Editing one of those files changes what this repository *says* it enforces. It c
 *does* enforce only when somebody runs that command. Read the live state back afterwards:
 
 ```bash
-gh-axi api repos/Abhijeet34/halderworks-design/rulesets
-gh-axi api repos/Abhijeet34/halderworks-design/branches/main/protection
+gh api repos/Abhijeet34/halderworks-design/rulesets
+gh api repos/Abhijeet34/halderworks-design/rules/branches/main
+gh api repos/Abhijeet34/halderworks-design/branches/main --jq .protected
 ```
+
+**Not `branches/main/protection`.** That is the older branch-protection API and it does not read
+rulesets: with the ruleset live and all five rules enforcing, it still answers
+`Branch not protected (HTTP 404)`, which reads exactly like an unprotected branch. `rules/branches/main`
+lists the rules that actually apply, each with the ruleset id it came from.
+
+Two more things measured rather than assumed, because both look like a broken setup otherwise:
+
+- `gh-axi api` sends only `--field key=value` and has no flag for a JSON request body, so it cannot
+  apply a ruleset. `scripts/apply-repo-settings.sh` uses `gh api --input` for that reason.
+- GitHub fills `require_extra_approval_for_unattributed_changes: true` into the `pull_request` rule,
+  a key `.github/rulesets/main.json` does not carry. A file that mirrored the response back could be
+  refused by the endpoint that applies it, so the file stays as written and the live read carries
+  one extra key.
 
 ## The weekly maintenance job
 

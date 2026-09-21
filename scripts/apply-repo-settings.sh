@@ -74,6 +74,9 @@ apply_ruleset .github/rulesets/main.json
 
 echo "applied. verify:"
 echo "  gh api \"repos/$REPO/rulesets\""
-echo "  gh api \"repos/$REPO/branches/main/protection\""
+# NOT branches/main/protection: that endpoint does not read rulesets and answers 404 with
+# every rule live, which reads exactly like an unprotected branch.
+echo "  gh api \"repos/$REPO/rules/branches/main\""
+echo "  gh api \"repos/$REPO/branches/main\" --jq .protected"
 echo "  gh api \"repos/$REPO/actions/permissions\""
 echo "  gh api \"repos/$REPO/actions/permissions/workflow\""
