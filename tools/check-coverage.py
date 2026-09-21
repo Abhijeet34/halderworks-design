@@ -73,6 +73,34 @@ whole paragraph so a claim wrapped over two lines is still one claim. Each objec
 must match one covered or partial row whose SURFACE cell carries every content word of it:
 an excluded row is not an entry, and a note mentioning the word is not the surface.
 
+  8  every published restatement of the inventory must match it
+
+The inventory is the source of two facts the rest of the book restates by hand: how many rows
+it holds, and what one row's status is. Both drifted in the same way. `README.md` and
+`SKILL.md` carry the surface count twice each, only the inventory's own counts line was
+checked, and one change to it took three review rounds to find three stale copies. And a
+branch that solved the high-contrast theme passed every check while the book still called it
+"a named gap" in three places: rule 7 catches prose claiming an entry that does not exist, and
+nothing caught prose calling a surface a gap once it had one.
+
+A count is read by its phrase, because the phrase is unambiguous: every "N surfaces",
+"N inventoried surfaces", "N covered", "N partial" and "N excluded" must equal the table.
+A status claim is not read by its words, because the surface it names is free prose - "one -
+the high-contrast theme - is still a named gap" - and guessing a row from prose is what rule 4
+gave up. So a status phrase ("named gap", "still a gap", "still partial") asks for a
+declaration beside it, on its line or the next, naming the row and the status it restates:
+
+    is still a named gap. <!-- status: A high-contrast theme is partial -->
+
+and the declaration must name a row that exists and match its status, so moving the row fails
+every sentence still restating the old one. A declaration beside no status phrase fails too.
+
+Checked rather than derived: the copies sit in prose and in `SKILL.md`'s frontmatter, which an
+agent reads raw, so deriving them would mean a writer rewriting hand-authored files and still a
+check to catch a stale write. `docs/` is not swept: it is a dated record of what shipped, and
+its counts are true of that day. What a pass does not prove: that the declaration describes its
+sentence, and that a status claim phrased outside the patterns was read at all.
+
 Exits non-zero, and names every failure, when any claim is unbacked.
 
     python3 tools/check-coverage.py [repo-root]
@@ -213,19 +241,11 @@ def check_inventory(inventory: Path, book: Path, failures: list):
             failures.append(f"{inventory.name}:{line_no}  {surface!r}: names {fname}#{anchor}, "
                             f"and {fname} has no such section")
 
-    total = sum(counts.values())
-    declared = re.search(r"\*\*(\d+) surfaces, (\d+) covered, (\d+) partial, (\d+) excluded\.\*\*",
-                         text)
-    if not declared:
+    # The numbers on it are held to the table by rule 8, with every other copy.
+    if not re.search(r"\*\*\d+ surfaces, \d+ covered, \d+ partial, \d+ excluded\.\*\*", text):
         failures.append(f"{inventory.name}  the counts line is missing or reworded; it must read "
                         f"**N surfaces, N covered, N partial, N excluded.**")
-    else:
-        want = (total, counts["covered"], counts["partial"], counts["excluded"])
-        got = tuple(int(g) for g in declared.groups())
-        if want != got:
-            failures.append(f"{inventory.name}  the counts line says {got} but the table holds "
-                            f"{want} (surfaces, covered, partial, excluded)")
-    return counts, total, claims
+    return counts, sum(counts.values()), claims
 
 
 def refusals_in(path: Path):
@@ -369,6 +389,63 @@ def check_admissions(book: Path, inventory: Path, failures: list):
     return swept, resolved
 
 
+COUNT = re.compile(r"\b(\d+)\**\s+(?:inventoried\s+)?(surfaces|covered|partial|excluded)\b", re.I)
+# Narrow on purpose: "a gap to report" is the book's general rule, not a claim about a row.
+STATUS_CLAIM = re.compile(r"\bnamed gap\b|\bstill (?:an? |)(?:open |known |)gap\b|"
+                          r"\bstill (?:partial|excluded|uncovered)\b", re.I)
+RESTATES = re.compile(r"<!--\s*status:\s*(.+?)\s+is\s+(covered|partial|excluded)\s*-->")
+
+
+def check_restatements(root: Path, inventory: Path, counts: dict, total: int, failures: list):
+    """Rule 8. Every count and every declared status claim, in every live Markdown file,
+    against the table."""
+    want = {"surfaces": total, **counts}
+    status = {cells[0]: cells[1] for _, cells in rows(inventory.read_text(encoding="utf-8"))}
+    files = sorted(f for f in root.rglob("*.md") if not {".git", "node_modules"} & set(f.parts)
+                   and f.relative_to(root).parts[0] != "docs")
+    copies = claims = 0
+    for path in files:
+        name, lines = path.relative_to(root), path.read_text(encoding="utf-8").splitlines()
+        claimed = set()
+        # Paragraphs rather than lines, so a phrase wrapped across a line break is still read.
+        for starts, text in paragraphs(path):
+            for m in COUNT.finditer(text):
+                line_no = max(n for off, n in starts if off <= m.start())
+                copies += 1
+                noun = m.group(2).lower()
+                if int(m.group(1)) != want[noun]:
+                    failures.append(
+                        f"{name}:{line_no}  says {m.group(0)!r}, and the table in "
+                        f"{inventory.name} holds {want[noun]} {noun}. Every copy of a count "
+                        f"moves with the inventory")
+            for m in STATUS_CLAIM.finditer(text):
+                line_no = max(n for off, n in starts if off <= m.start())
+                claims += 1
+                claimed.add(line_no)
+                declared = [d for l in lines[line_no - 1:line_no + 1] for d in RESTATES.finditer(l)]
+                if not declared:
+                    failures.append(
+                        f"{name}:{line_no}  restates a status ({m.group(0)!r}) and names no row. "
+                        f"Write <!-- status: the row's surface, exactly is its status --> on this "
+                        f"line or the next, so the sentence fails when the row moves")
+                for d in declared:
+                    row, said = d.group(1), d.group(2)
+                    if row not in status:
+                        failures.append(f"{name}:{line_no}  restates the status of {row!r}, "
+                                        f"which {inventory.name} has no row for")
+                    elif status[row] != said:
+                        failures.append(
+                            f"{name}:{line_no}  says {row!r} is {said} ({m.group(0)!r}), and "
+                            f"its row in {inventory.name} says {status[row]}. The prose is "
+                            f"stale: rewrite it to what the row now says")
+        for n, line in enumerate(lines, 1):
+            for d in RESTATES.finditer(line):
+                if n not in claimed and n - 1 not in claimed:
+                    failures.append(f"{name}:{n}  declares the status of {d.group(1)!r} and no "
+                                    f"status claim was read on this line or the one above it")
+    return copies, claims
+
+
 def check_manifest(inventory: Path, failures: list):
     """Rule 5. The manifest is the section whose heading names the cross-check."""
     lines = inventory.read_text(encoding="utf-8").splitlines()
@@ -431,6 +508,7 @@ def main() -> int:
     counts, total, claims = check_inventory(inventory, book, failures)
     swept, resolved, waived = check_refusals(book, inventory, claims, failures)
     admitted, backed = check_admissions(book, inventory, failures)
+    copies, restated = check_restatements(root, inventory, counts, total, failures)
     lists = check_manifest(inventory, failures)
     links = check_links(root, failures)
 
@@ -442,6 +520,8 @@ def main() -> int:
           f"exists. {waived} sentence{'' if waived == 1 else 's'} declared not to be a "
           f"refusal.")
     print(f"{admitted} claims of an existing entry swept, {backed} resolved to a row.")
+    print(f"{copies} published copies of a count and {restated} status claims checked "
+          f"against the table.")
     print(f"{lists} external taxonomies named in the cross-check manifest.")
     print(f"{links} internal links and anchors checked.")
     print(f"{len(failures)} unbacked.")

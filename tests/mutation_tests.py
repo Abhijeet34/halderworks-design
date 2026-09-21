@@ -354,6 +354,46 @@ case("C4 a covered row is re-pointed at an unrelated section that exists", "gree
      note="a limit the tool's own docstring discloses: it proves a section exists, not that it answers")
 
 
+def c5(repo):
+    """One more covered row and a counts line that moved with it, as a real inventory change
+    does; README.md is the copy left behind."""
+    def f(text):
+        text = re.sub(r"\*\*(\d+) surfaces, (\d+) covered",
+                      lambda m: f"**{int(m[1]) + 1} surfaces, {int(m[2]) + 1} covered", text)
+        row = next(l for l in text.splitlines() if "| covered |" in l)
+        return text.replace(row, row + "\n| Zoetrope carousel |" + row.split("|", 2)[2], 1)
+    cov_edit(repo, f)
+    p = repo / "SKILL.md"
+    p.write_text(re.sub(r"\b(\d+)(\**\s+(?:inventoried\s+)?surfaces)",
+                        lambda m: f"{int(m[1]) + 1}{m[2]}", p.read_text(encoding="utf-8")),
+                 encoding="utf-8")
+
+
+case("C5 the inventory gains a row, and README.md keeps the old surface count", "caught", c5,
+     note="#10 found three stale copies in three review rounds; rule 8 holds every copy")
+
+
+def c6(repo):
+    """A true status claim is written against a partial row, then the row moves to covered with
+    the counts line moving with it, and the claim is left as it was."""
+    inv = (repo / "design" / "05-coverage.md").read_text(encoding="utf-8")
+    # A partial row that names a section, so moving it to covered is otherwise a valid row.
+    surface = re.search(r"^\| ([^|]+?) \| partial \| `[^`]+#[^`]+` \|", inv, re.M)[1]
+    with (repo / "design" / "35-layout.md").open("a") as fh:
+        fh.write(f"\n{surface} is still a named gap. <!-- status: {surface} is partial -->\n")
+
+    def f(text):
+        text = re.sub(r"\*\*(\d+) surfaces, (\d+) covered, (\d+) partial",
+                      lambda m: f"**{m[1]} surfaces, {int(m[2]) + 1} covered, {int(m[3]) - 1} partial",
+                      text)
+        return text.replace(f"| {surface} | partial |", f"| {surface} | covered |")
+    cov_edit(repo, f)
+
+
+case("C6 a partial row becomes covered, and prose declared against it still calls it a named gap",
+     "caught", c6, note="#11 rebased green while the book still called the high-contrast theme a gap")
+
+
 # ---------------------------------------------------------------- the CI workflow's own body
 def workflow_block(repo):
     """The `run every check` step body of consistency.yml, extracted verbatim and dedented.

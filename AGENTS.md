@@ -46,7 +46,8 @@ The tools above check the token set. `tests/run.py` checks the tools, because a 
 nobody has watched fail is a refusal nobody has tested: the 2026-09-21 audit ran 21 mutation
 cases against this repository and 17 wrong inputs left every tool green. Its three suites take
 about 21 seconds together - `tests/invariants.py` on the two instruments, `tests/hue_sweep.py`
-over all 360 accent hues, `tests/mutation_tests.py` over 23 deliberately wrong inputs - and two
+over all 360 accent hues, `tests/mutation_tests.py` over a set of deliberately wrong inputs (its
+own run prints "N cases: N as expected, 0 improved, 0 failed" for the current count) - and two
 further diagnostics, `tests/coverage_probe.py` and `tests/ident_sweep.py`, print rather than
 refuse and are run on demand.
 
@@ -212,7 +213,7 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 | every published contrast ratio still holds | `contrast.py` re-derives all 193 published ratios from the two files that tabulate them and the prose list, and all 198 certified pairs from the CSS, on the float value and at 8-bit; the same pairs at 7:1 and 4.5:1 in the `prefers-contrast: more` block; chart and accent separation from the semantics, and the text-role step, in all four blocks |
 | every export still matches its source | `export.py` exits non-zero, or regenerating `exports/` leaves anything in `git status --porcelain` |
 | every refusal the system depends on still refuses | `tests/run.py`: the two instruments share code or stop agreeing, a buildable accent hue emits a palette `contrast.py` refuses, or a deliberately wrong input leaves every tool green |
-| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a claim of an existing entry resolving to no covered or partial row, a manifest with no lists or no date |
+| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a claim of an existing entry resolving to no covered or partial row, a manifest with no lists or no date, a copy of a count anywhere outside `docs/` ("N surfaces", "N covered", "N partial", "N excluded") that the table does not hold, prose calling a surface a gap with no `<!-- status: row is status -->` declaration, or with one its row no longer matches (`STATUS_CLAIM` in the script lists the phrases) |
 | every internal link and anchor | the same script, across every Markdown file in the repository |
 | every cited external source still resolves | an HTTP request per distinct URL in the book, failing on 404, 410, any other error status, or no response. A 401, 403 or 429 is reported as alive-but-refusing and does not fail |
 

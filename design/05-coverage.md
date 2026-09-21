@@ -28,12 +28,14 @@ that one escaped, into exactly the class of gap this file exists to report.
 `covered` row names a file or a section that does not exist, when a `partial` row does not say what
 is missing, when an `excluded` row gives no reason, **when a refusal stated in a rule file does not
 name the inventory row that carries it**, **when a sentence claiming a surface already has an entry
-resolves to no covered or partial row here**, when the manifest below names no lists or carries no
-date, and when any internal link or anchor in the book does not resolve.
+resolves to no covered or partial row here**, **when a published copy of a count outside `docs/`
+does not match the table, or prose calling a surface a gap carries no `<!-- status: ... -->`
+declaration matching its row**, when the manifest below names no lists or carries no date, and when
+any internal link or anchor in the book does not resolve.
 A row is a claim, and the script is what makes it a checkable one.
 
 Counts, which are what a reader should look at first, and which the script verifies against the
-table so they cannot drift:
+table so they cannot drift - here and in every other live copy, `README.md` and `SKILL.md` included:
 **149 surfaces, 115 covered, 8 partial, 26 excluded.**
 
 ## The cross-check manifest
