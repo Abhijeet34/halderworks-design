@@ -373,6 +373,27 @@ case("C5 the inventory gains a row, and README.md keeps the old surface count", 
      note="#10 found three stale copies in three review rounds; rule 8 holds every copy")
 
 
+def c6(repo):
+    """A true status claim is written against a partial row, then the row moves to covered with
+    the counts line moving with it, and the claim is left as it was."""
+    inv = (repo / "design" / "05-coverage.md").read_text(encoding="utf-8")
+    # A partial row that names a section, so moving it to covered is otherwise a valid row.
+    surface = re.search(r"^\| ([^|]+?) \| partial \| `[^`]+#[^`]+` \|", inv, re.M)[1]
+    with (repo / "design" / "35-layout.md").open("a") as fh:
+        fh.write(f"\n{surface} is still a named gap. <!-- status: {surface} is partial -->\n")
+
+    def f(text):
+        text = re.sub(r"\*\*(\d+) surfaces, (\d+) covered, (\d+) partial",
+                      lambda m: f"**{m[1]} surfaces, {int(m[2]) + 1} covered, {int(m[3]) - 1} partial",
+                      text)
+        return text.replace(f"| {surface} | partial |", f"| {surface} | covered |")
+    cov_edit(repo, f)
+
+
+case("C6 a partial row becomes covered, and prose declared against it still calls it a named gap",
+     "caught", c6, note="#11 rebased green while the book still called the high-contrast theme a gap")
+
+
 # ---------------------------------------------------------------- the CI workflow's own body
 def workflow_block(repo):
     """The `run every check` step body of consistency.yml, extracted verbatim and dedented.
