@@ -31,11 +31,11 @@ A house design system: one token set, 2 themes, two densities. 33 colour tokens 
 | `--hw-surface-raised` | `oklch(1.000 0 198)` | `oklch(0.232 0.006 198)` | Things that float over content and can be dismissed: dialogs, popovers, menus |
 | `--hw-surface-sunken` | `oklch(0.958 0.003 198)` | `oklch(0.118 0.006 198)` | Wells that recede: sidebars, code blocks, an input at rest |
 | `--hw-border` | `oklch(0.912 0.0045 198)` | `oklch(0.288 0.0084 198)` | The 1px hairline: card and panel edges, table and cell borders, the tab baseline, chart axes and gridlines, the masthead rule, a framed quotation |
-| `--hw-border-strong` | `oklch(0.637 0.0060 198)` | `oklch(0.516 0.0084 198)` | Control outlines that must be seen: inputs, selects, textareas, checkboxes, switches, slider rails, secondary buttons, the selected segment of a segmented control, and a floating panel's edge |
+| `--hw-border-strong` | `oklch(0.6350 0.0060 198)` | `oklch(0.5179 0.0084 198)` | Control outlines that must be seen: inputs, selects, textareas, checkboxes, switches, slider rails, secondary buttons, the selected segment of a segmented control, and a floating panel's edge |
 | `--hw-text` | `oklch(0.254 0.0060 198)` | `oklch(0.938 0.0072 198)` | Primary text |
 | `--hw-text-secondary` | `oklch(0.471 0.0060 198)` | `oklch(0.687 0.0072 198)` | Supporting text, descriptions, metadata |
 | `--hw-text-muted` | `oklch(0.533 0.0060 198)` | `oklch(0.619 0.0072 198)` | Column heads, placeholders, timestamps |
-| `--hw-text-disabled` | `oklch(0.638 0.006 198)` | `oklch(0.516 0.0072 198)` | Text and icons in a disabled control |
+| `--hw-text-disabled` | `oklch(0.6350 0.006 198)` | `oklch(0.516 0.0072 198)` | Text and icons in a disabled control |
 | `--hw-ink` | `oklch(0.205 0.0060 198)` | `oklch(0.955 0.0030 198)` | The primary action fill: one filled button per screen, and the selected segment of a segmented control |
 | `--hw-ink-hover` | `oklch(0.290 0.0060 198)` | `oklch(0.870 0.0030 198)` | Hover state of a primary action |
 | `--hw-ink-active` | `oklch(0.360 0.0060 198)` | `oklch(0.800 0.0030 198)` | The pressed fill of a primary button |
