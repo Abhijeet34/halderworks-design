@@ -165,8 +165,8 @@ family, and it was left exactly as it stood. An unnecessary edit there would hav
 none.
 
 **Eight structural devices were taken from the three non-gradient accounts and judged one by one.**
-Six are specified in [75-spec-sheet.md](75-spec-sheet.md), one - the high-contrast theme - is still
-a named gap in [05-coverage.md](05-coverage.md), and one is declined outright with its reasoning. The accent hue, the faces and the scales are unchanged, and no entry introduced a colour.
+Seven are specified in [75-spec-sheet.md](75-spec-sheet.md), the high-contrast theme among them,
+and one is declined outright with its reasoning. The accent hue, the faces and the scales are unchanged, and no entry introduced a colour.
 
 **One standing decision did move**, and it is flagged here because a reader of an earlier version
 would not expect it: [50-surface-texture.md](50-surface-texture.md)'s blanket refusal of texture is
@@ -621,7 +621,7 @@ A source that produced nothing says so here, because silence reads as never havi
 
 | source | what was read | taken | left, and where that is recorded |
 |---|---|---|---|
-| Four followed accounts: `janm_ux`, `ui.ux.jam`, `vectorayush`, `khushidotjpeg` | post grids and opened posts, two passes, 2026-09-21 | eight structural devices, of which six are entries in [75-spec-sheet.md](75-spec-sheet.md), one is a named gap in [05-coverage.md](05-coverage.md) and one is declined; the four-corner frame's first two instances | every colour, face and look; and the accounts as a standing input, [85-considered-and-declined.md](85-considered-and-declined.md#further-screening-of-social-design-accounts) |
+| Four followed accounts: `janm_ux`, `ui.ux.jam`, `vectorayush`, `khushidotjpeg` | post grids and opened posts, two passes, 2026-09-21 | eight structural devices, of which seven are entries in [75-spec-sheet.md](75-spec-sheet.md), the high-contrast theme among them, and one is declined; the four-corner frame's first two instances | every colour, face and look; and the accounts as a standing input, [85-considered-and-declined.md](85-considered-and-declined.md#further-screening-of-social-design-accounts) |
 | The request to follow those accounts' links and comments | bios of three of the four, the captions and comment threads of the posts opened | **nothing.** Zero outbound links in any bio, caption or thread read; the only non-Instagram anchors are the platform's own footer. On `ui.ux.jam` 9 of 24 posts gate a link behind commenting a keyword, and the keywords name AI build tools (Replit, Relume, Dreamina, Buzzy, CapCut), none a design reference | nothing to record elsewhere: the resources these accounts name are drawn on video frames or sent by direct message, never written where they can be followed |
 | Nine `ui.ux.jam` reels | four read frame by frame, 2026-09-21: `DdWwArCu2wL`, `DdB2dB5OvwC`, `Dc09UoeOz0x`, `DctRY7dt3I0` | ten tools named on the frames, none of them in any text on the page; each is judged in the table below | **Five reels were not extracted.** `DdJmu57IR6j` gates its link behind a comment, and nothing is ever posted from the account used to read it. The video of `Dcd0Q-stjjF`, `DcTl9qAN4Sk` and `DcQ5ySWNlwH` never loaded - `readyState` stayed 0 through a play call, a wait of up to 5 seconds and a click, after four clean loads - and `DcLw91ftPmM` was not attempted. Whatever those five name is not in this system |
 | `figma.expert` | ten posts, 2026-09-14 to 2026-09-20 | the four-corner frame as its third independent instance, in the [slide sequence](75-spec-sheet.md#slide-sequence) | every colour: its `Most Expensive Colour Pallet` is refused, [85-considered-and-declined.md](85-considered-and-declined.md#an-unsourced-superlative-as-a-palette-source). All ten advertised files are behind a direct message and none was obtained. Instagram labels the profile `AI-generated profile` |

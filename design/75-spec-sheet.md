@@ -112,7 +112,7 @@ The seed now gives those roles their own targets under `contrastMore`, and both 
 The chart and separation rules of [10-color.md](10-color.md) hold in this block unchanged.
 `--hw-border-strong` and `--hw-text-disabled` share one lightness here, 0.5348 in light, and that is not a merge this block introduced: they share `oklch(0.6350 0.006 198)` in the default light theme too, because a boundary and a disabled glyph are different forms at one weight.
 
-**What it does not answer.** `forced-colors: active` throws this palette away, and the answer there is a transparent outline the user agent can repaint, which is the other half of [the open decision](05-coverage.md#open-decisions) and is not specified yet.
+**What it does not answer.** `forced-colors: active` throws this palette away, and the answer there is the filled level's transparent border, which the user agent can repaint: [50-surface-texture.md](50-surface-texture.md#under-forced-colours).
 The files in `exports/` carry the default themes only; `tokens/tokens.css` is the one file that carries this block.
 
 ## 2. Surface and texture styles
@@ -593,7 +593,7 @@ All 112 entries in `tokens/tokens.json` carry one, and `exports/design-tokens.js
 
 ## What was declined, and why
 
-Eight devices were screened. Six became entries above, one - the high-contrast theme - is still a named gap, and one is declined outright.
+Eight devices were screened. Seven became entries above, the high-contrast theme among them, and one is declined outright.
 
 **The stacked-label overlay** - translucent pills layered over a photograph, each carrying one clause of a sentence - **does not ship, and it is the entry that failed the Left behind test.**
 
