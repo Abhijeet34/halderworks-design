@@ -41,7 +41,7 @@ jobs:
       # The tools are standard-library Python 3, so the runner's own python3 is enough and no
       # setup action has to be pinned and moved.
       # Each step writes its own section of the report and records its status, rather than
-      # stopping the job, so one failure does not hide the other four.
+      # stopping the job, so one failure does not hide the other five.
       - name: run every check
         id: collect
         run: |
