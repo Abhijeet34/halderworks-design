@@ -113,6 +113,10 @@ FAIL  quoth-live at hue 150 sits 0.8 from hw-success in hue and chroma in light,
 `tools/contrast.py --extend` holds every product colour to 3:1 on the six surfaces and to 8.0 from the four state colours from its own declarations, and reads the seed only for what it adds, such as a text bar.
 Weakening the seed and moving the value in one edit still fails.
 
+Both tools also validate the seed's raw JSON before any of the above runs: a non-object top level, a namespace or token name that is not a string, an anchor `L` or `C` that is not a finite number, a hue that is neither a number nor `accent+N`, or a floor `bar` or `apart`/`on` entry of the wrong type or shape.
+Every leaf a solver later reads is checked once at that boundary, so a bad leaf is one `FAIL` line and exit 1, never a traceback.
+`tools/contrast.py --extend` also refuses to run against a seed whose built CSS is missing, naming the `tools/build.py --extend` command to run first, rather than measuring a file that is not there.
+
 ### Why the separation leaves lightness out
 
 The accent's 8.0 is oklab distance with lightness in, measured at the semantics' own lightness, where the two readings agree: 8.9 and 8.2 from `hw-success` either way.
