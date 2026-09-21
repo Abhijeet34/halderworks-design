@@ -418,8 +418,12 @@ def raised(bar):
 def extension(themes, seed_path, css_path):
     """(failures, report lines) for one product's seed and the CSS built from it."""
     ext = json.loads(Path(seed_path).read_text(encoding="utf-8"))
-    ns, prod = ext["namespace"], parse_tokens(css_path)
+    prod = parse_tokens(css_path)
     bad, report = [], []
+    ns = ext.get("namespace")
+    if not isinstance(ns, str):
+        bad.append(f"namespace {ns!r} is not a string")
+        ns = ""
     for block, tokens in prod.items():
         for token in tokens:
             if token.startswith("--hw-"):
@@ -427,7 +431,14 @@ def extension(themes, seed_path, css_path):
                            f"can never redefine an hw- token")
             elif not token.startswith(f"--{ns}-"):
                 bad.append(f"{block} {token} is outside the --{ns}- namespace")
-    for e in ext["color"]["tokens"]:
+    color_tokens = ext.get("color", {}).get("tokens", [])
+    if not isinstance(color_tokens, list):
+        bad.append(f"color.tokens {color_tokens!r} is not a list of colour token entries")
+        color_tokens = []
+    for e in color_tokens:
+        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
+            bad.append(f"a colour token entry {e!r} is not a dict with a string name")
+            continue
         name = "--" + e["name"]
         pairs = {s: NON_TEXT for s in SURFACES}
         for floor in e.get("floors", []):
@@ -440,13 +451,18 @@ def extension(themes, seed_path, css_path):
             if bar != NON_TEXT and bar < AA:
                 bad.append(f"{name} claims {bar}:1, which certifies nothing this file holds")
                 continue
+            bad += [f"{name} carries a floor on {g!r}, which is not a house colour's name"
+                    for g in floor["on"] if not isinstance(g, str)]
             for g in floor["on"]:
-                pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), bar)
+                if isinstance(g, str):
+                    pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), bar)
         raw_apart = e.get("apart", [])
         if not isinstance(raw_apart, list):
             bad.append(f"{name} has apart {raw_apart!r}, which is not a list of house colours")
             raw_apart = []
-        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in raw_apart})
+        bad += [f"{name} has apart {a!r}, which is not a house colour's name"
+                for a in raw_apart if not isinstance(a, str)]
+        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in raw_apart if isinstance(a, str)})
         for theme in BLOCKS_CERTIFIED:
             fg = prod[theme].get(name)
             if fg is None:

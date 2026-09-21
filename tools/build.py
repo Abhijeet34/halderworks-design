@@ -963,7 +963,7 @@ def hue_chroma_separation(a, b):
 def check_extension(seed, ext):
     """Refuse a product seed before anything is solved from it."""
     ns = ext.get("namespace", "")
-    if not NAMESPACE.match(str(ns)) or ns == "hw":
+    if not isinstance(ns, str) or not NAMESPACE.match(ns) or ns == "hw":
         return [f"namespace {ns!r} is not a product's own prefix. It is one lowercase word, "
                 f"the product's name, and never hw"]
     house = {e["name"]: e for e in seed["color"]["tokens"]}
@@ -971,7 +971,10 @@ def check_extension(seed, ext):
     tokens = ext.get("color", {}).get("tokens", [])
     bad = [] if tokens else [f"the {ns} seed declares no colour token"]
     for e in tokens:
-        name = e.get("name", "")
+        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
+            bad.append(f"a colour token entry {e!r} is not a dict with a string name")
+            continue
+        name = e["name"]
         if name.startswith("hw-") or name in house:
             bad.append(f"{name} is a house token, and a product can never redefine an hw- token "
                        f"(95-extending.md#a-products-own-namespace). Name it --{ns}-something")
@@ -999,11 +1002,14 @@ def check_extension(seed, ext):
                            f"{NON_TEXT_BAR}:1 of WCAG SC 1.4.11 nor at least the {AA_BAR}:1 of "
                            f"SC 1.4.3")
                 continue
-            for g in floor["on"]:
+            bad += [f"{name} carries a floor on {g!r}, which is not a house colour's name"
+                    for g in floor["on"] if not isinstance(g, str)]
+            on = [g for g in floor["on"] if isinstance(g, str)]
+            for g in on:
                 if f"hw-{g}" not in solved:
                     bad.append(f"{name} carries a floor on --hw-{g}, which is not a solved house "
                                f"colour")
-            grounds |= set(floor["on"])
+            grounds |= set(on)
         missing = [g for g in PRODUCT_SURFACES if g not in grounds]
         if missing:
             bad.append(f"{name} carries no floor on --hw-{', --hw-'.join(missing)}. A product "
@@ -1013,6 +1019,9 @@ def check_extension(seed, ext):
         if not isinstance(apart, list):
             bad.append(f"{name} has apart {apart!r}, which is not a list of house colours")
             continue
+        bad += [f"{name} has apart {a!r}, which is not a house colour's name"
+                for a in apart if not isinstance(a, str)]
+        apart = [a for a in apart if isinstance(a, str)]
         bad += [f"{name} is held apart from {a}, which is not a solved house colour"
                 for a in apart if a not in solved]
         bad += [f"{name} is not held apart from {a}. Every product colour stays clear of the "
