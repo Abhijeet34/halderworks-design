@@ -34,8 +34,11 @@ python3 tools/check-sources.py    # every cited source still resolves. THE ONE T
 answers in three classes rather than two, and the middle one is the point: `ok` for 2xx/3xx,
 `refusing` for 401/403/429 - a server answered, so the source exists and only access from a
 data-centre address is gated - and `dead` for 404, 410, any other error status, or no response
-at all. Only `dead` fails. `test-check-sources.py` holds that line against a local
-`http.server` and a closed port, so a merge cannot quietly widen or narrow it.
+at all. Only `dead` fails. What it treats as a citation in the first place is narrower than
+every URL in the tree: a URL inside a fenced code block is an example the book prints, not a
+source it stands behind, so a `preconnect` hint, a CDN base or an XML namespace is never
+probed. `test-check-sources.py` holds both lines against a local `http.server` and a closed
+port, so a merge cannot quietly widen or narrow either.
 
 `build.py` and `contrast.py` are deliberately two instruments rather than one. The build solves
 against the floors recorded in the seed; `contrast.py` knows nothing about the seed and re-derives

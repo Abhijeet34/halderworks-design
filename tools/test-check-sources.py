@@ -5,6 +5,11 @@ Four classes, one local server and one closed port: a 200 is ok, a 403 is alive-
 and does not fail the run, a 404 is dead and does, and a host that never answers is dead too.
 No third-party host is contacted, so this is a check rather than a weather report.
 
+It also holds the line before the classes: a URL inside a fenced code block is an example and
+is never probed, while the same URL in prose is a citation and is. That is what stops a
+`<link rel="preconnect">` hint to a host that 404s its own root from being reported as a dead
+source, and the prose half is what stops the rule from being a way to check nothing.
+
     python3 tools/test-check-sources.py
 """
 import socket
@@ -35,11 +40,11 @@ def free_port() -> int:
         return s.getsockname()[1]
 
 
-def book(root: Path, urls: list[str]) -> None:
+def book(root: Path, urls: list[str], body: str = "") -> None:
     """The smallest tree check-sources.py reads: design/*.md, README.md, SKILL.md."""
     (root / "design").mkdir()
     (root / "design" / "10-fixture.md").write_text(
-        "\n".join(f"- [a source]({u})" for u in urls) + "\n", encoding="utf-8")
+        "\n".join(f"- [a source]({u})" for u in urls) + "\n" + body, encoding="utf-8")
     (root / "README.md").write_text("# fixture\n", encoding="utf-8")
     (root / "SKILL.md").write_text("# fixture\n", encoding="utf-8")
 
@@ -88,6 +93,50 @@ def main() -> int:
         rc, out = run(gone_root, tmp / "gone-summary.md")
         check("404 is dead", f"DEAD 404  {live}/gone  (returned 404)" in out, out)
         check("404 fails the run", rc == 1, f"exit {rc}")
+
+        # A 404 inside a fenced block is an example, not a citation: not probed, and the run
+        # passes. The same URL in prose in the same file is still probed, so the rule draws a
+        # line rather than switching the check off.
+        fenced_root = tmp / "fenced"
+        fenced_root.mkdir()
+        book(fenced_root, [f"{live}/ok"],
+             f"""
+```html
+<link rel="preconnect" href="{live}/gone" crossorigin>
+```
+
+~~~
+{live}/gone
+~~~
+
+Prose after the block still counts: [a source]({live}/refused).
+""")
+        rc, out = run(fenced_root, tmp / "fenced-summary.md")
+        check("a URL inside a fenced block is not a citation",
+              f"{live}/gone" not in out, out)
+        check("fenced examples do not fail the run", rc == 0, f"exit {rc}")
+        check("a prose citation in the same file is still checked",
+              f"alive 403  {live}/refused" in out, out)
+
+        # The closing fence has to be the one that closes: a ```js inside a block is content,
+        # and dropping the rest of the file on it would silence every citation after it.
+        nested_root = tmp / "nested"
+        nested_root.mkdir()
+        book(nested_root, [f"{live}/ok"],
+             f"""
+````markdown
+```js
+fetch("{live}/gone")
+```
+````
+
+A citation after the block: [still read]({live}/refused)
+""")
+        rc, out = run(nested_root, tmp / "nested-summary.md")
+        check("a fence inside a longer fence does not end the block",
+              f"{live}/gone" not in out, out)
+        check("citations after a nested fence are still read",
+              f"alive 403  {live}/refused" in out, out)
 
         # Nothing listening: no status line at all, which is the unreachable case.
         dark_root = tmp / "dark"
