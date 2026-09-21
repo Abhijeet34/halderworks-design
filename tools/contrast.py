@@ -42,8 +42,14 @@ It runs four passes and exits non-zero if any fails:
   pass 1 reports itself skipped and names the hue rather than failing rows that were never
   claimed about it. Passes 2 to 4 are hue-independent and always run; they are the certificate.
 
-    python3 tools/contrast.py [tokens.css]
+  Pass 5 runs only with --extend: a product's own colour tokens, from the file tools/build.py
+  --extend wrote beside the product's seed, held to what this file requires of any product
+  colour and to any higher bar the seed claims.
+
+    python3 tools/contrast.py [tokens.css] [--extend product.seed.json [--extend-css file]]
 """
+import argparse
+import json
 import math
 import re
 import sys
@@ -129,7 +135,7 @@ def hexof(L, C, h):
     return "#" + "".join("%02X" % round(min(max(v, 0), 1) * 255) for v in oklch_to_rgb(L, C, h))
 
 
-TOKEN_RE = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
+TOKEN_RE = re.compile(r"^\s*(--[a-z][a-z0-9]*-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
 
 # (media query, selector) -> block. A selector means nothing without the query it sits in: the
@@ -249,12 +255,13 @@ SEPARATION, NEIGHBOUR_DL = 8.0, 0.12
 CHARTS = [f"--hw-chart-{n}" for n in range(1, 7)]
 
 
-def separation(a, b):
-    """Oklab distance times 100 between two oklch triples."""
+def separation(a, b, lightness=True):
+    """Oklab distance times 100 between two oklch triples. Without lightness it is the distance
+    in hue and chroma alone, which pass 5 holds a product colour to."""
     (L1, C1, h1), (L2, C2, h2) = a, b
     da = C1 * math.cos(math.radians(h1)) - C2 * math.cos(math.radians(h2))
     db = C1 * math.sin(math.radians(h1)) - C2 * math.sin(math.radians(h2))
-    return 100 * math.hypot(L1 - L2, da, db)
+    return 100 * math.hypot(L1 - L2 if lightness else 0.0, da, db)
 
 
 def separations(tokens):
@@ -396,8 +403,161 @@ def published_ratios(root):
     return out
 
 
+# --- pass 5: a product's own colour ---------------------------------------------------------
+# What every product colour is held to, declared here rather than read from the product's seed,
+# so a product cannot weaken it in the same edit as the value it guards: at least 3:1 on each of
+# the six surfaces, and SEPARATION in hue and chroma from the three states and the accent. The
+# seed is read only for what it adds - a pair at a text bar, or a further colour to stay clear of.
+PRODUCT_APART = [f"--hw-{s}" for s in SEMANTICS]
+
+
+def raised(bar):
+    return max(bar, MORE_BAR[AA]) if bar >= AA else MORE_BAR[NON_TEXT]
+
+
+def finite_bar(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+
+
+def extension_shape(ext):
+    """Every way a product seed's raw JSON cannot be trusted, checked once at the boundary so
+    the measuring code after it can index the seed freely."""
+    if not isinstance(ext, dict):
+        return [f"the product seed is {ext!r}, not a JSON object"]
+    bad = []
+    if not isinstance(ext.get("namespace"), str):
+        bad.append(f"namespace {ext.get('namespace')!r} is not a string")
+    color = ext.get("color")
+    if not isinstance(color, dict):
+        bad.append(f"color {color!r} is not an object")
+        return bad
+    tokens = color.get("tokens")
+    if not isinstance(tokens, list) or not tokens:
+        bad.append(f"color.tokens {tokens!r} is not a non-empty list of colour token entries")
+        return bad
+    for e in tokens:
+        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
+            bad.append(f"a colour token entry {e!r} is not an object with a string name")
+            continue
+        name = "--" + e["name"]
+        floors = e.get("floors", [])
+        if not isinstance(floors, list):
+            bad.append(f"{name} has floors {floors!r}, which is not a list")
+        else:
+            for floor in floors:
+                if not isinstance(floor, dict):
+                    bad.append(f"{name} carries a floor {floor!r} that is not an object")
+                    continue
+                if not finite_bar(floor.get("bar")):
+                    bad.append(f"{name} carries a floor with bar {floor.get('bar')!r}, which "
+                               f"is not a finite number")
+                on = floor.get("on", [])
+                if not (isinstance(on, list) and all(isinstance(g, str) for g in on)):
+                    bad.append(f"{name} carries a floor on {on!r}, which is not a list of "
+                               f"house colour names")
+        apart = e.get("apart", [])
+        if not (isinstance(apart, list) and all(isinstance(a, str) for a in apart)):
+            bad.append(f"{name} has apart {apart!r}, which is not a list of house colour "
+                       f"names")
+    return bad
+
+
+def load_extension(seed_path, css_arg):
+    """The one entry point for a product seed: read it, parse it, validate its shape and
+    every leaf, and resolve and check its built CSS exists - all before any other --extend
+    code touches the seed or the path. (failures, ext, css path)."""
+    try:
+        text = seed_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return [f"{seed_path} could not be read: {exc.strerror or exc}"], None, None
+    try:
+        ext = json.loads(text)
+    except json.JSONDecodeError as exc:
+        return [f"{seed_path} is not valid JSON: {exc}"], None, None
+    shape = extension_shape(ext)
+    if shape:
+        return shape, None, None
+    css = Path(css_arg) if css_arg else seed_path.parent / (ext["namespace"] + ".tokens.css")
+    if not css.exists():
+        return [f"{css} does not exist; run tools/build.py --extend {seed_path} first"], None, None
+    return [], ext, css
+
+
+def extension(themes, ext, seed_path, css_path):
+    """(failures, report lines) for one product's seed and the CSS already resolved and
+    confirmed to exist by load_extension."""
+    prod = parse_tokens(css_path)
+    bad, report = [], []
+    ns = ext["namespace"]
+    for block, tokens in prod.items():
+        for token in tokens:
+            if token.startswith("--hw-"):
+                bad.append(f"{block} {token} is redefined by {Path(css_path).name}, and a product "
+                           f"can never redefine an hw- token")
+            elif not token.startswith(f"--{ns}-"):
+                bad.append(f"{block} {token} is outside the --{ns}- namespace")
+    for e in ext["color"]["tokens"]:
+        name = "--" + e["name"]
+        pairs = {s: NON_TEXT for s in SURFACES}
+        for floor in e.get("floors", []):
+            bar = floor["bar"]
+            if bar != NON_TEXT and bar < AA:
+                bad.append(f"{name} claims {bar}:1, which certifies nothing this file holds")
+                continue
+            for g in floor["on"]:
+                pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), bar)
+        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in e.get("apart", [])})
+        for theme in BLOCKS_CERTIFIED:
+            fg = prod[theme].get(name)
+            if fg is None:
+                bad.append(f"{theme} {name} is declared in {Path(seed_path).name} and not in "
+                           f"{Path(css_path).name}")
+                continue
+            if not in_gamut(*fg):
+                bad.append(f"{theme} {name} oklch{fg} falls outside sRGB")
+            worst = None
+            for bg, base in pairs.items():
+                bar = raised(base) if theme.endswith("-more") else base
+                if bg not in themes[theme]:
+                    bad.append(f"{theme} {name} is claimed on {bg}, which the house does not "
+                               f"declare")
+                    continue
+                got, got8 = ratio(fg, themes[theme][bg])
+                if got < bar or got8 < bar:
+                    bad.append(f"{theme} {name} on {bg}: {got:.3f} ({got8:.3f} at 8-bit), below "
+                               f"{bar}, {hexof(*fg)} on {hexof(*themes[theme][bg])}")
+                if worst is None or got < worst[0]:
+                    worst = (got, got8, bg)
+            bad += [f"{theme} {name} is held apart from {a}, which the house does not declare"
+                    for a in apart if a not in themes[theme]]
+            valid_apart = [a for a in apart if a in themes[theme]]
+            seps = sorted((separation(fg, themes[theme][a], lightness=False), a)
+                          for a in valid_apart)
+            bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below "
+                    f"{SEPARATION}: a product colour that reads as a house state"
+                    for d, a in seps if d < SEPARATION]
+            if seps:
+                report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
+                              f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to "
+                              f"{seps[0][1]}")
+            else:
+                report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
+                              f"{worst[1]:.3f}) on {worst[2]}; no house colour to measure "
+                              f"separation against")
+    for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
+        if prod[copy] != prod[block]:
+            bad.append(f"the {copy} block of {Path(css_path).name} differs from {block}")
+    return bad, report
+
+
 def main(argv):
-    path = argv[1] if len(argv) > 1 else str(ROOT / "tokens" / "tokens.css")
+    ap = argparse.ArgumentParser(prog="contrast.py", description=__doc__.split("\n")[0])
+    ap.add_argument("css", nargs="?", default=str(ROOT / "tokens" / "tokens.css"))
+    ap.add_argument("--extend", metavar="SEED", help="also verify this product seed's tokens")
+    ap.add_argument("--extend-css", metavar="FILE",
+                    help="the product's built CSS, if not <namespace>.tokens.css beside the seed")
+    opts = ap.parse_args(argv[1:])
+    path = opts.css
     themes = parse_tokens(path)
     failures = []
 
@@ -473,6 +633,20 @@ def main(argv):
     print(f"pass 4: {sum(len(themes[t]) for t in BLOCKS_CERTIFIED)} tokens inside sRGB; "
           f"media-dark agrees with dark on {len(themes['media-dark'])} declarations and "
           f"media-dark-more with dark-more on {len(themes['media-dark-more'])}")
+
+    if opts.extend:
+        seed = Path(opts.extend)
+        extend_failures, ext, css = load_extension(seed, opts.extend_css)
+        if extend_failures:
+            failures += extend_failures
+            print(f"pass 5: {seed} could not be verified; {len(extend_failures)} failed")
+        else:
+            bad, report = extension(themes, ext, seed, css)
+            failures += bad
+            print(f"pass 5: {Path(css).name} against the house set, every token 3:1 or its "
+                  f"claimed bar on all six surfaces and {SEPARATION} in hue and chroma from the "
+                  f"states and the accent; {len(bad)} failed")
+            print("\n".join(report))
 
     for f in failures:
         print("FAIL  " + f, file=sys.stderr)

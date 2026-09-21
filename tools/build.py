@@ -15,6 +15,7 @@ hand-pick.
     python3 tools/build.py                    # rebuild in place from the seed
     python3 tools/build.py --accent-hue 318   # a different accent, fully re-solved
     python3 tools/build.py --check            # emit nothing; fail if the files are stale
+    python3 tools/build.py --extend examples/quoth.seed.json   # a product's own colour, solved
 
 What the build does, in order:
 
@@ -841,7 +842,7 @@ def count_pairs(seed, resolved):
     return {"text_pairs": text, "nontext_pairs": nontext}
 
 
-CSS_TOKEN = re.compile(r"^\s*--(hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
+CSS_TOKEN = re.compile(r"^\s*--([a-z][a-z0-9]*-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
 
 MORE = "@media (prefers-contrast: more)"
@@ -894,31 +895,322 @@ def verify_emitted(css, seed):
     write it.
     """
     blocks = parse_emitted(css)
-    names = [b for t in theme_ids(seed) for b in (t, more_key(t))]
+    names = certified_blocks(seed)
     bad = check_separation(seed, {b: blocks[b] for b in names})
     bad += check_roles(seed, {b: blocks[b] for b in names})
     for block in names:
-        tokens = blocks[block]
         for e in seed["color"]["tokens"]:
-            for floor in e.get("floors", []):
-                bar = raised(floor["bar"]) if block.endswith("-more") else floor["bar"]
-                for g in floor["on"]:
-                    fg, bg = tokens.get(e["name"]), tokens.get(f"hw-{g}")
-                    if fg is None or bg is None:
-                        bad.append(f"{e['name']} on --hw-{g} ({block}): the emitted CSS does "
-                                   f"not declare both tokens in that block")
-                        continue
-                    r = ratio_lum(luminance(*fg), luminance(*bg))
-                    r8 = ratio8(luminance8(*fg), luminance8(*bg))
-                    if r < bar or r8 < bar:
-                        bad.append(f"{e['name']} on --hw-{g} ({block}): the value about to be "
-                                   f"written measures {r:.3f} ({r8:.3f} at 8-bit), below its "
-                                   f"{bar}:1 floor")
-    last = theme_ids(seed)[-1]
-    for media, block in (("media-dark", last), ("media-dark-more", more_key(last))):
-        if blocks[media] != blocks[block]:
-            bad.append(f"the {media} block about to be written differs from {block}")
+            bad += floor_failures(e, block, blocks[block], blocks[block])
+    return bad + media_copies_differ(seed, blocks)
+
+
+def certified_blocks(seed):
+    return [b for t in theme_ids(seed) for b in (t, more_key(t))]
+
+
+def floor_failures(e, block, fgs, grounds):
+    """Every floor of one token, measured on the parsed CSS at the published bar, no margin."""
+    bad = []
+    for floor in e.get("floors", []):
+        bar = raised(floor["bar"]) if block.endswith("-more") else floor["bar"]
+        for g in floor["on"]:
+            fg, bg = fgs.get(e["name"]), grounds.get(f"hw-{g}")
+            if fg is None or bg is None:
+                bad.append(f"{e['name']} on --hw-{g} ({block}): the emitted CSS does "
+                           f"not declare both tokens in that block")
+                continue
+            r = ratio_lum(luminance(*fg), luminance(*bg))
+            r8 = ratio8(luminance8(*fg), luminance8(*bg))
+            if r < bar or r8 < bar:
+                bad.append(f"{e['name']} on --hw-{g} ({block}): the value about to be "
+                           f"written measures {r:.3f} ({r8:.3f} at 8-bit), below its "
+                           f"{bar}:1 floor")
     return bad
+
+
+def media_copies_differ(seed, blocks):
+    last = theme_ids(seed)[-1]
+    return [f"the {media} block about to be written differs from {block}"
+            for media, block in (("media-dark", last), ("media-dark-more", more_key(last)))
+            if blocks[media] != blocks[block]]
+
+
+# --- a product's own colour ---------------------------------------------------------------
+# A product declares a colour the house has no opinion about in a seed of its own, and this
+# build solves it against the house set rather than letting the product hand-pick it.
+# 95-extending.md#a-colour-of-the-products-own owns the rule; the numbers below are the house's,
+# and a product seed can add to them but has no field that lowers them.
+
+# The six surfaces a mark can land on. A product colour is drawn on a house surface, and nothing
+# stops a component putting it on any of them, so every one carries a floor.
+PRODUCT_SURFACES = ("ground", "surface", "surface-raised", "surface-sunken", "surface-hover",
+                    "surface-active")
+# The colours a product colour must never be mistaken for: the three states and the accent,
+# which is selection and focus. A seed may name more; it cannot name fewer.
+PRODUCT_APART = ("hw-success", "hw-warning", "hw-danger", "hw-accent")
+NAMESPACE = re.compile(r"^[a-z][a-z0-9]*$")
+
+
+def hue_chroma_separation(a, b):
+    """Oklab distance times 100 with lightness left out. The accent's 8.0 was measured at the
+    semantics' own lightness, where the two readings agree; a product colour is held to the
+    stricter one, because a maroon at hue 27 clears 8.0 from hw-danger on lightness alone and
+    still reads as red."""
+    x, y = oklab(*a), oklab(*b)
+    return 100 * math.hypot(x[1] - y[1], x[2] - y[2])
+
+
+def finite_number(x):
+    """x as a float if it is one, or parses cleanly to one, and is neither infinite nor NaN.
+    None otherwise. A bool is never a number here: True is not 1 in a colour anchor."""
+    if isinstance(x, bool):
+        return None
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    return v if math.isfinite(v) else None
+
+
+def anchor_leaf_errors(name, label, anchor):
+    """A theme anchor is an object with an L in 0..1 and a C at least 0, each a finite number
+    or a numeric string, the way the seed writes them today."""
+    if not isinstance(anchor, dict):
+        return [f"{name} has {label} anchor {anchor!r}, which is not an object"]
+    bad = []
+    L = finite_number(anchor.get("L"))
+    if L is None:
+        bad.append(f"{name} has {label} anchor L {anchor.get('L')!r}, which is not a finite "
+                   f"number")
+    elif not 0.0 <= L <= 1.0:
+        bad.append(f"{name} has {label} anchor L {L!r}, which is not between 0 and 1")
+    C = finite_number(anchor.get("C"))
+    if C is None:
+        bad.append(f"{name} has {label} anchor C {anchor.get('C')!r}, which is not a finite "
+                   f"number")
+    elif C < 0.0:
+        bad.append(f"{name} has {label} anchor C {C!r}, which is negative")
+    return bad
+
+
+def hue_expr_ok(hue):
+    try:
+        resolve_hue(hue, 0)
+    except (TypeError, ValueError, OverflowError):
+        return False
+    return True
+
+
+def extension_shape(seed, ext):
+    """Every way a product seed's raw JSON cannot be trusted, checked once at the boundary so
+    the solving code after it can index the seed freely."""
+    if not isinstance(ext, dict):
+        return [f"the product seed is {ext!r}, not a JSON object"]
+    bad = []
+    if not isinstance(ext.get("namespace"), str):
+        bad.append(f"namespace {ext.get('namespace')!r} is not a string")
+    color = ext.get("color")
+    if not isinstance(color, dict):
+        bad.append(f"color {color!r} is not an object")
+        return bad
+    tokens = color.get("tokens")
+    if not isinstance(tokens, list) or not tokens:
+        bad.append(f"color.tokens {tokens!r} is not a non-empty list of colour token entries")
+        return bad
+    for e in tokens:
+        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
+            bad.append(f"a colour token entry {e!r} is not an object with a string name")
+            continue
+        name = e["name"]
+        if not hue_expr_ok(e.get("hue")):
+            bad.append(f"{name} has hue {e.get('hue')!r}, which is neither a number nor "
+                       f"accent+N")
+        for t in theme_ids(seed):
+            bad += anchor_leaf_errors(name, t, e.get(t, {}))
+        more = e.get("contrastMore", {})
+        if not isinstance(more, dict):
+            bad.append(f"{name} has contrastMore {more!r}, which is not an object")
+        else:
+            for t in theme_ids(seed):
+                if t in more:
+                    bad += anchor_leaf_errors(name, f"contrastMore.{t}", more[t])
+        floors = e.get("floors", [])
+        if not isinstance(floors, list):
+            bad.append(f"{name} has floors {floors!r}, which is not a list")
+        else:
+            for floor in floors:
+                if not isinstance(floor, dict):
+                    bad.append(f"{name} carries a floor {floor!r} that is not an object")
+                    continue
+                bar = floor.get("bar")
+                if not (isinstance(bar, (int, float)) and not isinstance(bar, bool)
+                        and math.isfinite(bar)):
+                    bad.append(f"{name} carries a floor with bar {bar!r}, which is not a "
+                               f"finite number")
+                on = floor.get("on", [])
+                if not (isinstance(on, list) and all(isinstance(g, str) for g in on)):
+                    bad.append(f"{name} carries a floor on {on!r}, which is not a list of "
+                               f"house colour names")
+        apart = e.get("apart", [])
+        if not (isinstance(apart, list) and all(isinstance(a, str) for a in apart)):
+            bad.append(f"{name} has apart {apart!r}, which is not a list of house colour "
+                       f"names")
+    return bad
+
+
+def check_extension(seed, ext):
+    """Refuse a product seed before anything is solved from it."""
+    shape = extension_shape(seed, ext)
+    if shape:
+        return shape
+    ns = ext["namespace"]
+    if not NAMESPACE.match(ns) or ns == "hw":
+        return [f"namespace {ns!r} is not a product's own prefix. It is one lowercase word, "
+                f"the product's name, and never hw"]
+    house = {e["name"]: e for e in seed["color"]["tokens"]}
+    solved = {n for n, e in house.items() if e["kind"] == "oklch"}
+    bad = []
+    for e in ext["color"]["tokens"]:
+        name = e["name"]
+        if name.startswith("hw-") or name in house:
+            bad.append(f"{name} is a house token, and a product can never redefine an hw- token "
+                       f"(95-extending.md#a-products-own-namespace). Name it --{ns}-something")
+            continue
+        if not name.startswith(f"{ns}-"):
+            bad.append(f"{name} is outside the {ns}- namespace this seed declares")
+        if e.get("kind") != "oklch":
+            bad.append(f"{name} is kind {e.get('kind')!r}; only an oklch colour is solved")
+        grounds = set()
+        for floor in e.get("floors", []):
+            if floor["bar"] != NON_TEXT_BAR and floor["bar"] < AA_BAR:
+                bad.append(f"{name} carries a floor at {floor['bar']}:1, which is neither the "
+                           f"{NON_TEXT_BAR}:1 of WCAG SC 1.4.11 nor at least the {AA_BAR}:1 of "
+                           f"SC 1.4.3")
+                continue
+            for g in floor["on"]:
+                if f"hw-{g}" not in solved:
+                    bad.append(f"{name} carries a floor on --hw-{g}, which is not a solved house "
+                               f"colour")
+            grounds |= set(floor["on"])
+        missing = [g for g in PRODUCT_SURFACES if g not in grounds]
+        if missing:
+            bad.append(f"{name} carries no floor on --hw-{', --hw-'.join(missing)}. A product "
+                       f"colour can land on any of the six surfaces, so it holds at least "
+                       f"{NON_TEXT_BAR}:1 on every one")
+        apart = e.get("apart", [])
+        bad += [f"{name} is held apart from {a}, which is not a solved house colour"
+                for a in apart if a not in solved]
+        bad += [f"{name} is not held apart from {a}. Every product colour stays clear of the "
+                f"three states and the accent, so a seed can name more of them but never fewer"
+                for a in PRODUCT_APART if a not in apart]
+    return bad
+
+
+def build_extension_css(seed, ext, solved, accent, source):
+    ids = theme_ids(seed)
+
+    def block(b, indent):
+        return [f"{indent}--{e['name']}: {value_string(*solved[b][e['name']], e, b)};"
+                for e in ext["color"]["tokens"]]
+
+    o = [f"""/* {ext['namespace']} - the product's own colour tokens.
+   Load after the house tokens.css, never instead of it.
+   Generated from {source} by tools/build.py --extend, against the house set at accent hue {accent % 360}.
+   Do not hand-edit this file; edit the seed and rebuild.
+
+   Every token clears each of its floors on the float value and at 8-bit, and sits at least
+   {seed['seed']['minSemanticSeparation']} in hue and chroma from every house colour its seed holds it apart from,
+   in both themes and under prefers-contrast: more. */""",
+         ':root, [data-theme="light"] {', *block(ids[0], "  "), "}"]
+    for theme in ids[1:]:
+        o += ["", f'[data-theme="{theme}"] {{', *block(theme, "  "), "}"]
+    o += ["", "@media (prefers-color-scheme: dark) {", '  :root:not([data-theme="light"]) {',
+          *block(ids[-1], "    "), "  }", "}", "", "@media (prefers-contrast: more) {",
+          '  :root, [data-theme="light"] {', *block(more_key(ids[0]), "    "), "  }"]
+    for theme in ids[1:]:
+        o += [f'  [data-theme="{theme}"] {{', *block(more_key(theme), "    "), "  }"]
+    o += ["}", "", "@media (prefers-contrast: more) and (prefers-color-scheme: dark) {",
+          '  :root:not([data-theme="light"]) {', *block(more_key(ids[-1]), "    "), "  }", "}"]
+    return "\n".join(o) + "\n"
+
+
+def verify_extension(house_css, ext_css, seed, ext):
+    """(failures, report): every product floor and separation, re-measured on the two files as
+    they will be written, the house one supplying the grounds."""
+    house, prod = parse_emitted(house_css), parse_emitted(ext_css)
+    bar = seed["seed"]["minSemanticSeparation"]
+    bad, report = [], []
+    for block in certified_blocks(seed):
+        for e in ext["color"]["tokens"]:
+            bad += floor_failures(e, block, prod[block], house[block])
+            fg = prod[block].get(e["name"])
+            if fg is None:
+                continue
+            if not in_gamut(*fg):
+                bad.append(f"{e['name']} ({block}): oklch{fg} is outside sRGB")
+            seps = sorted((hue_chroma_separation(fg, house[block][a]), a) for a in e["apart"])
+            bad += [f"{e['name']} at hue {fg[2]:g} sits {d:.1f} from {a} in hue and chroma in "
+                    f"{block}, below the {bar} this system requires "
+                    f"(95-extending.md#a-colour-of-the-products-own)" for d, a in seps if d < bar]
+            lum, lum8 = luminance(*fg), luminance8(*fg)
+            ratios = [(ratio_lum(lum, luminance(*house[block][f"hw-{g}"])),
+                       ratio8(lum8, luminance8(*house[block][f"hw-{g}"])), g)
+                      for floor in e["floors"] for g in floor["on"]]
+            r, r8, g = min(ratios)
+            report.append(f"{e['name']:14} {block:11} oklch({fg[0]:g} {fg[1]:g} {fg[2]:g})  "
+                          f"worst {r:.3f}:1 on --hw-{g} ({min(x[1] for x in ratios):.3f} at "
+                          f"8-bit), worst separation {seps[0][0]:.1f} from {seps[0][1]}")
+    return bad + media_copies_differ(seed, prod), report
+
+
+def extend(seed, accent, solvers, house_css, a):
+    """--extend: solve a product seed against the house set and write its one file."""
+    path = Path(a.extend)
+    try:
+        ext = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        failures = [f"{path} could not be read: {exc.strerror or exc}"]
+    except json.JSONDecodeError as exc:
+        failures = [f"{path} is not valid JSON: {exc}"]
+    else:
+        failures = check_extension(seed, ext)
+    if failures:
+        for f in failures:
+            print("FAIL  " + f, file=sys.stderr)
+        print(f"\nrefusing to solve {path.name}: {len(failures)} check(s) failed",
+              file=sys.stderr)
+        return 1
+    solved = {}
+    for block, s in solvers.items():
+        s.failures, s.notes = [], []
+        solved[block] = {e["name"]: s.solve_one(e)[:3] for e in ext["color"]["tokens"]}
+        failures += s.failures
+        for n in s.notes:
+            print("solved  " + n)
+    css = build_extension_css(seed, ext, solved, accent, path.name)
+    bad, report = verify_extension(house_css, css, seed, ext)
+    failures += bad
+    for line in report:
+        print(line)
+    if failures:
+        for f in failures:
+            print("FAIL  " + f, file=sys.stderr)
+        print(f"\nrefusing to write: {len(failures)} check(s) failed", file=sys.stderr)
+        return 1
+    target = (Path(a.out) if a.out else path.parent) / f"{ext['namespace']}.tokens.css"
+    if a.check:
+        stale = not target.exists() or target.read_text(encoding="utf-8") != css
+        print(f"{'FAIL  ' if stale else ''}{target.name} is{' not' if stale else ''} what "
+              f"{path.name} builds",
+              file=sys.stderr if stale else sys.stdout)
+        return 1 if stale else 0
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(css, encoding="utf-8")
+    print(f"{len(ext['color']['tokens'])} {ext['namespace']} colour token(s) solved in "
+          f"{len(solved)} blocks against accent hue {accent % 360}, 0 below a floor, 0 closer "
+          f"than {seed['seed']['minSemanticSeparation']} to a state colour.\n"
+          f"  {target.name} {len(css):7,d} bytes")
+    return 0
 
 
 def main(argv=None):
@@ -928,6 +1220,9 @@ def main(argv=None):
     ap.add_argument("--check", action="store_true",
                     help="emit nothing; exit non-zero if the committed files are stale")
     ap.add_argument("--out", default=None, help="write into this directory instead of tokens/")
+    ap.add_argument("--extend", metavar="SEED", default=None,
+                    help="solve a product's own colour seed against the house set and write "
+                         "only <namespace>.tokens.css, beside the seed unless --out is given")
     a = ap.parse_args(argv)
 
     seed = load_seed(ROOT / "tokens" / "tokens.seed.json")
@@ -942,11 +1237,12 @@ def main(argv=None):
         print(f"\nrefusing to solve: {len(failures)} check(s) failed", file=sys.stderr)
         return 1
 
-    resolved, notes, more_notes = {}, [], []
+    resolved, notes, more_notes, solvers = {}, [], [], {}
     for theme in theme_ids(seed):
         for more in (False, True):
             s = Solver(seed, accent, theme, more)
-            resolved[more_key(theme) if more else theme] = s.run()
+            key = more_key(theme) if more else theme
+            resolved[key], solvers[key] = s.run(), s
             (more_notes if more else notes).extend(s.notes)
             failures += s.failures
 
@@ -955,6 +1251,8 @@ def main(argv=None):
     css = build_tokens_css(seed, resolved, accent, stats)
     failures += verify_emitted(css, seed)
 
+    if a.extend and not failures:
+        return extend(seed, accent, solvers, css, a)
     for n in notes + more_notes:
         print("solved  " + n)
     if failures:

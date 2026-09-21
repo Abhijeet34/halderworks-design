@@ -124,7 +124,7 @@ first publication was scrubbed and verified.
 ## What is open
 
 [design/05-coverage.md](design/05-coverage.md) is the full answer and it is checkable. Eight rows are
-`partial`, each naming what is missing, and three decisions are recorded as open with the
+`partial`, each naming what is missing, and two decisions are recorded as open with the
 measurement already done and a recommendation on each - they are in
 [that file's open-decisions table](design/05-coverage.md#open-decisions), beside the ones since
 settled and why. The two worth knowing before you read anything else:

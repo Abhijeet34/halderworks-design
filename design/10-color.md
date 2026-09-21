@@ -112,10 +112,15 @@ Two measurements settled it. The figures are oklab distance times 100 between th
 | 240, azure | 16.2 | 23.1 | rejected on occupancy. It is the centre of the crowded corridor |
 | **198, cyan-teal** | **8.2 dark, 8.9 light** | **20.7** | chosen. Every separation above 8, and outside the corridor |
 
+Read in hue and chroma alone, with lightness left out, the accent keeps the same 8.9 and 8.2, because it sits at the semantics' own lightness.
+Under `prefers-contrast: more` in light it is re-solved to L 0.39 and keeps 7.8 that way, with lightness carrying it to 8.2.
+A product's own colour is held to the reading without lightness, and [95-extending.md](95-extending.md#why-the-separation-leaves-lightness-out) says why.
+
 ## How colour is spent
 
 The loudest control on any screen is `hw-ink`: near-black in light theme, near-white in dark, and carrying no hue at all.
 The accent is spent on four things and nothing else - a link, a selected row, a live state, and the focus ring.
+quoth's open microphone is the one live state that takes a colour of its own, `--quoth-live`, because there the accent would read as selection; [95-extending.md](95-extending.md#the-worked-example-quoths-live-colour) has the value and its derivation.
 
 This is not restraint for its own sake, it is what the high-craft references measurably do.
 Three of the fourteen (Radix Colors, emilkowal.ski, paco.me) paint no chromatic colour at all above the 0.055 floor on their landing surface.

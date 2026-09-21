@@ -11,6 +11,7 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 | `tokens/tokens.seed.json` | the source of every token value |
 | `tokens/tokens.css`, `tokens/tokens.json` | generated from the seed by `tools/build.py`; never edited by hand |
 | `exports/` | generated from `tokens/tokens.json` by `tools/export.py`; never edited by hand |
+| `examples/` | a product's own colour seed, `quoth.seed.json`, and the `quoth.tokens.css` that `tools/build.py --extend` writes from it. The worked example for [design/95-extending.md](design/95-extending.md#a-colour-of-the-products-own) and the fixture CI solves on every change; quoth owns the copy it ships |
 | `tools/` | six standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
 | `tests/` | the suite that checks the tools rather than the tokens, adopted from the 2026-09-21 audit; `tests/run.py` is the one command |
 | `.github/rulesets/`, `.github/settings/` | what this repository enforces on the forge, as files. Nothing applies them on its own; see "The settings that are not files" below |
@@ -25,6 +26,8 @@ Python 3, no dependencies. Only `check-sources.py` uses the network.
 python3 tools/build.py            # tokens/tokens.seed.json -> tokens.json + tokens.css
 python3 tools/build.py --check    # emit nothing; fail if the committed files are stale
 python3 tools/contrast.py         # re-derive every published ratio from the CSS, independently
+python3 tools/build.py --check --extend examples/quoth.seed.json   # a product's own colour, still solved
+python3 tools/contrast.py --extend examples/quoth.seed.json        # and still holding, independently
 python3 tools/export.py           # regenerate exports/ and refuse if it diverges from the CSS
 python3 tools/check-coverage.py   # the inventory, its refusals, its claimed entries, its manifest, every link
 python3 tools/test-check-sources.py  # the source classifier, against a local server
@@ -210,6 +213,7 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 |---|---|
 | the token files still build from the seed | `build.py --check` finds a committed file the seed does not produce |
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
+| the worked product colour still solves and holds | `build.py --check --extend examples/quoth.seed.json` refuses the seed or finds `examples/quoth.tokens.css` stale, or `contrast.py --extend` finds a product colour under 3:1 or its claimed bar on a house surface, closer than 8.0 in hue and chroma to a state colour, or declaring an `hw-` token |
 | every published contrast ratio still holds | `contrast.py` re-derives all 193 published ratios from the two files that tabulate them and the prose list, and all 198 certified pairs from the CSS, on the float value and at 8-bit; the same pairs at 7:1 and 4.5:1 in the `prefers-contrast: more` block; chart and accent separation from the semantics, and the text-role step, in all four blocks |
 | every export still matches its source | `export.py` exits non-zero, or regenerating `exports/` leaves anything in `git status --porcelain` |
 | every refusal the system depends on still refuses | `tests/run.py`: the two instruments share code or stop agreeing, a buildable accent hue emits a palette `contrast.py` refuses, or a deliberately wrong input leaves every tool green |

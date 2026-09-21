@@ -145,7 +145,9 @@ The second line is not a formality and it is not a second opinion from the same 
 Of the 360 integer hues, 145 build, and `contrast.py` accepts all 145.
 
 **Everything else goes in the product's own namespace**, `--quoth-`, `--gates-`, never by
-redefining an `hw-` token. `design/95-extending.md` is the whole procedure.
+redefining an `hw-` token. `design/95-extending.md` is the whole procedure. A colour the house has
+no token for is declared in the product's own seed and solved by `tools/build.py --extend`, never
+hand-picked.
 
 ## Three things this system does that most do not, and why they matter to you
 

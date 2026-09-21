@@ -303,7 +303,7 @@ surface and should not be counted as one.
 That also means `tools/check-coverage.py` does not count them, so the count here and the one in the
 README are kept by hand.
 
-**Three are open**, each with a recommendation the owner only has to not object to or overrule.
+**Two are open**, each with a recommendation the owner only has to not object to or overrule.
 Two more are open and belong outside this book: whether to pay for Refero's reference-screen corpus,
 which is a spending decision, and whether the ship checklist becomes a merge gate in every
 repository that ships a screen, which is a fleet process and is not ripe until real reviews record
@@ -311,7 +311,6 @@ which of its 30 questions a tool could answer.
 
 | decision | what is already measured | the recommendation on the evidence | what would change it | who answers it |
 |---|---|---|---|---|
-| **Whether quoth's live-microphone state gets its own hue** | a product-specific concept takes a product namespace, [95-extending.md](95-extending.md#a-products-own-namespace). The conventional recording red would sit at hue 27, which is `--hw-danger`'s hue in both themes | **its own hue, as `--quoth-live`**, solved by the house tools and held to the bar the accent is held to: at least 8.0 from `--hw-success`, `--hw-warning`, `--hw-danger` and `--hw-accent`, and 3:1 on every surface it sits on. That rules out recording red | no hue clears 8.0 from all four at a lightness that holds 3:1 everywhere, in which case the state shares the accent and is carried by a word and a shape | the system's owner |
 | **Whether any product ships a localised, mirrored build** | the content half is written: right-to-left text inside a left-to-right product is [specified](35-layout.md#direction-and-text-in-another-script), with logical inline-axis properties in the book's CSS | **no**, recorded as excluded with that reason. It is reversible at no cost, because the logical properties are already in | a product brief naming a non-English market | the system's owner |
 | **Whether a figurative illustration set is commissioned** | the monochrome pictogram set is [named](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing). The only figurative construction measured bakes five values into each asset and has no dark-theme answer. **The pictogram set does not look like the reference image the owner supplied**, which is a flat five-value figurative drawing, where the set is a single-colour line | **no**: figurative illustration stays excluded until a commission comes with a dark-theme answer, and its palette then comes through a product namespace, never an `hw-` token | a budget for a commission | the system's owner |
 
@@ -323,6 +322,7 @@ three rested on a premise the book does not support; those three are retitled he
 | decision | settled | why |
 |---|---|---|
 | Whether Illustration moves off the excluded row | split: the [pictogram set](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing) is named, figurative illustration stays excluded | naming an Apache-2.0 set is what this book already does for its typefaces and its icon set |
+| Whether quoth's live-microphone state gets its own hue | yes, decided by the system's owner on 2026-09-21, and [solved](95-extending.md#the-worked-example-quoths-live-colour) as `--quoth-live` at hue 297 | the accent already means selection and focus, and recording red sits on `--hw-danger`'s hue. The recommendation's bar was raised twice on the evidence: the separation is measured in hue and chroma, because a maroon at hue 27 cleared 8.0 from `--hw-danger` on lightness alone, and the floor is 4.5:1 rather than 3:1, because the word `Recording` is set in the colour. Hue 297 keeps 15.5 from all four state colours |
 | Whether an illustration set inherits the accent hue or carries its own | dissolved | a `currentColor` set takes the surrounding text colour, and a figurative one would bring its own through a product namespace |
 | **Slide sequences are in scope because the owner asked for them**, retitled from "yes, on the precedent of the 404 page and the link-preview card" | yes, [specified](75-spec-sheet.md#slide-sequence) | the old ground cited two entries that did not exist when it was written. The real one is the owner's request for carousel art, and the frame is measured on three independent accounts |
 | **The eighteen exclusions are not waiting on a roadmap**, retitled from "which, if any, is about to be needed" | not pending | all eighteen are written down, and the one product read forbids the riskiest in its own source. [The section above](#ruled-out-with-the-reason) says so |

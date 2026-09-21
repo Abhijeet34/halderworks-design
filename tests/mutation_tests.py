@@ -38,8 +38,14 @@ from pathlib import Path
 SRC = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
 RESULTS = []
 
-CHECKS = [("tools/build.py",), ("tools/build.py", "--check"), ("tools/contrast.py",),
-          ("tools/export.py",), ("tools/check-coverage.py",), ("tests/invariants.py",)]
+# The worked product seed, which CI solves and verifies beside the house set.
+EXAMPLE = "examples/quoth.seed.json"
+CHECKS = [("build", ("tools/build.py",)), ("--check", ("tools/build.py", "--check")),
+          ("contrast", ("tools/contrast.py",)), ("export", ("tools/export.py",)),
+          ("check-coverage", ("tools/check-coverage.py",)),
+          ("invariants", ("tests/invariants.py",)),
+          ("extend", ("tools/build.py", "--check", "--extend", EXAMPLE)),
+          ("contrast-extend", ("tools/contrast.py", "--extend", EXAMPLE))]
 
 
 def clone():
@@ -77,19 +83,28 @@ def exact_min(repo, pairs):
                for t, fg, bg in pairs)
 
 
-def case(name, expect, mutate, after=None, note=""):
+def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False):
+    """`by` names a check, or a tuple of checks, that must be among those refusing, where WHICH
+    tool catches it is the claim: the second instrument measuring a product file on its own,
+    say. `no_traceback` asserts a clean refusal rather than an unhandled crash: a crash also
+    exits non-zero, so "caught" alone does not tell the two apart."""
     repo = clone()
     mutate(repo)
     codes, out = {}, ""
-    for cmd in CHECKS:
+    for key, cmd in CHECKS:
         rc, o = run(repo, *cmd)
-        codes[cmd[-1] if cmd[-1].startswith("--") else Path(cmd[0]).stem] = rc
+        codes[key] = rc
         out += o
     green = all(rc == 0 for rc in codes.values())
     verdict = "green" if green else "caught"
     extra, ok = ("", True)
     if after and codes["build"] == 0:
         extra, ok = after(repo)
+    for b in ((by,) if isinstance(by, str) else by or ()):
+        if codes[b] == 0:
+            extra, ok = (extra + f" {b} did not refuse it, and the case requires it to").strip(), False
+    if no_traceback and "Traceback" in out:
+        extra, ok = (extra + " a tool printed a traceback instead of a clean refusal").strip(), False
     passed = ok and (verdict == expect or (expect == "green" and verdict == "caught"))
     label = ("PASS" if verdict == expect and ok
              else "IMPROVED" if expect == "green" and ok
@@ -292,6 +307,180 @@ def w4(repo):
 
 case("W4 hw-text-secondary loses its prefers-contrast target, so the raise solves it onto muted",
      "caught", w4, note="75-spec-sheet.md: the text roles keep a 0.06 step in every block")
+
+
+# ---------------------------------------------------------------- a product's own colour
+def product_edit(repo, fn):
+    p = repo / EXAMPLE
+    seed = json.loads(p.read_text(encoding="utf-8"))
+    fn(seed["color"]["tokens"][0])
+    p.write_text(json.dumps(seed, indent=2) + "\n", encoding="utf-8")
+
+
+def product_css_edit(repo, old, new):
+    p = repo / "examples" / "quoth.tokens.css"
+    t = p.read_text(encoding="utf-8")
+    assert old in t
+    p.write_text(t.replace(old, new, 1), encoding="utf-8")
+
+
+def x1(repo):
+    def f(e):
+        e["hue"] = 27
+        e["light"]["L"], e["dark"]["L"] = "0.30", "0.85"
+    product_edit(repo, f)
+    # The values that seed solves to, written into the product file as a contributor who
+    # bypassed the build would, so the second instrument has to refuse them on its own.
+    p = repo / "examples" / "quoth.tokens.css"
+    red = {"0.515": "0.3 0.1207", "0.4467": "0.3 0.1207", "0.6255": "0.85 0.0793",
+           "0.7424": "0.85 0.0793"}
+    p.write_text(re.sub(r"oklch\((\S+) \S+ 297\)", lambda m: f"oklch({red[m[1]]} 27)",
+                        p.read_text(encoding="utf-8")), encoding="utf-8")
+
+
+case("X1 quoth-live becomes recording red: hue 27, a maroon in light and a pink in dark", "caught",
+     x1, by="contrast-extend",
+     note="both sit 9.8 or more from hw-danger in full oklab distance and 0.9 and 3.1 in hue "
+          "and chroma: lightness alone must not clear a colour of reading as a state")
+
+
+case("X2 quoth-live collides with a semantic: hue 150, beside hw-success", "caught",
+     lambda r: product_edit(r, lambda e: e.__setitem__("hue", 150)), by="extend",
+     note="95-extending.md: a product colour sits 8.0 from each state colour")
+
+
+case("X3 the product seed names its token hw-accent", "caught",
+     lambda r: product_edit(r, lambda e: e.__setitem__("name", "hw-accent")), by="extend",
+     note="95-extending.md: never redefine an hw- token, and the tool refuses it")
+
+
+case("X4 quoth.tokens.css is hand-edited to redefine --hw-accent", "caught",
+     lambda r: product_css_edit(r, "  --quoth-live:", "  --hw-accent: oklch(0.9 0.02 297);\n"
+                                                      "  --quoth-live:"), by="contrast-extend",
+     note="the second instrument refuses an hw- declaration in a product file on its own")
+
+
+def x5(repo):
+    def f(e):
+        e["floors"] = [{"bar": 3.0, "on": ["ground"]}]
+        e["light"]["L"] = "0.80"
+    product_edit(repo, f)
+    product_css_edit(repo, "--quoth-live: oklch(0.515 ", "--quoth-live: oklch(0.80 ")
+
+
+case("X5 quoth-live's floors narrow to the ground and its light value moves to L 0.80, one edit",
+     "caught", x5, by="contrast-extend",
+     note="the second instrument holds a product colour to 3:1 on all six surfaces, whatever "
+          "its seed says")
+
+
+case("X6 quoth.tokens.css is hand-edited to light L 0.80, under its floor", "caught",
+     lambda r: product_css_edit(r, "--quoth-live: oklch(0.515 ", "--quoth-live: oklch(0.80 "),
+     by="contrast-extend", note="the second instrument measures the file, not the seed")
+
+
+def x7(repo):
+    def f(e):
+        e["apart"].remove("hw-danger")
+        e["hue"] = 20
+    product_edit(repo, f)
+
+
+case("X7 quoth-live stops being held apart from hw-danger and moves to hue 20", "caught", x7,
+     by="extend", note="a seed can name more colours to stay clear of, never fewer")
+
+
+def x8(repo):
+    p = repo / EXAMPLE
+    seed = json.loads(p.read_text(encoding="utf-8"))
+    seed["color"] = "not-a-dict"
+    p.write_text(json.dumps(seed, indent=2) + "\n", encoding="utf-8")
+
+
+case("X8 the product seed's color field is a string, not an object", "caught", x8,
+     by=("extend", "contrast-extend"), no_traceback=True,
+     note="a structurally malformed product seed is one FAIL line, never a traceback")
+
+
+# Each row takes one leaf a solver later reads arithmetically and gives it one wrong value drawn
+# from the pool a JSON seed can actually carry: a string that is not a number, null, a list, NaN.
+# `by` names which instrument reads that leaf at all: contrast.py never opens a seed's anchors or
+# hue, only its floors and apart, so an anchor/hue row is build.py's alone to catch.
+LEAF_MUTATIONS = [
+    ("light.L = 'not-a-number'", lambda e: e["light"].__setitem__("L", "not-a-number"),
+     ("extend",)),
+    ("dark.C = null", lambda e: e["dark"].__setitem__("C", None), ("extend",)),
+    ("light.L = [1, 2]", lambda e: e["light"].__setitem__("L", [1, 2]), ("extend",)),
+    ("hue = NaN", lambda e: e.__setitem__("hue", float("nan")), ("extend",)),
+    ("floors[0].bar = NaN", lambda e: e["floors"][0].__setitem__("bar", float("nan")),
+     ("extend", "contrast-extend")),
+]
+
+
+def x9():
+    name = ("X9 each anchor, hue and floor-bar leaf takes a wrong value in turn (a bad string, "
+            "null, a list, NaN)")
+    checks = dict(CHECKS)
+    problems = []
+    for label, mutate_leaf, by in LEAF_MUTATIONS:
+        repo = clone()
+        product_edit(repo, mutate_leaf)
+        for key in by:
+            rc, o = run(repo, *checks[key])
+            if rc == 0:
+                problems.append(f"{label}: {key} did not refuse it")
+            elif "Traceback" in o:
+                problems.append(f"{label}: {key} printed a traceback instead of a clean refusal")
+        shutil.rmtree(repo.parent)
+    ok = not problems
+    RESULTS.append(("PASS" if ok else "FAIL", name, "caught", "caught" if ok else "green", ""))
+    print(f"\n=== {name}")
+    print("    expects caught: a wrong value at one leaf is one FAIL line, never a traceback")
+    print("    " + ("every leaf refused cleanly" if ok else "; ".join(problems)))
+
+
+x9()
+
+
+# The top-level JSON a seed file holds, mutated wholesale rather than at one field: each of
+# these is a document json.loads can legitimately hand back from a malformed file, and neither
+# tool may index into it before checking what it got.
+TOP_LEVEL_MUTATIONS = [("a list", [1, 2, 3]), ("a string", "not an object"), ("a number", 42),
+                       ("a bool", True), ("null", None)]
+
+
+def x10():
+    name = ("X10 the product seed's top-level JSON is not an object (a list, a string, a "
+            "number, a bool, null)")
+    checks = dict(CHECKS)
+    problems = []
+    for label, value in TOP_LEVEL_MUTATIONS:
+        repo = clone()
+        (repo / EXAMPLE).write_text(json.dumps(value), encoding="utf-8")
+        for key in ("extend", "contrast-extend"):
+            rc, o = run(repo, *checks[key])
+            if rc == 0:
+                problems.append(f"{label}: {key} did not refuse it")
+            elif "Traceback" in o:
+                problems.append(f"{label}: {key} printed a traceback instead of a clean refusal")
+        shutil.rmtree(repo.parent)
+    ok = not problems
+    RESULTS.append(("PASS" if ok else "FAIL", name, "caught", "caught" if ok else "green", ""))
+    print(f"\n=== {name}")
+    print("    expects caught: a non-object top level is one FAIL line, never a traceback")
+    print("    " + ("every case refused cleanly" if ok else "; ".join(problems)))
+
+
+x10()
+
+
+def x11(repo):
+    (repo / "examples" / "quoth.tokens.css").unlink()
+
+
+case("X11 quoth.tokens.css is deleted before contrast.py --extend runs", "caught", x11,
+     by="contrast-extend", no_traceback=True,
+     note="a well-formed seed with no built CSS is one FAIL line, never a traceback")
 
 
 # ---------------------------------------------------------------- check-coverage.py
