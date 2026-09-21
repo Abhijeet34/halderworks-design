@@ -16,7 +16,7 @@ name: CI
 # consistency.yml is the single definition and maintenance.yml calls the same file.
 #
 # Linux only, per AGENTS.md. Nothing here rasterises anything or leaves the runner, so a second
-# platform would re-run five standard-library Python scripts for no new information.
+# platform would re-run six standard-library Python checks for no new information.
 
 on:
   push:

@@ -4,8 +4,9 @@ Every colour here was solved to a contrast target. None was chosen and then chec
 The difference is not pedantry. Solving caught a `warning` at chroma 0.12 that falls outside sRGB at every light ground, and five dark-theme pairs that cleared AA against the darkest surface and failed against the lightest one.
 Both would have shipped under an eyeball.
 
-**99 text-on-ground pairs, both themes, 0 below WCAG AA 4.5:1. 29 non-text pairs held to 3:1, 0 below it. 33 tokens, 0 outside the sRGB gamut.**
-The third pass adds **112 form-layer pairs, 0 below bar**, re-verified by `tools/contrast.py`.
+**104 text pairs, both themes, 0 below WCAG AA 4.5:1. 54 non-text pairs held to 3:1, 0 below it. 33 tokens, 0 outside the sRGB gamut.**
+Those are the counts `tools/build.py` prints and writes into the header of `tokens/tokens.css`; every one is re-measured on the formatted strings before either file is written.
+`tools/contrast.py` then re-derives all **158 certified pairs** from the CSS with a second converter that shares no code with the build, on the float value and on the 8-bit value a display receives.
 
 The first pass certified 51 pairs. Re-running the matrix over the completed system, with the two
 surfaces the interaction-state layer needed and the ink-on-quiet-fill pairs the rules already
@@ -26,7 +27,7 @@ already been measured and printed by this system without being recognised:
 
 | defect | measured | now |
 |---|---|---|
-| `hw-border-strong` as a control outline, its only stated job | **1.45:1 to 2.14:1**, against the 3:1 that WCAG 2.2 SC 1.4.11 holds a control boundary to | re-solved against the surface closest to it in lightness; **3.01:1** at its worst in both themes |
+| `hw-border-strong` as a control outline, its only stated job | **1.45:1 to 2.14:1**, against the 3:1 that WCAG 2.2 SC 1.4.11 holds a control boundary to | re-solved against the surface closest to it in lightness; **3.03:1** at its worst in both themes |
 
 [15-color-combinations.md](15-color-combinations.md) already printed `1.64:1` for that token, as the
 argument for never using it as an ink, and never asked whether it cleared the different bar it

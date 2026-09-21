@@ -245,19 +245,19 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.637,
+          0.635,
           0.006,
           198
         ]
       },
-      "$description": "Control outlines that must be seen: inputs, selects, textareas, checkboxes, switches, slider rails, secondary buttons, the selected segment of a segmented control, and a floating panel's edge. Held to WCAG 1.4.11's 3:1 as a control boundary: 3.01:1 at worst in both themes. The first two passes shipped it at 1.64:1 light and 1.92:1 dark on hw-surface.",
+      "$description": "Control outlines that must be seen: inputs, selects, textareas, checkboxes, switches, slider rails, secondary buttons, the selected segment of a segmented control, and a floating panel's edge. Held to WCAG 1.4.11's 3:1 as a control boundary: 3.03:1 at worst in both themes. The first two passes shipped it at 1.64:1 light and 1.92:1 dark on hw-surface.",
       "$extensions": {
         "halderworks": {
           "themes": {
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.637,
+                0.635,
                 0.006,
                 198
               ]
@@ -265,7 +265,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.516,
+                0.5179,
                 0.0084,
                 198
               ]
@@ -381,7 +381,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.638,
+          0.635,
           0.006,
           198
         ]
@@ -393,7 +393,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.638,
+                0.635,
                 0.006,
                 198
               ]

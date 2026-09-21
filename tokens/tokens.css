@@ -3,10 +3,12 @@
    its contrast floor in the same run and refuses to emit if one does not hold.
    Do not hand-edit this file or tokens/tokens.json; edit the seed and rebuild.
 
-   104 text-on-ground pairs, both themes, 0 below WCAG AA 4.5:1.
+   104 text pairs, both themes, 0 below WCAG AA 4.5:1.
    54 non-text pairs (control boundary, focus ring, chart fills, disabled) held to
-   3:1, 0 below it.
-   32 colour tokens, 0 outside sRGB. Accent hue 198. */
+   3:1, 0 below it. Every one re-measured on these strings, on the float value and on the
+   8-bit value a display receives, after they were formatted and before they were written.
+   33 colour tokens, 32 of them solved in oklch, 0 outside sRGB.
+   Accent hue 198. */
 
 :root {
   --hw-space-2: 2px;
@@ -135,11 +137,11 @@
   --hw-surface-raised: oklch(1.000 0 198);
   --hw-surface-sunken: oklch(0.958 0.003 198);
   --hw-border: oklch(0.912 0.0045 198);
-  --hw-border-strong: oklch(0.637 0.0060 198);
+  --hw-border-strong: oklch(0.6350 0.0060 198);
   --hw-text: oklch(0.254 0.0060 198);
   --hw-text-secondary: oklch(0.471 0.0060 198);
   --hw-text-muted: oklch(0.533 0.0060 198);
-  --hw-text-disabled: oklch(0.638 0.006 198);
+  --hw-text-disabled: oklch(0.6350 0.006 198);
   --hw-ink: oklch(0.205 0.0060 198);
   --hw-ink-hover: oklch(0.290 0.0060 198);
   --hw-ink-active: oklch(0.360 0.0060 198);
@@ -173,7 +175,7 @@
   --hw-surface-raised: oklch(0.232 0.006 198);
   --hw-surface-sunken: oklch(0.118 0.006 198);
   --hw-border: oklch(0.288 0.0084 198);
-  --hw-border-strong: oklch(0.516 0.0084 198);
+  --hw-border-strong: oklch(0.5179 0.0084 198);
   --hw-text: oklch(0.938 0.0072 198);
   --hw-text-secondary: oklch(0.687 0.0072 198);
   --hw-text-muted: oklch(0.619 0.0072 198);
@@ -212,7 +214,7 @@
     --hw-surface-raised: oklch(0.232 0.006 198);
     --hw-surface-sunken: oklch(0.118 0.006 198);
     --hw-border: oklch(0.288 0.0084 198);
-    --hw-border-strong: oklch(0.516 0.0084 198);
+    --hw-border-strong: oklch(0.5179 0.0084 198);
     --hw-text: oklch(0.938 0.0072 198);
     --hw-text-secondary: oklch(0.687 0.0072 198);
     --hw-text-muted: oklch(0.619 0.0072 198);

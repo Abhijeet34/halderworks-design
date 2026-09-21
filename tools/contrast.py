@@ -1,208 +1,365 @@
 #!/usr/bin/env python3
 """Re-derive and verify this system's contrast claims from tokens/tokens.css.
 
-This is the SECOND instrument, and its independence is the point. tools/build.py solves each
-colour against the floors recorded in tokens/tokens.seed.json; this file knows nothing about
-the seed and re-derives the ratios from the CSS a browser actually loads. A build that passes
-and a contrast run that fails means the seed is wrong, which is the disagreement two
-instruments exist to surface and which one instrument checking itself can never report.
+This is the SECOND instrument, and two things make it one rather than a second reading of the
+first. It shares no line of arithmetic with tools/build.py: the conversion here is the CSS
+Color 4 reference path (w3c/csswg-drafts css-color-4/conversions.js, OKLab_to_LMS, LMS_to_XYZ
+and XYZ_to_lin_sRGB as exact rationals), which is what a browser implements, while build.py
+inverts the original Oklab matrices. And the pairs it requires are declared here, not read from
+tokens/tokens.seed.json, so a floor cannot be weakened in the same edit as the value it guards.
+Until 2026-09-21 neither held: build.py imported this file's converter, and the seed carried the
+floors, so deleting a floor and moving its value was one edit that no tool refused.
 
-It runs two passes and exits non-zero if either fails:
+The principle both instruments are built to: MEASURE THE ARTIFACT, NEVER THE INTENT. A number
+that was not re-measured in the exact form it will ship has not been certified.
 
-  1. A self-test against ratios published in 10-color.md and 15-color-combinations.md. A
-     converter that cannot reproduce the existing table cannot certify a new pair either,
-     and this caught a real bug: omitting the XYZ step returns a plausible-looking colour
-     with the wrong hue, and it put the light ground at #F2F8FF instead of #F6F8F8.
-  2. The form-layer matrix: every pair 66-forms.md, 67-validation.md and 36-form-factors.md
-     rely on, text held to WCAG AA 4.5:1 and non-text to 1.4.11's 3:1.
+It runs three passes and exits non-zero if any fails:
+
+  1. Every ratio the book publishes, re-derived. The tables in 15-color-combinations.md are
+     parsed cell by cell rather than transcribed, so a published number that stops being true
+     is a failure here instead of a sentence nobody re-measured. A converter that cannot
+     reproduce the existing table cannot certify a new pair either, and this caught a real bug:
+     omitting the XYZ step returns a plausible-looking colour with the wrong hue, and it put the
+     light ground at #F2F8FF instead of #F6F8F8.
+  2. REQUIRED: every pair this system certifies, against WCAG AA 4.5:1 for text and 1.4.11's
+     3:1 for a control boundary. No tolerance, three decimals, and each pair is measured twice:
+     on the unquantized value and on the 8-bit sRGB value a display receives, because a pair
+     that clears 3:1 on floats and reads 2.999 in hex is not a pair any third-party checker
+     will agree about.
+  3. Every colour token is inside sRGB, and the @media (prefers-color-scheme: dark) block a
+     user with no explicit choice actually gets is identical to [data-theme="dark"]. That block
+     used to be discarded as a duplicate, which is a guess about a file this tool is here to
+     stop guessing about.
 
   Pass 1 is measured at the shipped accent hue. Run against a set rebuilt at a different hue -
   `tools/build.py --accent-hue N` - the published ratios no longer describe that palette, so
   pass 1 reports itself skipped and names the hue rather than failing rows that were never
-  claimed about it. Pass 2 is hue-independent and always runs; it is the matrix.
+  claimed about it. Passes 2 and 3 are hue-independent and always run; they are the certificate.
 
     python3 tools/contrast.py [tokens.css]
 """
 import math
 import re
 import sys
+from fractions import Fraction as F
 from pathlib import Path
 
-M1 = ((0.8189330101, 0.3618667424, -0.1288597137),
-      (0.0329845436, 0.9293118715, 0.0361456387),
-      (0.0482003018, 0.2643662691, 0.6338517070))
-M2 = ((0.2104542553, 0.7936177850, -0.0040720468),
-      (1.9779984951, -2.4285922050, 0.4505937099),
-      (0.0259040371, 0.7827717662, -0.8086757660))
+ROOT = Path(__file__).resolve().parent.parent
 
-XYZ_TO_LRGB = ((3.2409699419045226, -1.5373831775700939, -0.4986107602930034),
-               (-0.9692436362808796, 1.8759675015077202, 0.0415550574071756),
-               (0.0556300796969936, -0.2039769588889765, 1.0569715142428784))
+# --- the converter: the CSS Color 4 reference path -----------------------------------------
+# Exact rationals for XYZ -> linear sRGB, as conversions.js carries them. The measurable
+# difference from build.py's inverted-matrix path is small and it is the point: white comes back
+# as exactly 1.000000 here and as 1.000186 there, which is a white-point mismatch rather than
+# the round-off the old comment in this file claimed.
 
-def oklch_to_linear_srgb(L, C, h_deg):
-    """oklch -> oklab -> LMS' -> LMS -> XYZ(D65) -> linear sRGB. The XYZ step is not optional:
-    omitting it silently returns a plausible-looking colour with the wrong hue."""
+OKLAB_TO_LMS = ((1.0, 0.3963377773761749, 0.2158037573099136),
+                (1.0, -0.1055613458156586, -0.0638541728258133),
+                (1.0, -0.0894841775298119, -1.2914855480194092))
+LMS_TO_XYZ = ((1.2268798758459243, -0.5578149944602171, 0.2813910456659647),
+              (-0.0405757452148008, 1.1122868032803170, -0.0717110580655164),
+              (-0.0763729366746601, -0.4214933324022432, 1.5869240198367816))
+XYZ_TO_LIN_SRGB = tuple(tuple(float(x) for x in row) for row in (
+    (F(12831, 3959), F(-329, 214), F(-1974, 3959)),
+    (F(-851781, 878810), F(1648619, 878810), F(36519, 878810)),
+    (F(705, 12673), F(-2585, 12673), F(705, 667))))
+
+
+def _mul(m, v):
+    return [sum(m[i][j] * v[j] for j in range(3)) for i in range(3)]
+
+
+def oklch_to_rgb(L, C, h_deg):
+    """oklch -> oklab -> LMS -> XYZ(D65) -> linear sRGB -> gamma-encoded sRGB, in 0..1."""
     h = math.radians(h_deg)
     lab = (L, C * math.cos(h), C * math.sin(h))
-    lms = [sum(M2inv[i][j] * lab[j] for j in range(3)) ** 3 for i in range(3)]
-    xyz = [sum(M1inv[i][j] * lms[j] for j in range(3)) for i in range(3)]
-    return [sum(XYZ_TO_LRGB[i][j] * xyz[j] for j in range(3)) for i in range(3)]
+    lms = [x ** 3 for x in _mul(OKLAB_TO_LMS, lab)]
+    lin = _mul(XYZ_TO_LIN_SRGB, _mul(LMS_TO_XYZ, lms))
 
-def inv3(m):
-    (a,b,c),(d,e,f),(g,h,i) = m
-    det = a*(e*i-f*h) - b*(d*i-f*g) + c*(d*h-e*g)
-    return [[(e*i-f*h)/det, (c*h-b*i)/det, (b*f-c*e)/det],
-            [(f*g-d*i)/det, (a*i-c*g)/det, (c*d-a*f)/det],
-            [(d*h-e*g)/det, (b*g-a*h)/det, (a*e-b*d)/det]]
+    def gamma(u):
+        s = -1 if u < 0 else 1
+        u = abs(u)
+        return s * (12.92 * u if u <= 0.0031308 else 1.055 * u ** (1 / 2.4) - 0.055)
+    return [gamma(u) for u in lin]
 
-M1inv, M2inv = inv3(M1), inv3(M2)
 
-def linear_to_srgb(u):
-    return 12.92*u if u <= 0.0031308 else 1.055*(abs(u)**(1/2.4))*(1 if u>=0 else -1) - 0.055
-
-def oklch_to_rgb(L, C, h):
-    return [linear_to_srgb(v) for v in oklch_to_linear_srgb(L, C, h)]
-
-def in_gamut(L, C, h, eps=1e-3):
-    """eps absorbs matrix round-off. Measured: pure white, oklch(1 0 198), comes back as
-    1.000186 through the three matrices, while the real out-of-gamut defect 90-evidence.md
-    records, a warning at chroma 0.12, sits at -0.1185 on blue. 1e-3 is a quarter of a 1/255
-    channel step and two orders below that defect, so it absorbs the former and still fails
-    the latter."""
+def in_gamut(L, C, h, eps=1e-6):
+    """The reference path returns white as exactly 1.0, so eps here only absorbs floating-point
+    noise rather than a white-point error. The real out-of-gamut defect 90-evidence.md records,
+    a warning at chroma 0.12, sits at -0.1185 on blue and is five orders above this."""
     return all(-eps <= v <= 1 + eps for v in oklch_to_rgb(L, C, h))
+
+
+def quantize(rgb):
+    """The 8-bit sRGB value a display receives, which is what a hex-based checker is given."""
+    return [round(min(max(c, 0.0), 1.0) * 255) / 255 for c in rgb]
+
 
 def luminance_rgb(rgb):
     def lin(c):
         c = min(max(c, 0.0), 1.0)
-        return c/12.92 if c <= 0.04045 else ((c+0.055)/1.055) ** 2.4
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
     r, g, b = (lin(v) for v in rgb)
-    return 0.2126*r + 0.7152*g + 0.0722*b
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
 
 def luminance(L, C, h):
     return luminance_rgb(oklch_to_rgb(L, C, h))
+
 
 def ratio_lum(l1, l2):
     hi, lo = max(l1, l2), min(l1, l2)
     return (hi + 0.05) / (lo + 0.05)
 
+
 def ratio(fg, bg):
-    return ratio_lum(luminance(*fg), luminance(*bg))
+    """(float ratio, 8-bit ratio). Both are reported because a pair can clear its bar on one
+    and miss it on the other, and the system claims both."""
+    a, b = oklch_to_rgb(*fg), oklch_to_rgb(*bg)
+    return (ratio_lum(luminance_rgb(a), luminance_rgb(b)),
+            ratio_lum(luminance_rgb(quantize(a)), luminance_rgb(quantize(b))))
+
 
 def hexof(L, C, h):
-    return "#" + "".join("%02X" % round(min(max(v,0),1)*255) for v in oklch_to_rgb(L, C, h))
+    return "#" + "".join("%02X" % round(min(max(v, 0), 1) * 255) for v in oklch_to_rgb(L, C, h))
+
 
 TOKEN_RE = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
+
 def parse_tokens(path):
-    """Return {'light': {...}, 'dark': {...}}. Light is the :root/[data-theme=light] block,
-    dark the [data-theme=dark] block; the prefers-color-scheme copy is ignored as a duplicate."""
-    themes, cur = {"light": {}, "dark": {}}, None
-    for line in open(path, encoding="utf-8"):
+    """Return {'light': {...}, 'dark': {...}, 'media-dark': {...}}.
+
+    All three colour blocks, including the @media (prefers-color-scheme: dark) copy: pass 3
+    checks it against [data-theme="dark"] rather than assuming it is a duplicate."""
+    themes = {"light": {}, "dark": {}, "media-dark": {}}
+    cur, in_media = None, False
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
         s = line.strip()
-        if s.startswith(":root, [data-theme=\"light\"]"): cur = "light"; continue
-        if s.startswith("[data-theme=\"dark\"]"): cur = "dark"; continue
-        if s.startswith("@media (prefers-color-scheme"): cur = None; continue
-        if s.startswith("}"): cur = None if cur else cur
+        if s.startswith("@media (prefers-color-scheme: dark)"):
+            in_media = True
+            continue
+        if s.endswith("{"):
+            sel = s[:-1].strip()
+            if in_media and sel.startswith(':root:not('):
+                cur = "media-dark"
+            elif sel == ':root, [data-theme="light"]':
+                cur = "light"
+            elif sel == '[data-theme="dark"]':
+                cur = "dark"
+            else:
+                cur = None
+            continue
+        if s.startswith("}"):
+            if cur is None:
+                in_media = False
+            cur = None
+            continue
         m = TOKEN_RE.match(line)
         if m and cur:
             themes[cur][m.group(1)] = (float(m.group(2)), float(m.group(3)), float(m.group(4)))
     return themes
 
 
-# --- pass 1: ratios this system already published, which the converter must reproduce -------
-
-PUBLISHED = {
-    ("light", "--hw-text", "--hw-ground"): 14.83,
-    ("light", "--hw-text", "--hw-surface"): 15.78,
-    ("light", "--hw-text", "--hw-surface-sunken"): 13.98,
-    ("light", "--hw-text-secondary", "--hw-ground"): 6.37,
-    ("light", "--hw-text-muted", "--hw-ground"): 4.88,
-    ("light", "--hw-accent", "--hw-ground"): 5.09,
-    ("light", "--hw-warning", "--hw-ground"): 5.10,
-    ("light", "--hw-ink-text", "--hw-ink"): 17.63,
-    ("light", "--hw-ink-text", "--hw-ink-active"): 10.68,
-    ("light", "--hw-accent", "--hw-accent-quiet"): 4.60,
-    ("light", "--hw-accent-ring", "--hw-surface-sunken"): 3.05,
-    ("light", "--hw-text-disabled", "--hw-surface"): 3.38,
-    ("dark", "--hw-text", "--hw-ground"): 16.38,
-    ("dark", "--hw-text", "--hw-surface-raised"): 14.02,
-    ("dark", "--hw-text-muted", "--hw-surface-raised"): 4.60,
-    ("dark", "--hw-accent", "--hw-ground"): 5.60,
-    ("dark", "--hw-ink-text", "--hw-ink"): 17.36,
-    ("dark", "--hw-success", "--hw-success-quiet"): 4.61,
-    ("dark", "--hw-accent-ring", "--hw-surface-raised"): 3.05,
-    ("dark", "--hw-text-disabled", "--hw-surface"): 3.26,
-}
-
-# --- pass 2: the pairs the form layer introduces -------------------------------------------
-
-SURFACES = ["--hw-ground", "--hw-surface", "--hw-surface-raised", "--hw-surface-sunken",
-            "--hw-surface-hover", "--hw-surface-active"]
+# --- what this system certifies ------------------------------------------------------------
+# The certificate lives here and nowhere else in this file's reach. tokens.seed.json carries the
+# same set as solver targets, and tests/invariants.py fails if the two ever disagree: two
+# declarations that must match is deliberate redundancy, the same reason a ledger has two sides.
+# It holds 158 pairs where the list it replaced held 112, and 77 cells of
+# design/15-color-combinations.md were certified by nothing at all.
 
 AA, NON_TEXT = 4.5, 3.0
 
-# The accent hue pass 1's table was measured at. 10-color.md#why-hue-198 owns the choice.
+SURFACES = ["--hw-ground", "--hw-surface", "--hw-surface-raised", "--hw-surface-sunken",
+            "--hw-surface-hover", "--hw-surface-active"]
+QUIET = ["--hw-accent-quiet", "--hw-success-quiet", "--hw-warning-quiet", "--hw-danger-quiet"]
+SEMANTICS = ["accent", "success", "warning", "danger"]
+
+# The accent hue pass 1's tables were measured at. 10-color.md#why-hue-198 owns the choice.
 PUBLISHED_HUE = 198
 
 
-def form_pairs():
-    """(kind, foreground, background, what relies on it). Kind picks the bar."""
+def required():
+    """(bar, foreground, background, what relies on it), every pair the book certifies.
+
+    Grouped by the claim each group answers, so a reader can check the list against the prose
+    rather than against the seed. 79 pairs per theme, 158 over the two."""
     for s in SURFACES:
-        yield "nontext", "--hw-border-strong", s, "input, select, textarea, switch, slider rail, panel edge"
-        yield "nontext", "--hw-ink", s, "checked box, radio dot, switch on, slider fill"
-        yield "nontext", "--hw-accent-ring", s, "focus ring on a form control"
-        yield "nontext", "--hw-danger", s, "error field border"
-        yield "text", "--hw-danger", s, "inline error message"
-        yield "text", "--hw-success", s, "field success"
-        yield "text", "--hw-warning", s, "pending or degraded"
-    for s in ["--hw-surface", "--hw-surface-sunken", "--hw-surface-raised"]:
-        yield "text", "--hw-text", s, "label, legend, read-only value"
-        yield "text", "--hw-text-secondary", s, "helper text"
-        yield "text", "--hw-text-muted", s, "placeholder, character count"
-    yield "nontext", "--hw-text-disabled", "--hw-surface-sunken", "disabled field text"
-    yield "text", "--hw-ink-text", "--hw-ink", "check glyph, switch thumb"
-    for sem in ("danger", "success", "warning"):
-        yield "text", f"--hw-{sem}", f"--hw-{sem}-quiet", f"{sem} summary block"
+        yield AA, "--hw-text", s, "body copy, label, legend, read-only value"
+        yield AA, "--hw-text-secondary", s, "helper text"
+        yield AA, "--hw-text-muted", s, "placeholder, character count"
+        yield NON_TEXT, "--hw-border-strong", s, "input, select, textarea, switch, slider rail, panel edge"
+        yield NON_TEXT, "--hw-ink", s, "checked box, radio dot, switch on, slider fill"
+        yield NON_TEXT, "--hw-accent-ring", s, "focus ring on a form control"
+        # 10-color.md: the accent and the three semantics are readable text on every surface.
+        # This subsumes their non-text uses - hw-danger as an error field border was listed
+        # separately at 3:1, which is a weaker claim about the same pair.
+        for sem in SEMANTICS:
+            yield AA, f"--hw-{sem}", s, f"{sem} text, and its border where it draws one"
+    # 15-color-combinations.md certifies body text on any quiet fill, and each semantic on its own.
+    for q in QUIET:
+        yield AA, "--hw-text", q, "body copy inside a quiet fill"
+    for sem in SEMANTICS:
+        yield AA, f"--hw-{sem}", f"--hw-{sem}-quiet", f"{sem} summary block"
+    # 60-states.md: disabled text is exempt from AA and is still held to the non-text bar.
+    for s in ("--hw-ground", "--hw-surface", "--hw-surface-sunken"):
+        yield NON_TEXT, "--hw-text-disabled", s, "disabled field text"
+    yield AA, "--hw-ink-text", "--hw-ink", "check glyph, switch thumb"
+    yield AA, "--hw-ink-text", "--hw-ink-active", "check glyph on a pressed control"
+    # 10-color.md:77: the six chart colours are held to the same 3:1 as a control boundary.
+    for n in range(1, 7):
+        yield NON_TEXT, f"--hw-chart-{n}", "--hw-ground", f"chart series {n} against the page"
+
+
+# --- pass 1: every ratio the book publishes -------------------------------------------------
+
+TABLES = ["15-color-combinations.md", "10-color.md"]
+
+CELL = re.compile(r"\*{0,2}([0-9]+\.[0-9]+)\*{0,2}$")
+COLUMN = re.compile(r"`([a-z0-9-]+)`|^on ([a-z0-9-]+)$")
+PAIR_CELL = re.compile(r"^`(hw-[a-z0-9-]+)` on `(hw-[a-z0-9-]+)`$")
+TWO_THEME_TOKEN = re.compile(r"^\| `(hw-[a-z0-9-]+)` \| \*{0,2}([0-9.]+)\*{0,2} \| \*{0,2}([0-9.]+)\*{0,2} \|$")
+TWO_THEME_PAIR = re.compile(r"^\| `(hw-[a-z0-9-]+)` on `(hw-[a-z0-9-]+)` \| ([0-9.]+) \| ([0-9.]+) \|$")
+
+# Ratios the book states in a sentence rather than in a table, each with the file and line it is
+# written on. They are listed rather than parsed because a sentence has no column to key on, and
+# they are listed at all because an unguarded published number is the defect this pass exists to
+# stop: until 2026-09-21 the chart ratios below, and the disabled table in 60-states.md, were
+# certified by nothing.
+PROSE = [
+    # 15-color-combinations.md:99, 106, and the fill-is-not-a-boundary paragraph at :129
+    ("light", "--hw-accent", "--hw-ink", 3.30),
+    ("dark", "--hw-accent", "--hw-ink", 3.07),
+    ("light", "--hw-border", "--hw-surface", 1.30),
+    ("light", "--hw-surface", "--hw-surface-sunken", 1.129),
+    ("dark", "--hw-surface", "--hw-surface-sunken", 1.115),
+    # 10-color.md:72-74, the focus ring against the surface closest to it in lightness
+    ("light", "--hw-accent-ring", "--hw-surface-sunken", 3.05),
+    ("dark", "--hw-accent-ring", "--hw-surface-raised", 3.05),
+    ("light", "--hw-accent-ring", "--hw-surface-raised", 3.44),
+    ("dark", "--hw-accent-ring", "--hw-surface-sunken", 3.70),
+    # 10-color.md:77, the six chart fills against each ground
+    *[("light", f"--hw-chart-{i}", "--hw-ground", v)
+      for i, v in enumerate([4.47, 4.74, 4.94, 4.92, 4.68, 4.42], 1)],
+    *[("dark", f"--hw-chart-{i}", "--hw-ground", v)
+      for i, v in enumerate([6.58, 6.23, 6.01, 6.03, 6.28, 6.57], 1)],
+    # 60-states.md:75-76, the disabled text table
+    *[(t, "--hw-text-disabled", f"--hw-{g}", v)
+      for t, row in (("light", [3.21, 3.42, 3.03]), ("dark", [3.51, 3.26, 3.64]))
+      for g, v in zip(("ground", "surface", "surface-sunken"), row)],
+]
+
+
+def published_ratios(root):
+    """Every numeric cell in the book's ratio tables, as (theme, fg, bg, value).
+
+    Four table shapes across the two files that carry them: a per-theme grid whose header row
+    names the grounds, a row inside such a grid keyed on a named pair, a two-column light/dark
+    table keyed on one foreground, and a two-column table keyed on a named pair."""
+    out = []
+    for name in TABLES:
+        theme, cols = None, None
+        for line in (root / "design" / name).read_text(encoding="utf-8").splitlines():
+            if line.startswith("### Light"):
+                theme = "light"
+            elif line.startswith("### Dark"):
+                theme = "dark"
+            elif line.startswith("## "):
+                theme, cols = None, None
+            m = TWO_THEME_TOKEN.match(line)
+            if m:
+                for t, v in (("light", m.group(2)), ("dark", m.group(3))):
+                    out.append((t, "--hw-border-strong", "--" + m.group(1), float(v)))
+                continue
+            m = TWO_THEME_PAIR.match(line)
+            if m:
+                for t, v in (("light", m.group(3)), ("dark", m.group(4))):
+                    out.append((t, "--" + m.group(1), "--" + m.group(2), float(v)))
+                continue
+            if not line.startswith("|"):
+                continue
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if cells[0] in ("ink", "foreground"):
+                cols = []
+                for c in cells[1:]:
+                    m = COLUMN.search(c)
+                    cols.append((m.group(1) or m.group(2)) if m else None)
+                continue
+            if not (theme and cols):
+                continue
+            m = PAIR_CELL.match(cells[0])
+            if m:
+                values = [c for c in cells[1:] if CELL.fullmatch(c)]
+                if values:
+                    out.append((theme, "--" + m.group(1), "--" + m.group(2),
+                                float(CELL.fullmatch(values[0]).group(1))))
+            elif cells[0].startswith("`hw-"):
+                fg = "--" + cells[0].strip("`")
+                for g, v in zip(cols, cells[1:]):
+                    if g and CELL.fullmatch(v):
+                        out.append((theme, fg, "--hw-" + g, float(CELL.fullmatch(v).group(1))))
+    return out
 
 
 def main(argv):
-    path = argv[1] if len(argv) > 1 else str(Path(__file__).resolve().parent.parent / "tokens" / "tokens.css")
+    path = argv[1] if len(argv) > 1 else str(ROOT / "tokens" / "tokens.css")
     themes = parse_tokens(path)
     failures = []
 
     hue = themes["light"]["--hw-accent"][2]
     if abs(hue - PUBLISHED_HUE) < 0.5:
-        for (theme, fg, bg), want in sorted(PUBLISHED.items()):
-            got = ratio(themes[theme][fg], themes[theme][bg])
+        claims = published_ratios(ROOT) + PROSE
+        for theme, fg, bg, want in claims:
+            got, _ = ratio(themes[theme][fg], themes[theme][bg])
+            # The book prints two or three decimals, so a cell is reproduced when it rounds back
+            # to what is written. 0.011 is half a unit in the last place of a two-decimal cell.
             if abs(got - want) > 0.011:
-                failures.append(f"self-test {theme} {fg} on {bg}: published {want:.2f}, "
-                                f"computed {got:.2f}")
-        print(f"pass 1: {len(PUBLISHED)} published ratios re-derived, "
+                failures.append(f"published {theme} {fg} on {bg}: book says {want}, "
+                                f"this file computes {got:.3f}")
+        print(f"pass 1: {len(claims)} published ratios re-derived from "
+              f"{', '.join('design/' + t for t in TABLES)} and the prose list, "
               f"{len(failures)} mismatched")
     else:
         print(f"pass 1: skipped. This set is built at accent hue {hue:.0f}; the published "
               f"ratios were measured at {PUBLISHED_HUE} and do not describe it.")
 
-    checked = 0
-    worst = {}
-    for kind, fg, bg, why in form_pairs():
-        bar = AA if kind == "text" else NON_TEXT
+    checked, worst = 0, {}
+    for bar, fg, bg, why in required():
         for theme in ("light", "dark"):
-            got = ratio(themes[theme][fg], themes[theme][bg])
+            for token in (fg, bg):
+                if token not in themes[theme]:
+                    failures.append(f"{theme} {token} is certified and is not in {path}")
+            if fg not in themes[theme] or bg not in themes[theme]:
+                continue
+            got, got8 = ratio(themes[theme][fg], themes[theme][bg])
             checked += 1
-            if got + 0.005 < bar:
-                failures.append(f"{theme} {fg} on {bg}: {got:.2f} below {bar} ({why})")
-            key = (kind, theme)
+            # No tolerance on either reading. WCAG states its thresholds without rounding, and a
+            # tolerance is how 2.9953 came to be published as 3.00.
+            if got < bar:
+                failures.append(f"{theme} {fg} on {bg}: {got:.3f} below {bar} ({why})")
+            elif got8 < bar:
+                failures.append(f"{theme} {fg} on {bg}: {got:.3f} clears {bar} but reads "
+                                f"{got8:.3f} at 8-bit, {hexof(*themes[theme][fg])} on "
+                                f"{hexof(*themes[theme][bg])} ({why})")
+            key = ("text" if bar >= AA else "nontext", theme)
             if key not in worst or got < worst[key][0]:
-                worst[key] = (got, fg, bg)
-    print(f"pass 2: {checked} form-layer pairs checked against "
-          f"AA {AA}:1 and non-text {NON_TEXT}:1")
-    for (kind, theme), (got, fg, bg) in sorted(worst.items()):
-        print(f"  worst {kind:8} {theme:5} {got:5.2f}  {fg} on {bg}")
+                worst[key] = (got, got8, fg, bg)
+    print(f"pass 2: {checked} certified pairs checked against AA {AA}:1 and "
+          f"non-text {NON_TEXT}:1, on the float value and at 8-bit")
+    for (kind, theme), (got, got8, fg, bg) in sorted(worst.items()):
+        print(f"  worst {kind:8} {theme:5} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
 
-    for token, (L, C, H) in sorted(themes["light"].items()) + sorted(themes["dark"].items()):
-        if not in_gamut(L, C, H):
-            failures.append(f"{token} oklch({L} {C} {H}) falls outside sRGB")
+    for theme in ("light", "dark"):
+        for token, (L, C, H) in sorted(themes[theme].items()):
+            if not in_gamut(L, C, H):
+                failures.append(f"{theme} {token} oklch({L} {C} {H}) falls outside sRGB")
+    if themes["media-dark"] != themes["dark"]:
+        diff = sorted(set(themes["dark"].items()) ^ set(themes["media-dark"].items()))
+        failures.append("the @media (prefers-color-scheme: dark) block differs from "
+                        f'[data-theme="dark"] in {len(diff)} declaration(s): '
+                        + ", ".join(t for t, _ in diff[:6]))
+    print(f"pass 3: {len(themes['light']) + len(themes['dark'])} tokens inside sRGB; "
+          f"the media-dark block and [data-theme=\"dark\"] agree on "
+          f"{len(themes['media-dark'])} declarations")
 
     for f in failures:
         print("FAIL  " + f, file=sys.stderr)

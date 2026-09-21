@@ -33,21 +33,37 @@ What the build does, in order:
      warning at chroma 0.12 shipping exactly that way.
   4. Re-solve lightness for any token whose contrast floor no longer holds, by binary search,
      staying as close to the seed anchor as the floor permits. Rotating a hue at fixed
-     lightness moves WCAG luminance, so this is not a formality.
+     lightness moves WCAG luminance, so this is not a formality. Every candidate is measured
+     in the quantized form fmt() will write, and the target is the bar plus MARGIN rather than
+     the bar itself.
   5. Refuse an off-unit space or size value that is not a declared grid exception, and
      refuse a declared exception whose value has since moved back onto the unit. 32-rhythm.md
      is what that check makes checkable.
-  6. Refuse to write anything if a floor or the grid still fails.
+  6. Re-measure every floor against the formatted strings, immediately before writing them,
+     by reading the generated CSS back. A build that cannot re-derive its own output does not
+     write it.
+  7. Refuse to write anything if a floor, the grid or that re-measurement still fails.
 
-Why the output is byte-identical to the committed files at the shipped hue: at hue 198 steps
-3 and 4 are no-ops, because the committed set already satisfies its own spec. That is not a
-replay - it runs the same code path - and it is the regression that proves the seed and the
-shipped files agree.
+The principle the whole file is built to: MEASURE THE ARTIFACT, NEVER THE INTENT. Until
+2026-09-21 it did the opposite - the solver kept the acceptable lightness nearest the anchor,
+which put a re-solved token at bar - 0.005 by construction, fmt() then rounded it to four
+decimals, and the rounded value went to disk without being measured again. 81 of the 147 hues
+this script agreed to build emitted a palette tools/contrast.py refused.
+
+Why the output is byte-identical to the committed files at the shipped hue: the committed
+files are what this script emits from the seed, including the three tokens it re-solves there
+because the target is the bar plus MARGIN. That is not a replay - it runs the same code path -
+and `--check` reproducing both files byte for byte is the regression that proves the seed and
+the shipped files agree.
 
 The seed's contrast floors and this script are one instrument. tools/contrast.py is a second,
-independent one: it re-derives published ratios from the emitted CSS and knows nothing about
-the seed. A build that passes and a contrast run that fails would mean the seed is wrong, and
-that is exactly the disagreement two instruments exist to surface.
+and two things make it independent rather than a second reading of this one. It shares no line
+of arithmetic: the converter below inverts the original Oklab matrices, while contrast.py uses
+the CSS Color 4 reference path. And it declares the pairs it requires in its own file rather
+than reading the seed, so a floor cannot be weakened in the same edit as the value it guards.
+Neither held until 2026-09-21: this file imported contrast.py's converter, so a conversion error
+would have passed both, and the floors lived beside the values, so one seed edit could move a
+chart fill to 1.2:1 and delete the floor that would have caught it with every tool still green.
 """
 import argparse
 import json
@@ -56,28 +72,128 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from contrast import in_gamut, luminance, oklch_to_rgb, ratio_lum  # noqa: E402
-
 ROOT = Path(__file__).resolve().parent.parent
 EPS = 1e-9
 
+# How far above its bar a re-solved pair is placed. Every term it has to cover is measured
+# rather than guessed, against the shipped set on 2026-09-21: rounding the emitted lightness to
+# four decimals moves a ratio by at most 0.00265, and the largest disagreement between this
+# file's converter and tools/contrast.py's reference path over the 158 certified pairs is
+# 0.00154. 0.03 is eleven times the first and nineteen times the second. Quantization to 8-bit
+# is not in this budget because it is measured directly instead, in meets().
+MARGIN = 0.03
 
-# --- colour helpers not already in contrast.py ---------------------------------------------
+# The two bars this system recognises: WCAG 2.2 SC 1.4.3 for text and SC 1.4.11 for a control
+# boundary. A floor outside this set is a typo or a weakening, and either way it is refused
+# rather than silently counted as the lower one.
+NON_TEXT_BAR, AA_BAR = 3.0, 4.5
+
+# How far inside the sRGB boundary the chroma clamp stops. max_chroma() explains the number.
+GAMUT_MARGIN = 0.005
+
+
+# --- the converter -------------------------------------------------------------------------
+# This file owns its arithmetic. It used to import the four functions below from contrast.py,
+# so the "second instrument" ran the same code on a different input and a conversion error
+# would have passed both. This path inverts the original Oklab matrices; contrast.py uses the
+# CSS Color 4 reference path. Two implementations that agree are evidence, one called twice is
+# not, and tests/invariants.py measures how far apart they are allowed to be.
+
+M1 = ((0.8189330101, 0.3618667424, -0.1288597137),
+      (0.0329845436, 0.9293118715, 0.0361456387),
+      (0.0482003018, 0.2643662691, 0.6338517070))
+M2 = ((0.2104542553, 0.7936177850, -0.0040720468),
+      (1.9779984951, -2.4285922050, 0.4505937099),
+      (0.0259040371, 0.7827717662, -0.8086757660))
+XYZ_TO_LRGB = ((3.2409699419045226, -1.5373831775700939, -0.4986107602930034),
+               (-0.9692436362808796, 1.8759675015077202, 0.0415550574071756),
+               (0.0556300796969936, -0.2039769588889765, 1.0569715142428784))
+
+
+def inv3(m):
+    (a, b, c), (d, e, f), (g, h, i) = m
+    det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g)
+    return [[(e * i - f * h) / det, (c * h - b * i) / det, (b * f - c * e) / det],
+            [(f * g - d * i) / det, (a * i - c * g) / det, (c * d - a * f) / det],
+            [(d * h - e * g) / det, (b * g - a * h) / det, (a * e - b * d) / det]]
+
+
+M1inv, M2inv = inv3(M1), inv3(M2)
+
+
+def oklch_to_rgb(L, C, h_deg):
+    """oklch -> oklab -> LMS' -> LMS -> XYZ(D65) -> sRGB. The XYZ step is not optional:
+    omitting it silently returns a plausible-looking colour with the wrong hue."""
+    h = math.radians(h_deg)
+    lab = (L, C * math.cos(h), C * math.sin(h))
+    lms = [sum(M2inv[i][j] * lab[j] for j in range(3)) ** 3 for i in range(3)]
+    xyz = [sum(M1inv[i][j] * lms[j] for j in range(3)) for i in range(3)]
+    lin = [sum(XYZ_TO_LRGB[i][j] * xyz[j] for j in range(3)) for i in range(3)]
+    return [12.92 * u if u <= 0.0031308
+            else (1.055 * (abs(u) ** (1 / 2.4)) * (1 if u >= 0 else -1) - 0.055) for u in lin]
+
+
+def in_gamut(L, C, h, eps=1e-3):
+    """eps absorbs a white-point mismatch between the original Oklab M1 and the sRGB matrix:
+    pure white, oklch(1 0 198), comes back as 1.000186 through these three matrices, while the
+    real out-of-gamut defect 90-evidence.md records, a warning at chroma 0.12, sits at -0.1185
+    on blue. 1e-3 is a quarter of a 1/255 channel step and two orders below that defect, so it
+    absorbs the former and still fails the latter. contrast.py's reference path returns white
+    as exactly 1.0 and needs no such allowance, which is the difference showing its face."""
+    return all(-eps <= v <= 1 + eps for v in oklch_to_rgb(L, C, h))
+
+
+def luminance_rgb(rgb):
+    def lin(c):
+        c = min(max(c, 0.0), 1.0)
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(v) for v in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def luminance(L, C, h):
+    return luminance_rgb(oklch_to_rgb(L, C, h))
+
+
+def luminance8(L, C, h):
+    """Luminance of the 8-bit sRGB value a display receives, which is what a hex-based checker
+    is handed. A pair that clears its bar on floats and reads 2.999 in hex is not certified."""
+    return luminance_rgb([round(min(max(v, 0.0), 1.0) * 255) / 255 for v in oklch_to_rgb(L, C, h)])
+
+
+def ratio_lum(l1, l2):
+    hi, lo = max(l1, l2), min(l1, l2)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+# --- colour helpers ------------------------------------------------------------------------
 
 def max_chroma(L, h, hi=0.45):
-    """The largest in-gamut chroma at this lightness and hue, to 1e-4.
+    """The largest chroma at this lightness and hue that is in gamut by GAMUT_MARGIN, to 1e-4.
 
     Bisection rather than a formula: the sRGB gamut boundary in OKLCH has no closed form, and
     an analytic approximation that is wrong by a thousandth ships a colour the file does not
     claim - which is the defect this whole step exists to stop.
+
+    The reserve is the price of having two converters rather than one. Measured over 120 hues at
+    49 lightnesses, this file's matrices and the CSS Color 4 reference path tools/contrast.py
+    uses disagree by up to 0.0036 of a channel near the boundary, and a chroma clamped to this
+    file's own edge lands up to 0.0041 outside the gamut the second instrument measures - which
+    is how a chart fill at oklch(0.545 0.0937 208) came to sit at red +0.000293 here and
+    -0.000312 there. Backing off costs about 1.3 of a 1/255 step of saturation, and only on a
+    colour that was pinned to the boundary anyway.
     """
-    if not in_gamut(L, 0.0, h):
+    def inside(C):
+        return all(GAMUT_MARGIN <= v <= 1 - GAMUT_MARGIN for v in oklch_to_rgb(L, C, h))
+
+    if not inside(0.0):
+        # The grey axis itself is at or past an edge here, so there is no chroma to add. White
+        # is the case that reaches this: oklch(1 0 198) is in gamut and has no room beside it.
         return 0.0
     lo = 0.0
     while hi - lo > 1e-4:
         mid = (lo + hi) / 2
-        if in_gamut(L, mid, h):
+        if inside(mid):
             lo = mid
         else:
             hi = mid
@@ -103,6 +219,25 @@ def fmt(v, like):
     return f"{v:.4f}"
 
 
+GRID = 1e-4  # fmt() writes four decimals, so this is the resolution of the emitted file
+
+
+def snap(v, up):
+    """Round to the grid fmt() writes, in a chosen direction rather than to nearest.
+
+    A solved lightness snaps AWAY from its grounds and a chroma snaps DOWN, so the rounding
+    step can only add contrast and can only move further inside the gamut. Rounding to nearest
+    is how a value that cleared its bar as a float shipped as a string that does not."""
+    n = v / GRID
+    return (math.ceil(n - 1e-6) if up else math.floor(n + 1e-6)) * GRID
+
+
+def written(v, like):
+    """The number a browser reads back out of the file, which is the only number worth
+    measuring. Every candidate this build considers goes through here first."""
+    return float(fmt(v, like))
+
+
 # --- the seed ------------------------------------------------------------------------------
 
 def load_seed(path):
@@ -123,12 +258,21 @@ def theme_ids(seed):
 
 # --- the solve -----------------------------------------------------------------------------
 
+class UnsolvedGround(Exception):
+    """A floor measured against a ground the solver has not produced yet.
+
+    It used to be a `continue`, which took the pair out of the check and out of the count at
+    once: a floor whose ground was misspelt disappeared, the build stayed green, and the only
+    trace was a number in the generated header falling by two."""
+
+
 class Solver:
     """Resolves one theme's colour tokens: hue, then chroma clamp, then lightness."""
 
     def __init__(self, seed, accent, theme):
         self.seed, self.accent, self.theme = seed, accent, theme
         self.solved = {}      # short name -> (L, C, h)
+        self.lums = {}        # short name -> (float luminance, 8-bit luminance)
         self.notes = []
         self.failures = []
 
@@ -138,28 +282,48 @@ class Solver:
     def entries(self):
         return [e for e in self.seed["color"]["tokens"] if e["kind"] == "oklch"]
 
-    def meets(self, L, C, h, floors):
-        """(ok, worst_ratio, worst_ground). A ground not yet solved is skipped, which is why
-        grounds are resolved in the first pass."""
+    def order(self):
+        """Two passes: everything without a floor is a ground or a fill and must exist before
+        anything is measured against it."""
+        entries = self.entries()
+        return [e for e in entries if not e.get("floors")] + \
+               [e for e in entries if e.get("floors")]
+
+    def meets(self, L, C, h, floors, margin=0.0):
+        """(ok, worst_ratio, worst_ground), on both readings of every pair.
+
+        A pair has to clear its bar plus `margin` on the float value and clear the bar itself on
+        the 8-bit value a display receives, because a ratio that is 3.006 in floats and 2.999 in
+        hex is not a ratio a third-party checker will agree about."""
         worst, where, ok = None, None, True
-        lum = luminance(L, C, h)
+        lum, lum8 = luminance(L, C, h), luminance8(L, C, h)
         for floor in floors:
+            bar = floor["bar"]
             for g in floor["on"]:
-                if g not in self.solved:
-                    continue
-                r = ratio_lum(lum, luminance(*self.solved[g]))
+                if g not in self.lums:
+                    raise UnsolvedGround(
+                        f"floor names --hw-{g}, which is not a solved colour at this point in "
+                        f"the {self.theme} pass")
+                gl, gl8 = self.lums[g]
+                r = ratio_lum(lum, gl)
                 if worst is None or r < worst:
                     worst, where = r, g
-                if r + 0.005 < floor["bar"]:
+                if r < bar + margin or ratio_lum(lum8, gl8) < bar:
                     ok = False
         return ok, worst, where
 
     def ground_pull(self, floors):
         """Mean luminance of the grounds this token is checked against, which decides whether
         solving means darkening or lightening."""
-        lums = [luminance(*self.solved[g])
-                for floor in floors for g in floor["on"] if g in self.solved]
+        lums = [self.lums[g][0] for floor in floors for g in floor["on"]]
         return sum(lums) / len(lums) if lums else 0.5
+
+    def candidate(self, L, C0, h, anchor, darken):
+        """The (L, C) this lightness becomes in the file. Nothing else is ever measured: the
+        solver works on the strings fmt() will write, so the value that clears the bar and the
+        value that ships are one number rather than two that round apart."""
+        Lq = written(snap(L, up=not darken), anchor["L"])
+        return Lq, written(snap(min(C0, max_chroma(Lq, h)), up=False), anchor["C"])
 
     def solve_one(self, entry):
         h = resolve_hue(entry["hue"], self.accent)
@@ -171,20 +335,21 @@ class Solver:
         if not floors:
             return L0, C, h, (abs(C - C0) > EPS)
 
-        ok, _, _ = self.meets(L0, C, h, floors)
-        if ok:
+        if self.meets(L0, C, h, floors, MARGIN)[0]:
             return L0, C, h, (abs(C - C0) > EPS)
 
         # Move away from the grounds. Contrast is monotonic in that direction, so the nearest
-        # acceptable lightness is a bisection over the side the token is already on.
+        # acceptable lightness is a bisection over the side the token is already on. The target
+        # is bar + MARGIN rather than the bar: a value solved to land exactly on its bar is a
+        # value that rounding, a second converter or an 8-bit display can each take below it.
         darken = luminance(L0, C, h) < self.ground_pull(floors)
         lo, hi = (0.0, L0) if darken else (L0, 1.0)
         best = None
         for _ in range(60):
             mid = (lo + hi) / 2
-            c = min(C0, max_chroma(mid, h))
-            if self.meets(mid, c, h, floors)[0]:
-                best = (mid, c)
+            Lq, Cq = self.candidate(mid, C0, h, anchor, darken)
+            if self.meets(Lq, Cq, h, floors, MARGIN)[0]:
+                best = (Lq, Cq)
                 # keep searching back toward the anchor
                 if darken:
                     lo = mid
@@ -198,8 +363,8 @@ class Solver:
         if best is None:
             _, worst, where = self.meets(L0, C, h, floors)
             self.failures.append(
-                f"{entry['name']} ({self.theme}): no lightness at hue {h} clears its floor; "
-                f"worst {worst:.2f} on --hw-{where}")
+                f"{entry['name']} ({self.theme}): no lightness at hue {h} clears its floor with "
+                f"{MARGIN} to spare; worst {worst:.3f} on --hw-{where}")
             return L0, C, h, True
         L, C = best
         self.notes.append(
@@ -208,15 +373,11 @@ class Solver:
         return L, C, h, True
 
     def run(self):
-        entries = self.entries()
-        # Two passes: everything without a floor is a ground or a fill and must exist before
-        # anything is measured against it.
-        order = [e for e in entries if not e.get("floors")] + \
-                [e for e in entries if e.get("floors")]
         out = {}
-        for e in order:
+        for e in self.order():
             L, C, h, moved = self.solve_one(e)
             self.solved[self.short(e["name"])] = (L, C, h)
+            self.lums[self.short(e["name"])] = (luminance(L, C, h), luminance8(L, C, h))
             out[e["name"]] = (L, C, h, moved, e)
         for name, (L, C, h, _, _) in out.items():
             if not in_gamut(L, C, h):
@@ -309,6 +470,43 @@ def grid_stats(seed):
                 else:
                     off += 1
     return on, off
+
+
+def check_floors(seed):
+    """Every floor names a real ground, at a bar this system recognises, in an order the solver
+    can actually satisfy.
+
+    None of the three used to be checked. `meets` skipped a ground it had not solved, so a floor
+    reading `"on": ["grund"]` removed the pair from the check and from the generated header's
+    count in the same edit, and `count_pairs` filed any bar under 4.5 as "held to 3:1" whatever
+    it said, so lowering a bar to 1.0 still printed the 3:1 claim.
+    """
+    names = {e["name"] for e in seed["color"]["tokens"]}
+    bad = []
+    position = {}
+    for i, e in enumerate([x for x in seed["color"]["tokens"]
+                           if x["kind"] == "oklch" and not x.get("floors")]
+                          + [x for x in seed["color"]["tokens"]
+                             if x["kind"] == "oklch" and x.get("floors")]):
+        position[e["name"]] = i
+    for e in seed["color"]["tokens"]:
+        for floor in e.get("floors", []):
+            bar = floor["bar"]
+            if bar != NON_TEXT_BAR and bar < AA_BAR:
+                bad.append(f"{e['name']} carries a floor at {bar}:1, which is neither the "
+                           f"{NON_TEXT_BAR}:1 of WCAG SC 1.4.11 nor at least the {AA_BAR}:1 of "
+                           f"SC 1.4.3. A bar between the two certifies nothing this system "
+                           f"claims")
+            for g in floor["on"]:
+                if f"hw-{g}" not in names:
+                    bad.append(f"{e['name']} carries a floor on --hw-{g}, which is not a token "
+                               f"in this seed. Fix the name or remove the floor; it cannot be "
+                               f"skipped")
+                elif position.get(f"hw-{g}", -1) >= position.get(e["name"], 0):
+                    bad.append(f"{e['name']} is measured against --hw-{g}, which the solver "
+                               f"reaches no earlier than {e['name']} itself. Move the ground "
+                               f"ahead of it in tokens.seed.json")
+    return bad
 
 
 def check_semantic_separation(seed, accent):
@@ -414,10 +612,12 @@ def build_tokens_css(seed, resolved, accent, stats):
    its contrast floor in the same run and refuses to emit if one does not hold.
    Do not hand-edit this file or tokens/tokens.json; edit the seed and rebuild.
 
-   {n_text} text-on-ground pairs, both themes, 0 below WCAG AA 4.5:1.
+   {n_text} text pairs, both themes, 0 below WCAG AA 4.5:1.
    {n_nontext} non-text pairs (control boundary, focus ring, chart fills, disabled) held to
-   3:1, 0 below it.
-   {len(resolved[ids[0]])} colour tokens, 0 outside sRGB. Accent hue {accent % 360}. */
+   3:1, 0 below it. Every one re-measured on these strings, on the float value and on the
+   8-bit value a display receives, after they were formatted and before they were written.
+   {len(seed['color']['tokens'])} colour tokens, {len(resolved[ids[0]])} of them solved in oklch, 0 outside sRGB.
+   Accent hue {accent % 360}. */
 """)
     o.append(":root {")
     for fam in SCALAR_FAMILIES:
@@ -494,18 +694,91 @@ def build_tokens_css(seed, resolved, accent, stats):
 
 def count_pairs(seed, resolved):
     """Every pair the seed asserts, counted by bar, so the header states what was verified
-    rather than a number somebody typed."""
+    rather than a number somebody typed.
+
+    check_floors has already refused any bar that is neither of the two, so the split here is
+    total rather than a fallback: nothing lands in the 3:1 column because it failed to be 4.5."""
     text = nontext = 0
     for theme in theme_ids(seed):
-        solved = {n[len("hw-"):]: v[:3] for n, v in resolved[theme].items()}
+        solved = {n[len("hw-"):] for n in resolved[theme]}
         for e in seed["color"]["tokens"]:
             for floor in e.get("floors", []):
                 n = sum(1 for g in floor["on"] if g in solved)
-                if floor["bar"] >= 4.5:
+                if floor["bar"] >= AA_BAR:
                     text += n
-                else:
+                elif floor["bar"] == NON_TEXT_BAR:
                     nontext += n
+                else:
+                    raise ValueError(f"{e['name']}: bar {floor['bar']} reached count_pairs; "
+                                     f"check_floors should have refused it")
     return {"text_pairs": text, "nontext_pairs": nontext}
+
+
+CSS_TOKEN = re.compile(r"^\s*--(hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
+
+
+def parse_emitted(css):
+    """Read the colour blocks back out of the CSS text this build is about to write.
+
+    Deliberately a second reader rather than a record of what the solver decided: it is the only
+    way a value written into the wrong theme block, a token dropped by an emitter change, or a
+    dark block that has drifted from its media-query copy becomes visible."""
+    blocks = {"light": {}, "dark": {}, "media-dark": {}}
+    cur, in_media = None, False
+    for line in css.splitlines():
+        s = line.strip()
+        if s.startswith("@media (prefers-color-scheme: dark)"):
+            in_media = True
+            continue
+        if s.endswith("{"):
+            sel = s[:-1].strip()
+            cur = ("media-dark" if in_media and sel.startswith(":root:not(")
+                   else "light" if sel == ':root, [data-theme="light"]'
+                   else "dark" if sel == '[data-theme="dark"]' else None)
+            continue
+        if s.startswith("}"):
+            if cur is None:
+                in_media = False
+            cur = None
+            continue
+        m = CSS_TOKEN.match(line)
+        if m and cur:
+            blocks[cur][m.group(1)] = tuple(float(m.group(i)) for i in (2, 3, 4))
+    return blocks
+
+
+def verify_emitted(css, seed):
+    """Re-measure every floor against the strings this build is about to write.
+
+    This is the step whose absence made everything else provisional: the solver worked in
+    floats, fmt() rounded them to four decimals, and the rounded value reached disk without ever
+    being measured again, so a pair could be certified at 3.0001 and ship at 2.9994. Here the
+    bar is the published one with no margin and no tolerance, on the float value and on the
+    8-bit value a display receives, and a build that cannot re-derive its own output refuses to
+    write it.
+    """
+    blocks = parse_emitted(css)
+    bad = []
+    for theme in theme_ids(seed):
+        tokens = blocks[theme]
+        for e in seed["color"]["tokens"]:
+            for floor in e.get("floors", []):
+                for g in floor["on"]:
+                    fg, bg = tokens.get(e["name"]), tokens.get(f"hw-{g}")
+                    if fg is None or bg is None:
+                        bad.append(f"{e['name']} on --hw-{g} ({theme}): the emitted CSS does "
+                                   f"not declare both tokens in that block")
+                        continue
+                    r = ratio_lum(luminance(*fg), luminance(*bg))
+                    r8 = ratio_lum(luminance8(*fg), luminance8(*bg))
+                    if r < floor["bar"] or r8 < floor["bar"]:
+                        bad.append(f"{e['name']} on --hw-{g} ({theme}): the value about to be "
+                                   f"written measures {r:.3f} ({r8:.3f} at 8-bit), below its "
+                                   f"{floor['bar']}:1 floor")
+    if blocks["media-dark"] != blocks[theme_ids(seed)[-1]]:
+        bad.append("the @media (prefers-color-scheme: dark) block about to be written differs "
+                   'from [data-theme="dark"]')
+    return bad
 
 
 def main(argv=None):
@@ -520,7 +793,14 @@ def main(argv=None):
     seed = load_seed(ROOT / "tokens" / "tokens.seed.json")
     accent = a.accent_hue if a.accent_hue is not None else seed["seed"]["accentHue"]
 
-    failures = check_semantic_separation(seed, accent) + check_grid(seed)
+    # The floors are checked before anything is solved against them: a solver that has already
+    # skipped a misnamed ground cannot report it afterwards.
+    failures = check_floors(seed) + check_semantic_separation(seed, accent) + check_grid(seed)
+    if failures:
+        for f in failures:
+            print("FAIL  " + f, file=sys.stderr)
+        print(f"\nrefusing to solve: {len(failures)} check(s) failed", file=sys.stderr)
+        return 1
 
     resolved, notes = {}, []
     for theme in theme_ids(seed):
@@ -532,6 +812,7 @@ def main(argv=None):
     stats = count_pairs(seed, resolved)
     js = build_tokens_json(seed, resolved)
     css = build_tokens_css(seed, resolved, accent, stats)
+    failures += verify_emitted(css, seed)
 
     for n in notes:
         print("solved  " + n)

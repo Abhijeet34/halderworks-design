@@ -22,7 +22,7 @@ Two defects were found by specifying the family rather than one member of it, an
 WCAG 2.2 SC 1.4.11 holds that outline to 3:1, because it is the visual information that identifies the control.
 Measured against the surfaces it is permitted to sit on, it ran **1.45:1 to 2.14:1 and never reached 3:1 in either theme**.
 [15-color-combinations.md](15-color-combinations.md) already printed `1.64:1` for it, as evidence that it may not be used as an ink, and never checked it against the bar it actually had to meet.
-It is now re-solved against the surface closest to it in lightness, exactly as the focus ring was after the 2.56:1 defect: `oklch(0.637 0.006 198)` in light and `oklch(0.516 0.0084 198)` in dark, worst case **3.01:1** in both themes.
+It is now re-solved against the surface closest to it in lightness, exactly as the focus ring was after the 2.56:1 defect: `oklch(0.635 0.006 198)` in light and `oklch(0.5179 0.0084 198)` in dark, worst case **3.03:1** in both themes.
 
 **A field and a button in the same row were different heights.**
 `--hw-control-h` is 32px and is defined as "button, select, input outer height".
@@ -210,7 +210,7 @@ A `--hw-control-h` track on `--hw-surface-sunken` with a 1px `--hw-border`, 2px 
 
 The selected segment is `--hw-surface` **with a 1px `--hw-border-strong` edge**, and the edge is not decoration.
 `--hw-surface` against `--hw-surface-sunken` measures **1.129:1 in light and 1.115:1 in dark**, so the fill alone cannot identify which segment is selected against the 3:1 bar.
-The border carries it at 3.01:1 or better.
+The border carries it at 3.03:1 or better.
 
 - Two to four segments, all one or two words. Past four it is a select.
 - The segments are views of one thing, like `Comfortable` and `Compact`. If they are actions, they are buttons.
@@ -299,7 +299,7 @@ This distinction already exists in [60-states.md](60-states.md) and forms are wh
 | | fill | text | may be copied | in the tab order |
 |---|---|---|---|---|
 | **read-only** | `--hw-surface-sunken` | `--hw-text`, 13.98:1 light and 16.98:1 dark | yes | yes |
-| **disabled** | `--hw-surface-sunken` | `--hw-text-disabled`, 3.00:1 light and 3.64:1 dark | no | see below |
+| **disabled** | `--hw-surface-sunken` | `--hw-text-disabled`, 3.03:1 light and 3.64:1 dark | no | see below |
 
 A generated key, a run id or a hash the user is meant to hand to something else is **read-only**, never disabled.
 Setting it disabled puts the one string the product exists to give away at 3:1 and blocks selecting it.

@@ -141,6 +141,8 @@ python3 tools/contrast.py ./my-tokens/tokens.css
 The build re-solves every affected token against its contrast floor and **refuses to write** if one
 does not hold. It also refuses a hue that sits closer than 8 in oklab distance to a semantic
 colour, so a product cannot take a green that competes with "passed".
+The second line is not a formality and it is not a second opinion from the same head: `contrast.py` shares no arithmetic with the build and carries its own list of what must hold.
+Of the 360 integer hues, 147 build, and `contrast.py` accepts all 147.
 
 **Everything else goes in the product's own namespace**, `--quoth-`, `--gates-`, never by
 redefining an `hw-` token. `design/95-extending.md` is the whole procedure.

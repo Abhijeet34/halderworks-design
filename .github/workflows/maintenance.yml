@@ -11,7 +11,7 @@ name: maintenance
 # The consistency job is a call into .github/workflows/consistency.yml, which ci.yml also calls
 # and which the `checks` context there gates a merge on. This workflow used to carry that job's
 # body and its own path-filtered `pull_request` trigger; both are gone, because ci.yml now runs
-# the same five tools on every pull request with no path filter. What is left here is the part
+# the same six checks on every pull request with no path filter. What is left here is the part
 # only a schedule can do: the network liveness check, and the issue.
 #
 # No `push` trigger, deliberately. ci.yml already runs the consistency call on every push to
