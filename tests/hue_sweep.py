@@ -10,6 +10,9 @@ AGENTS.md and design/95-extending.md document as the worked example, at 4.4954:1
 
 The sweep is the whole point rather than a spot check: a solver that lands on its bar by
 construction looks correct at one hue and is wrong at most others, and only a sweep says so.
+The chart colours are the sharpest case of it. Their hues rotate with the accent while the three
+semantics stay put, so a collision between a series and a state moves around the wheel with
+every rebuild; each built hue is therefore also measured for chart separation.
 
     python3 tests/hue_sweep.py [repo-root]
 
@@ -38,7 +41,7 @@ def main():
               for floor in e.get("floors", []) for g in floor["on"]]
 
     tmp = Path(tempfile.mkdtemp(prefix="hw-sweep."))
-    refused, built, contrast_fail, under = collections.Counter(), [], {}, {}
+    refused, built, contrast_fail, under, collisions = collections.Counter(), [], {}, {}, {}
     try:
         for hue in range(360):
             out = tmp / "h"
@@ -46,7 +49,8 @@ def main():
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
                 rc = build.main(["--accent-hue", str(hue), "--out", str(out)])
             if rc:
-                kinds = {("semantic separation" if "sits" in line else
+                kinds = {("accent separation" if "hw-accent at hue" in line else
+                          "chart separation" if "hw-chart" in line else
                           "no lightness clears its floor" if "no lightness" in line else "other")
                          for line in err.getvalue().splitlines() if line.startswith("FAIL")}
                 refused[" + ".join(sorted(kinds))] += 1
@@ -67,6 +71,10 @@ def main():
                    if r < bar]
             if bad:
                 under[hue] = sorted(bad)[:4]
+            collide = [f"{t} {f}" for t in ("light", "dark")
+                       for f in contrast.separations(tokens[t])[0]]
+            if collide:
+                collisions[hue] = collide
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -80,17 +88,21 @@ def main():
           f"{len(under)} of {len(built)}")
     for hue in sorted(under)[:6]:
         print(f"  hue {hue}: {under[hue][0]}")
+    print(f"built, and carrying a chart colour too close to a semantic, to another series, or to "
+          f"its neighbour's lightness: {len(collisions)} of {len(built)}")
+    for hue in sorted(collisions)[:6]:
+        print(f"  hue {hue}: {collisions[hue][0]}")
     documented = 318
     print(f"the worked example AGENTS.md documents, hue {documented}: "
           f"{'built' if documented in built else 'refused by build'}, "
           f"{'refused' if documented in contrast_fail else 'green'} in contrast.py, "
           f"{len(under.get(documented, []))} pairs under bar on an exact reading")
 
-    fails = len(contrast_fail) + len(under)
+    fails = len(contrast_fail) + len(under) + len(collisions)
     if fails:
         print(f"\nFAIL  {len(contrast_fail)} buildable hue(s) emit a palette the second "
-              f"instrument refuses, and {len(under)} carry a pair under its bar exactly",
-              file=sys.stderr)
+              f"instrument refuses, {len(under)} carry a pair under its bar exactly, and "
+              f"{len(collisions)} carry a chart collision", file=sys.stderr)
     print(f"\n{fails} failures")
     return 1 if fails else 0
 

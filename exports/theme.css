@@ -33,12 +33,12 @@
   --color-warning-quiet: oklch(0.944 0.035 78);
   --color-danger: oklch(0.539 0.13 27);
   --color-danger-quiet: oklch(0.947 0.023 27);
-  --color-chart-1: oklch(0.545 0.085 198);
-  --color-chart-2: oklch(0.545 0.115 268);
-  --color-chart-3: oklch(0.545 0.115 328);
-  --color-chart-4: oklch(0.545 0.115 28);
-  --color-chart-5: oklch(0.545 0.103 88);
-  --color-chart-6: oklch(0.545 0.115 148);
+  --color-chart-1: oklch(0.62 0.085 198);
+  --color-chart-2: oklch(0.42 0.115 268);
+  --color-chart-3: oklch(0.62 0.115 328);
+  --color-chart-4: oklch(0.42 0.115 28);
+  --color-chart-5: oklch(0.62 0.103 88);
+  --color-chart-6: oklch(0.42 0.115 148);
   --color-scrim: rgba(9, 12, 12, 0.45);
   /* spacing */
   --spacing-space-2: 2px;
@@ -192,11 +192,11 @@
   --color-warning-quiet: oklch(0.25 0.035 78);
   --color-danger: oklch(0.643 0.11 27);
   --color-danger-quiet: oklch(0.253 0.035 27);
-  --color-chart-1: oklch(0.66 0.1 198);
-  --color-chart-2: oklch(0.66 0.1 268);
-  --color-chart-3: oklch(0.66 0.1 328);
-  --color-chart-4: oklch(0.66 0.1 28);
-  --color-chart-5: oklch(0.66 0.1 88);
-  --color-chart-6: oklch(0.66 0.1 148);
+  --color-chart-1: oklch(0.73 0.1 198);
+  --color-chart-2: oklch(0.88 0.0564 268);
+  --color-chart-3: oklch(0.73 0.1 328);
+  --color-chart-4: oklch(0.88 0.0614 28);
+  --color-chart-5: oklch(0.73 0.1 88);
+  --color-chart-6: oklch(0.88 0.1 148);
   --color-scrim: rgba(0, 0, 0, 0.65);
 }

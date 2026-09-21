@@ -4,9 +4,9 @@ Every colour here was solved to a contrast target. None was chosen and then chec
 The difference is not pedantry. Solving caught a `warning` at chroma 0.12 that falls outside sRGB at every light ground, and five dark-theme pairs that cleared AA against the darkest surface and failed against the lightest one.
 Both would have shipped under an eyeball.
 
-**104 text pairs, both themes, 0 below WCAG AA 4.5:1. 54 non-text pairs held to 3:1, 0 below it. 33 tokens, 0 outside the sRGB gamut.**
+**108 text pairs, both themes, 0 below WCAG AA 4.5:1. 90 non-text pairs held to 3:1, 0 below it. 33 tokens, 0 outside the sRGB gamut.**
 Those are the counts `tools/build.py` prints and writes into the header of `tokens/tokens.css`; every one is re-measured on the formatted strings before either file is written.
-`tools/contrast.py` then re-derives all **158 certified pairs** from the CSS with a second converter that shares no code with the build, on the float value and on the 8-bit value a display receives.
+`tools/contrast.py` then re-derives all **198 certified pairs** from the CSS with a second converter that shares no code with the build, on the float value and on the 8-bit value a display receives.
 
 The first pass certified 51 pairs. Re-running the matrix over the completed system, with the two
 surfaces the interaction-state layer needed and the ink-on-quiet-fill pairs the rules already
@@ -75,7 +75,11 @@ the ground: 3.05:1 on `hw-surface-sunken` in light and 3.05:1 on `hw-surface-rai
 two worst cases, rising to 3.44:1 and 3.70:1 elsewhere. Solved against the ground alone, as the
 first pass did, it measured 2.99:1 in dark on the ground and 2.56:1 on `hw-surface-raised`.
 
-The six chart colours are fills rather than text, so they are held to the same 3:1 and clear it with room: 4.47, 4.74, 4.94, 4.92, 4.68, 4.42 against the light ground, 6.58, 6.23, 6.01, 6.03, 6.28, 6.57 against the dark one. Their closest pair sits 8.9 apart in oklab distance times 100, the same separation the accent keeps from success.
+The six chart colours are fills rather than text, so they are held to the same 3:1 on all four surfaces a chart is drawn on: ground, surface, raised and sunken.
+Against the light ground they measure 3.29, 8.13, 3.62, 8.41, 3.43, 7.55, and no pair falls below 3.10, which is `hw-chart-1` on `hw-surface-sunken`.
+Against the dark ground they measure 8.54, 13.62, 7.84, 13.37, 8.18, 14.14, and no pair falls below 6.71, which is `hw-chart-3` on `hw-surface-raised`.
+Adjacent series alternate in lightness, 0.20 apart in light and 0.15 in dark, and every chart colour sits at least 8.0 in oklab distance times 100 from each semantic, the bar the accent is held to.
+Their closest pair sits 15.4 apart in light and 10.2 in dark.
 
 ## Why the ground is neutral
 

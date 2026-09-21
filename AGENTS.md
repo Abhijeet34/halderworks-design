@@ -71,7 +71,7 @@ python3 tools/build.py --accent-hue 318 --out ./my-tokens
 python3 tools/contrast.py ./my-tokens/tokens.css
 ```
 
-At hue 318 five tokens re-solve and all 158 certified pairs still clear their bar. At hue 150 the
+At hue 318 five tokens re-solve and all 198 certified pairs still clear their bar. At hue 150 the
 build refuses, because that hue sits 4.4 from `hw-success` against the 8.0 separation
 [design/10-color.md](design/10-color.md) requires - which is what makes "a product cannot take hue
 150" an executable rule rather than a sentence.
@@ -209,7 +209,7 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 |---|---|
 | the token files still build from the seed | `build.py --check` finds a committed file the seed does not produce |
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
-| every published contrast ratio still holds | `contrast.py` re-derives all 175 published ratios from the two files that tabulate them, and all 158 certified pairs from the CSS, on the float value and at 8-bit |
+| every published contrast ratio still holds | `contrast.py` re-derives all 193 published ratios from the two files that tabulate them and the prose list, and all 198 certified pairs from the CSS, on the float value and at 8-bit |
 | every export still matches its source | `export.py` exits non-zero, or regenerating `exports/` leaves anything in `git status --porcelain` |
 | every refusal the system depends on still refuses | `tests/run.py`: the two instruments share code or stop agreeing, a buildable accent hue emits a palette `contrast.py` refuses, or a deliberately wrong input leaves every tool green |
 | the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a claim of an existing entry resolving to no covered or partial row, a manifest with no lists or no date |

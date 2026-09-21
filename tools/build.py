@@ -23,11 +23,13 @@ What the build does, in order:
      accent should look native to the palette. The six chart hues are the accent plus a fixed
      rotation. The three semantics do not move: a green that means "passed" cannot follow a
      brand decision.
-  2. Refuse a hue that sits closer than the recorded separation to any semantic. 10-color.md
-     records 8.2 and 8.9 in oklab distance times 100 as the separation hue 198 keeps from
-     success, and rejects a teal candidate at 3.8 on that measurement. This is that test made
-     executable, which is what 95-extending.md's "a product cannot take hue 150" needs to be
-     true rather than merely written.
+  2. Refuse a hue that puts the accent or any chart colour closer than the recorded separation
+     to a semantic. 10-color.md records 8.2 and 8.9 in oklab distance times 100 as the
+     separation hue 198 keeps from success, and rejects a teal candidate at 3.8 on that
+     measurement. This is that test made executable, which is what 95-extending.md's "a product
+     cannot take hue 150" needs to be true rather than merely written. The chart colours rotate
+     with the accent and the semantics do not, so they are held to the same bar, to it against
+     each other, and to an alternating lightness between neighbours.
   3. Clamp chroma to the in-gamut maximum at each token's lightness and hue. An out-of-gamut
      oklch triple is simply not the colour the token file claims, and 90-evidence.md records a
      warning at chroma 0.12 shipping exactly that way.
@@ -509,21 +511,44 @@ def check_floors(seed):
     return bad
 
 
+CHARTS = [f"hw-chart-{n}" for n in range(1, 7)]
+
+
 def check_semantic_separation(seed, accent):
-    """A new accent must stay clear of every semantic, which is 10-color.md's own test."""
-    bar = seed["seed"]["minSemanticSeparation"]
-    by_name = {e["name"]: e for e in seed["color"]["tokens"]}
-    bad = []
+    """The separation rules on the seed's anchors, before anything is solved."""
+    blocks = {}
     for theme in theme_ids(seed):
-        a = by_name["hw-accent"]
-        acc = (float(a[theme]["L"]), float(a[theme]["C"]), resolve_hue(a["hue"], accent))
-        for sem in ("success", "warning", "danger"):
-            e = by_name[f"hw-{sem}"]
-            s = (float(e[theme]["L"]), float(e[theme]["C"]), resolve_hue(e["hue"], accent))
-            d = separation(acc, s)
-            if d < bar:
-                bad.append(f"accent hue {acc[2]} sits {d:.1f} from hw-{sem} in {theme} theme, "
-                           f"below the {bar} this system requires (10-color.md#why-hue-198)")
+        blocks[theme] = {e["name"]: (float(e[theme]["L"]), float(e[theme]["C"]),
+                                     resolve_hue(e["hue"], accent))
+                         for e in seed["color"]["tokens"] if e["kind"] == "oklch"}
+    return check_separation(seed, blocks)
+
+
+def check_separation(seed, blocks):
+    """The accent and every chart colour stay clear of every semantic, which is 10-color.md's
+    own test; the chart colours stay that far from each other; and adjacent series alternate in
+    lightness. Run on the anchors and again on the emitted values, because a re-solve or a
+    chroma clamp can move a colour into its neighbour after the anchors passed."""
+    bar, step = seed["seed"]["minSemanticSeparation"], seed["seed"]["minChartNeighbourDeltaL"]
+    bad = []
+    for theme, t in blocks.items():
+        for name in ["hw-accent"] + CHARTS:
+            for sem in ("success", "warning", "danger"):
+                d = separation(t[name], t[f"hw-{sem}"])
+                if d < bar:
+                    bad.append(f"{name} at hue {t[name][2]} sits {d:.1f} from hw-{sem} in {theme} "
+                               f"theme, below the {bar} this system requires "
+                               f"(10-color.md#why-hue-198)")
+        for i, a in enumerate(CHARTS):
+            for b in CHARTS[i + 1:]:
+                d = separation(t[a], t[b])
+                if d < bar:
+                    bad.append(f"{a} sits {d:.1f} from {b} in {theme} theme, below {bar}")
+            if i + 1 < len(CHARTS):
+                dl = abs(t[a][0] - t[CHARTS[i + 1]][0])
+                if dl < step:
+                    bad.append(f"{a} and {CHARTS[i + 1]} differ by {dl:.3f} in lightness in "
+                               f"{theme} theme, below the {step} adjacent series keep")
     return bad
 
 
@@ -758,7 +783,7 @@ def verify_emitted(css, seed):
     write it.
     """
     blocks = parse_emitted(css)
-    bad = []
+    bad = check_separation(seed, {t: blocks[t] for t in theme_ids(seed)})
     for theme in theme_ids(seed):
         tokens = blocks[theme]
         for e in seed["color"]["tokens"]:

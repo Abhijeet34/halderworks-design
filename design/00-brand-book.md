@@ -45,7 +45,7 @@ Three rules cover most of what goes wrong:
 
 | | |
 |---|---|
-| **Colour** | 33 tokens per theme. Ground and five surfaces, two borders, four text weights including a solved disabled, an ink triple for primary action, four accent tokens, three semantics with their fills, a six-step chart ramp and a scrim. 104 text pairs checked, 0 below AA; 54 non-text pairs at 3:1, 0 below it; 0 outside sRGB. Accent hue 198. |
+| **Colour** | 33 tokens per theme. Ground and five surfaces, two borders, four text weights including a solved disabled, an ink triple for primary action, four accent tokens, three semantics with their fills, a six-step chart ramp and a scrim. 108 text pairs checked, 0 below AA; 90 non-text pairs at 3:1, 0 below it; 0 outside sRGB. Accent hue 198. |
 | **Type** | Public Sans for interface and text, Newsreader for display, IBM Plex Mono for machine output. Nine distinct sizes. Running text at 56ch in product, 68ch in long-form. |
 | **Space** | Base unit 4px, ten steps, 2px for one case only. |
 | **Radius** | Three sizes and a pill, each bound to a role. |

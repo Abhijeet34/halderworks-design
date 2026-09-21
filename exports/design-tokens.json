@@ -891,7 +891,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.545,
+          0.62,
           0.085,
           198
         ]
@@ -903,7 +903,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.545,
+                0.62,
                 0.085,
                 198
               ]
@@ -911,7 +911,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.66,
+                0.73,
                 0.1,
                 198
               ]
@@ -925,7 +925,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.545,
+          0.42,
           0.115,
           268
         ]
@@ -937,7 +937,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.545,
+                0.42,
                 0.115,
                 268
               ]
@@ -945,8 +945,8 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.66,
-                0.1,
+                0.88,
+                0.0564,
                 268
               ]
             }
@@ -959,7 +959,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.545,
+          0.62,
           0.115,
           328
         ]
@@ -971,7 +971,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.545,
+                0.62,
                 0.115,
                 328
               ]
@@ -979,7 +979,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.66,
+                0.73,
                 0.1,
                 328
               ]
@@ -993,7 +993,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.545,
+          0.42,
           0.115,
           28
         ]
@@ -1005,7 +1005,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.545,
+                0.42,
                 0.115,
                 28
               ]
@@ -1013,8 +1013,8 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.66,
-                0.1,
+                0.88,
+                0.0614,
                 28
               ]
             }
@@ -1027,7 +1027,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.545,
+          0.62,
           0.103,
           88
         ]
@@ -1039,7 +1039,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.545,
+                0.62,
                 0.103,
                 88
               ]
@@ -1047,7 +1047,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.66,
+                0.73,
                 0.1,
                 88
               ]
@@ -1061,7 +1061,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.545,
+          0.42,
           0.115,
           148
         ]
@@ -1073,7 +1073,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.545,
+                0.42,
                 0.115,
                 148
               ]
@@ -1081,7 +1081,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.66,
+                0.88,
                 0.1,
                 148
               ]

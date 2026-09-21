@@ -3,8 +3,8 @@
    its contrast floor in the same run and refuses to emit if one does not hold.
    Do not hand-edit this file or tokens/tokens.json; edit the seed and rebuild.
 
-   104 text pairs, both themes, 0 below WCAG AA 4.5:1.
-   54 non-text pairs (control boundary, focus ring, chart fills, disabled) held to
+   108 text pairs, both themes, 0 below WCAG AA 4.5:1.
+   90 non-text pairs (control boundary, focus ring, chart fills, disabled) held to
    3:1, 0 below it. Every one re-measured on these strings, on the float value and on the
    8-bit value a display receives, after they were formatted and before they were written.
    33 colour tokens, 32 of them solved in oklch, 0 outside sRGB.
@@ -156,12 +156,12 @@
   --hw-warning-quiet: oklch(0.944 0.035 78);
   --hw-danger: oklch(0.539 0.13 27);
   --hw-danger-quiet: oklch(0.947 0.023 27);
-  --hw-chart-1: oklch(0.545 0.085 198);
-  --hw-chart-2: oklch(0.545 0.115 268);
-  --hw-chart-3: oklch(0.545 0.115 328);
-  --hw-chart-4: oklch(0.545 0.115 28);
-  --hw-chart-5: oklch(0.545 0.103 88);
-  --hw-chart-6: oklch(0.545 0.115 148);
+  --hw-chart-1: oklch(0.62 0.085 198);
+  --hw-chart-2: oklch(0.42 0.115 268);
+  --hw-chart-3: oklch(0.62 0.115 328);
+  --hw-chart-4: oklch(0.42 0.115 28);
+  --hw-chart-5: oklch(0.62 0.103 88);
+  --hw-chart-6: oklch(0.42 0.115 148);
   --hw-scrim: rgba(9, 12, 12, 0.45);
   --hw-shadow-overlay: 0 1px 2px rgba(9, 12, 12, 0.06), 0 8px 24px -4px rgba(9, 12, 12, 0.10);
   --hw-shadow-dialog: 0 2px 4px rgba(9, 12, 12, 0.07), 0 24px 56px -12px rgba(9, 12, 12, 0.18);
@@ -194,12 +194,12 @@
   --hw-warning-quiet: oklch(0.25 0.035 78);
   --hw-danger: oklch(0.643 0.11 27);
   --hw-danger-quiet: oklch(0.253 0.035 27);
-  --hw-chart-1: oklch(0.66 0.1 198);
-  --hw-chart-2: oklch(0.66 0.1 268);
-  --hw-chart-3: oklch(0.66 0.1 328);
-  --hw-chart-4: oklch(0.66 0.1 28);
-  --hw-chart-5: oklch(0.66 0.1 88);
-  --hw-chart-6: oklch(0.66 0.1 148);
+  --hw-chart-1: oklch(0.73 0.1 198);
+  --hw-chart-2: oklch(0.88 0.0564 268);
+  --hw-chart-3: oklch(0.73 0.1 328);
+  --hw-chart-4: oklch(0.88 0.0614 28);
+  --hw-chart-5: oklch(0.73 0.1 88);
+  --hw-chart-6: oklch(0.88 0.1 148);
   --hw-scrim: rgba(0, 0, 0, 0.65);
   --hw-shadow-overlay: 0 1px 2px rgba(0, 0, 0, 0.50), 0 8px 24px -4px rgba(0, 0, 0, 0.55);
   --hw-shadow-dialog: 0 2px 4px rgba(0, 0, 0, 0.55), 0 24px 56px -12px rgba(0, 0, 0, 0.65);
@@ -233,12 +233,12 @@
     --hw-warning-quiet: oklch(0.25 0.035 78);
     --hw-danger: oklch(0.643 0.11 27);
     --hw-danger-quiet: oklch(0.253 0.035 27);
-    --hw-chart-1: oklch(0.66 0.1 198);
-    --hw-chart-2: oklch(0.66 0.1 268);
-    --hw-chart-3: oklch(0.66 0.1 328);
-    --hw-chart-4: oklch(0.66 0.1 28);
-    --hw-chart-5: oklch(0.66 0.1 88);
-    --hw-chart-6: oklch(0.66 0.1 148);
+    --hw-chart-1: oklch(0.73 0.1 198);
+    --hw-chart-2: oklch(0.88 0.0564 268);
+    --hw-chart-3: oklch(0.73 0.1 328);
+    --hw-chart-4: oklch(0.88 0.0614 28);
+    --hw-chart-5: oklch(0.73 0.1 88);
+    --hw-chart-6: oklch(0.88 0.1 148);
     --hw-scrim: rgba(0, 0, 0, 0.65);
     --hw-shadow-overlay: 0 1px 2px rgba(0, 0, 0, 0.50), 0 8px 24px -4px rgba(0, 0, 0, 0.55);
     --hw-shadow-dialog: 0 2px 4px rgba(0, 0, 0, 0.55), 0 24px 56px -12px rgba(0, 0, 0, 0.65);

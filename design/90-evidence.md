@@ -75,7 +75,7 @@ Five defects it has caught that no eyeball would have, the first two in the firs
 4. `hw-success` on `hw-success-quiet` measured 4.46:1 in dark theme, the same cause.
 5. `hw-accent-ring` was solved against the ground alone and measured **2.56:1 on `hw-surface-raised`** in dark theme: a keyboard focus ring inside a dialog, at roughly half the bar it is supposed to clear.
 
-The final run: **104 text pairs across both themes, 0 below AA; 54 non-text pairs held to 3:1, 0 below it; 33 colour tokens, 0 outside sRGB.**
+The final run: **108 text pairs across both themes, 0 below AA; 90 non-text pairs held to 3:1, 0 below it; 33 colour tokens, 0 outside sRGB.**
 `tools/build.py` emits `tokens/tokens.json` and `tokens/tokens.css` from `tokens/tokens.seed.json`, re-measures every floor against the formatted strings before it writes them, and refuses to write either unless that holds.
 Rebuilt at the shipped hue it re-solves three tokens, because the solver now targets the bar plus a margin rather than the bar: a value solved to land exactly on its floor is a value that rounding, a second converter or an 8-bit display can each take below it.
 `tools/build.py --check` reproducing the two committed files byte for byte is the regression that proves the shipped set satisfies its own spec.
