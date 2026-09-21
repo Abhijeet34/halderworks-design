@@ -5,7 +5,7 @@ description: >-
   interface - a screen, a route, a component, a form, a table, a landing page, an email sign-in,
   a settings page, a chart, an icon row, a piece of UI copy - and before proposing a colour, a
   size, a radius, a duration, a breakpoint or a z-index. It carries one token set, two themes, two
-  densities, 142 inventoried surfaces, and a rule that no value is invented: a value the system
+  densities, 145 inventoried surfaces, and a rule that no value is invented: a value the system
   lacks is a gap to report, not a number to guess. Also load it when asked whether this system
   covers a surface at all, when a contrast ratio or an accessibility keyboard behaviour is in
   question, or when extending the system.
@@ -36,7 +36,7 @@ component library, and no dependency on which model or tool is reading it. Read 
 
 **Before you build a surface, check whether this system already answers it.**
 
-`design/05-coverage.md` lists **142 surfaces**, each marked `covered`, `partial` or `excluded`, and
+`design/05-coverage.md` lists **145 surfaces**, each marked `covered`, `partial` or `excluded`, and
 it was audited against six external component and accessibility taxonomies so that it can report
 what it does not have. Searching it takes one read and returns one of four answers:
 

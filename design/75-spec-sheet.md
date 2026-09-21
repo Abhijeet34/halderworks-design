@@ -82,7 +82,7 @@ Marketing, documentation, release notes and dated reports.
 | display face | Newsreader at `display-1` and `display-2`, and nowhere else |
 | density | comfortable |
 | running measure | `--hw-measure-prose`, 68ch, at `body-lg` |
-| formats available | all five in section 3 |
+| formats available | all six in section 3 |
 | colour scheme | Page (section 5) |
 
 ```css
@@ -193,7 +193,7 @@ Content that came from somewhere else, presented as a quotation of a surface rat
 ## 3. Formats
 
 Composition recipes: a layout in tokens, not a component and not a picture.
-All five are available on the Editorial overlay and none on Instrument.
+All six are available on the Editorial overlay and none on Instrument.
 
 ### Masthead frame
 
@@ -312,6 +312,61 @@ The rule is `--hw-border` and never `--hw-accent`, because a coloured rail on a 
 
 **Taken:** attribution belongs in the same visual object as the words it attributes, not in a caption under it.
 **Left behind:** `khushidotjpeg`'s quotation tiles set the quotation across a mixed serif and grotesque line over a grid-paper ground. Ours is one face, one rule and a neutral ground.
+
+### Link-preview card
+
+The Open Graph image: the one picture every product ships that is designed by nobody, seen by
+everybody, and presented at a size somebody else chose.
+
+**Measured.** On `recent.design/og-images`, 12 of 12 rendered cards measure aspect 1.91, carrying
+nine distinct compositions in the one frame. Six cards read from the sites themselves on
+2026-09-21 put the frame at 1200 x 630, **1.905**, for four of the six (`railway.com`,
+`resend.com`, `vercel.com/pricing`, `notion.com`, at 1200 to 2400px wide), while `stripe.com`
+serves 2.000 and `github.com` a 1200 x 1200 square that every large-card consumer crops. A band
+read of the `railway.com` card at its native size gives the composition below.
+
+**Every dimension is a fraction of the frame height `H`, never a pixel**, because the pixel width
+is whatever the site rendered - 1200, 1920, 2048 or 2400 in that sample - and the presented width
+is whatever the consumer chose.
+
+| part | value | at 1200 x 630 | derivation |
+|---|---|---:|---|
+| the frame | aspect 1.905, at 1200 x 630 or a multiple of it | | four of six cards |
+| inset, all four sides | `0.10 H` for everything that must be read | 63px | Railway's 10.2% above and 11.1% below |
+| the mark | the product name in `--hw-font-sans` at 600, band height `0.076 H`, top left at the inset | 48px | Railway's wordmark band, 7.6%; the mark is a name, per [00-brand-book.md](00-brand-book.md#the-mark) |
+| the headline | `display-1`'s face, weight and tracking, **cap height `0.084 H`**, so a size of `0.124 H` in Newsreader, whose cap height is 0.676em ([20-type.md](20-type.md#why-not-inter)) | 53px cap, 78px size | Railway's three headline lines, each 8.4% |
+| line pitch | `1.5` times the cap height, `0.126 H` | 80px | Railway's 80px on a 53px cap. It is 1.02 of the size, which is `display-1`'s own line-height |
+| lines | at most three, the last one above the bottom inset | | Railway's three |
+| ground and ink | `--hw-text` on `--hw-ground`, one theme's pair, chosen per product | | |
+
+A headline at `0.084 H` is about 22px tall when a feed presents the card 500px wide, which is the
+number the fractions exist to protect.
+
+**Contrast:** `--hw-text` on `--hw-ground`, already certified in both themes in
+[10-color.md](10-color.md#the-contrast-matrix). The card is a raster with no theme switch, so it
+carries one theme's pair and never mixes the two.
+
+**Rules.**
+The frame is 1.905 and says so: `og:image:width` and `og:image:height` are declared, and a square
+card is refused, because a card the consumer must crop has been designed by the consumer.
+Nothing that must be read reaches the frame edge; a recipe that runs type to the edge loses its
+first and last letters to the first consumer that crops.
+Type on the ground only: no photograph, render or screenshot behind text, because a picture is a
+ground whose luminance is unknown.
+`og:title` and `og:description` are written, not truncated by the consumer: the four sites
+measured stay within 54 and 148 characters, which is recorded as an observation of four, not as a
+limit.
+
+**What the consumer provides:** the headline for each page, the frame rendered at build time, and
+the `og:` and `twitter:card` meta tags that point at it.
+
+**Taken:** a fixed frame specified in fractions of itself, so it holds at whatever pixel size a site
+renders it and whatever width a consumer presents it.
+**Left behind:** eight of the nine compositions `recent.design` indexes in the same frame - a
+swatch row, a product photograph, an oversized wordmark cropped by the edge, a 3D gradient render, a
+framed screenshot, a collage of interface chips, a portrait with overlaid text, and a mono headline
+beside an illustration - and Railway's art, which bleeds to all four edges. Ours is the ninth, a
+wordmark with one line under it, reduced to the product's name and a headline on a solved ground.
 
 ## 4. Typography treatments
 

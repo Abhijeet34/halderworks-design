@@ -25,7 +25,7 @@ python3 tools/build.py            # tokens/tokens.seed.json -> tokens.json + tok
 python3 tools/build.py --check    # emit nothing; fail if the committed files are stale
 python3 tools/contrast.py         # re-derive every published ratio from the CSS, independently
 python3 tools/export.py           # regenerate exports/ and refuse if it diverges from the CSS
-python3 tools/check-coverage.py   # the inventory, its refusals, its manifest, and every link
+python3 tools/check-coverage.py   # the inventory, its refusals, its claimed entries, its manifest, every link
 python3 tools/test-check-sources.py  # the source classifier, against a local server
 python3 tools/check-sources.py    # every cited source still resolves. THE ONE THAT LEAVES THE MACHINE
 ```
@@ -82,6 +82,9 @@ one below - and the header counts must match the table. A sentence the check rea
 that is not one carries `<!-- not-a-refusal: why -->` instead. The check no longer guesses which
 row a refusal meant from the words it shares with one, because a guess that lands on the wrong row
 reports success.
+A sentence claiming a surface "already has an entry" or was "admitted" must resolve to a covered
+or partial row. Write the row before the sentence that cites it: three entries were claimed from
+the first public commit before any of them existed.
 
 A source the book cites is named, with what was taken from it and what was left.
 [design/85-considered-and-declined.md](design/85-considered-and-declined.md) is where a screened and
@@ -189,7 +192,7 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
 | every published contrast ratio still holds | `contrast.py` re-derives the matrix and finds a pair below bar or a token outside sRGB |
 | every export still matches its source | `export.py` exits non-zero, or regenerates `exports/` and `git status --porcelain -- exports/` is no longer empty |
-| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a manifest with no lists or no date |
+| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a claim of an existing entry resolving to no covered or partial row, a manifest with no lists or no date |
 | every internal link and anchor | the same script, across every Markdown file in the repository |
 | every cited external source still resolves | an HTTP request per distinct URL in the book, failing on 404, 410, any other error status, or no response. A 401, 403 or 429 is reported as alive-but-refusing and does not fail |
 
