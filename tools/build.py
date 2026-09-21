@@ -960,6 +960,47 @@ def hue_chroma_separation(a, b):
     return 100 * math.hypot(x[1] - y[1], x[2] - y[2])
 
 
+def finite_number(x):
+    """x as a float if it is one, or parses cleanly to one, and is neither infinite nor NaN.
+    None otherwise. A bool is never a number here: True is not 1 in a colour anchor."""
+    if isinstance(x, bool):
+        return None
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    return v if math.isfinite(v) else None
+
+
+def anchor_leaf_errors(name, label, anchor):
+    """A theme anchor is an object with an L in 0..1 and a C at least 0, each a finite number
+    or a numeric string, the way the seed writes them today."""
+    if not isinstance(anchor, dict):
+        return [f"{name} has {label} anchor {anchor!r}, which is not an object"]
+    bad = []
+    L = finite_number(anchor.get("L"))
+    if L is None:
+        bad.append(f"{name} has {label} anchor L {anchor.get('L')!r}, which is not a finite "
+                   f"number")
+    elif not 0.0 <= L <= 1.0:
+        bad.append(f"{name} has {label} anchor L {L!r}, which is not between 0 and 1")
+    C = finite_number(anchor.get("C"))
+    if C is None:
+        bad.append(f"{name} has {label} anchor C {anchor.get('C')!r}, which is not a finite "
+                   f"number")
+    elif C < 0.0:
+        bad.append(f"{name} has {label} anchor C {C!r}, which is negative")
+    return bad
+
+
+def hue_expr_ok(hue):
+    try:
+        resolve_hue(hue, 0)
+    except (TypeError, ValueError, OverflowError):
+        return False
+    return True
+
+
 def extension_shape(seed, ext):
     """Every way a product seed's raw JSON cannot be trusted, checked once at the boundary so
     the solving code after it can index the seed freely."""
@@ -981,10 +1022,18 @@ def extension_shape(seed, ext):
             bad.append(f"a colour token entry {e!r} is not an object with a string name")
             continue
         name = e["name"]
+        if not hue_expr_ok(e.get("hue")):
+            bad.append(f"{name} has hue {e.get('hue')!r}, which is neither a number nor "
+                       f"accent+N")
         for t in theme_ids(seed):
-            anchor = e.get(t, {})
-            if not isinstance(anchor, dict):
-                bad.append(f"{name} has {t} anchor {anchor!r}, which is not an object")
+            bad += anchor_leaf_errors(name, t, e.get(t, {}))
+        more = e.get("contrastMore", {})
+        if not isinstance(more, dict):
+            bad.append(f"{name} has contrastMore {more!r}, which is not an object")
+        else:
+            for t in theme_ids(seed):
+                if t in more:
+                    bad += anchor_leaf_errors(name, f"contrastMore.{t}", more[t])
         floors = e.get("floors", [])
         if not isinstance(floors, list):
             bad.append(f"{name} has floors {floors!r}, which is not a list")
@@ -993,9 +1042,11 @@ def extension_shape(seed, ext):
                 if not isinstance(floor, dict):
                     bad.append(f"{name} carries a floor {floor!r} that is not an object")
                     continue
-                if not isinstance(floor.get("bar"), (int, float)):
-                    bad.append(f"{name} carries a floor with bar {floor.get('bar')!r}, which "
-                               f"is not numeric")
+                bar = floor.get("bar")
+                if not (isinstance(bar, (int, float)) and not isinstance(bar, bool)
+                        and math.isfinite(bar)):
+                    bad.append(f"{name} carries a floor with bar {bar!r}, which is not a "
+                               f"finite number")
                 on = floor.get("on", [])
                 if not (isinstance(on, list) and all(isinstance(g, str) for g in on)):
                     bad.append(f"{name} carries a floor on {on!r}, which is not a list of "
@@ -1029,13 +1080,6 @@ def check_extension(seed, ext):
             bad.append(f"{name} is outside the {ns}- namespace this seed declares")
         if e.get("kind") != "oklch":
             bad.append(f"{name} is kind {e.get('kind')!r}; only an oklch colour is solved")
-        try:
-            resolve_hue(e.get("hue"), 0)
-        except (TypeError, ValueError):
-            bad.append(f"{name} has hue {e.get('hue')!r}, which is neither a number nor accent+N")
-        for t in theme_ids(seed):
-            if not {"L", "C"} <= set(e.get(t, {})):
-                bad.append(f"{name} has no {t} anchor with an L and a C")
         grounds = set()
         for floor in e.get("floors", []):
             if floor["bar"] != NON_TEXT_BAR and floor["bar"] < AA_BAR:

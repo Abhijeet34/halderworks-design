@@ -402,6 +402,46 @@ case("X8 the product seed's color field is a string, not an object", "caught", x
      note="a structurally malformed product seed is one FAIL line, never a traceback")
 
 
+# Each row takes one leaf a solver later reads arithmetically and gives it one wrong value drawn
+# from the pool a JSON seed can actually carry: a string that is not a number, null, a list, NaN.
+# `by` names which instrument reads that leaf at all: contrast.py never opens a seed's anchors or
+# hue, only its floors and apart, so an anchor/hue row is build.py's alone to catch.
+LEAF_MUTATIONS = [
+    ("light.L = 'not-a-number'", lambda e: e["light"].__setitem__("L", "not-a-number"),
+     ("extend",)),
+    ("dark.C = null", lambda e: e["dark"].__setitem__("C", None), ("extend",)),
+    ("light.L = [1, 2]", lambda e: e["light"].__setitem__("L", [1, 2]), ("extend",)),
+    ("hue = NaN", lambda e: e.__setitem__("hue", float("nan")), ("extend",)),
+    ("floors[0].bar = NaN", lambda e: e["floors"][0].__setitem__("bar", float("nan")),
+     ("extend", "contrast-extend")),
+]
+
+
+def x9():
+    name = ("X9 each anchor, hue and floor-bar leaf takes a wrong value in turn (a bad string, "
+            "null, a list, NaN)")
+    checks = dict(CHECKS)
+    problems = []
+    for label, mutate_leaf, by in LEAF_MUTATIONS:
+        repo = clone()
+        product_edit(repo, mutate_leaf)
+        for key in by:
+            rc, o = run(repo, *checks[key])
+            if rc == 0:
+                problems.append(f"{label}: {key} did not refuse it")
+            elif "Traceback" in o:
+                problems.append(f"{label}: {key} printed a traceback instead of a clean refusal")
+        shutil.rmtree(repo.parent)
+    ok = not problems
+    RESULTS.append(("PASS" if ok else "FAIL", name, "caught", "caught" if ok else "green", ""))
+    print(f"\n=== {name}")
+    print("    expects caught: a wrong value at one leaf is one FAIL line, never a traceback")
+    print("    " + ("every leaf refused cleanly" if ok else "; ".join(problems)))
+
+
+x9()
+
+
 # ---------------------------------------------------------------- check-coverage.py
 def cov_edit(repo, fn):
     p = repo / "design" / "05-coverage.md"

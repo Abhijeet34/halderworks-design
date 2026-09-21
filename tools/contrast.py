@@ -415,6 +415,10 @@ def raised(bar):
     return max(bar, MORE_BAR[AA]) if bar >= AA else MORE_BAR[NON_TEXT]
 
 
+def finite_bar(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
+
+
 def extension_shape(ext):
     """Every way a product seed's raw JSON cannot be trusted, checked once at the boundary so
     the measuring code after it can index the seed freely."""
@@ -444,9 +448,9 @@ def extension_shape(ext):
                 if not isinstance(floor, dict):
                     bad.append(f"{name} carries a floor {floor!r} that is not an object")
                     continue
-                if not isinstance(floor.get("bar"), (int, float)):
+                if not finite_bar(floor.get("bar")):
                     bad.append(f"{name} carries a floor with bar {floor.get('bar')!r}, which "
-                               f"is not numeric")
+                               f"is not a finite number")
                 on = floor.get("on", [])
                 if not (isinstance(on, list) and all(isinstance(g, str) for g in on)):
                     bad.append(f"{name} carries a floor on {on!r}, which is not a list of "
