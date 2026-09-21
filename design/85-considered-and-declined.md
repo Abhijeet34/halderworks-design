@@ -244,7 +244,7 @@ to prevent.**
 `Most Expensive Colour Pallet In Figma (2026)`.
 
 "Most expensive" is not a property a palette has. No source is given for it anywhere in the post,
-and none could be: there is no measurement that would establish it, which is what separates it from
+and none could be: there is no measurement that would establish it, which is what separates it from <!-- not-a-refusal: this refuses a measurement behind a claim, not a surface of the system -->
 every other claim in this book.
 
 This system's whole authority is that a value is traceable to something measured - a contrast ratio

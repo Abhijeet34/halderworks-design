@@ -362,7 +362,7 @@ Emphasis carried by the ground rather than by the ink.
 The marked words must be the ones a reader would repeat back. A mark on a whole line is a line with a different background, not emphasis.
 
 **Taken:** a mark on the ground is a second channel for emphasis that does not spend a colour and does not compete with weight.
-**Left behind:** the highlighter yellow itself, and the hand-drawn skew and overshoot that make it read as a pen stroke. A yellow marker needs a fifth colour that is neither a semantic nor the accent, and this system has no fifth colour to spend. `tools/build.py` could solve one now; what it cannot do is decide that a fifth colour should exist, and nothing here argues that it should.
+**Left behind:** the highlighter yellow itself, and the hand-drawn skew and overshoot that make it read as a pen stroke. A yellow marker needs a fifth colour that is neither a semantic nor the accent, and this system has no fifth colour to spend. `tools/build.py` could solve one now; what it cannot do is decide that a fifth colour should exist, and nothing here argues that it should. <!-- covered-by: Colour palette, and how each value was arrived at -->
 
 ### The bracketed aside
 

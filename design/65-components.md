@@ -264,7 +264,7 @@ Shipping "nothing yet" copy in a "nothing found" state is the most common failur
 
 ### EmptyState: rules
 
-- No illustration. This system has no illustration set and inventing one per empty state is how a product ends up with six unrelated drawings.
+- No illustration. This system has no illustration set and inventing one per empty state is how a product ends up with six unrelated drawings. <!-- covered-by: Illustration -->
 - No emoji. That is on the anti-pattern list.
 - The explanation is one sentence. If it needs three, the feature needs documentation and the empty state needs a link to it.
 
@@ -298,7 +298,7 @@ card adds no pair.
 - **A link that is interface chrome is not underlined and is not accent-coloured**: a navigation
   item, a tab, a breadcrumb. Those are [37-navigation.md](37-navigation.md)'s, and they carry their
   state as a fill. Underlining them would put an underline on every row of the rail.
-- **There is no visited style.** A fifth value would have to be solved against every ground, and the
+- **There is no visited style.** A fifth value would have to be solved against every ground, and the <!-- covered-by: Link -->
   accent already has four jobs. A product whose reader genuinely needs to track what they have read
   has a data problem - a read column in a list - rather than a colour problem.
 - **A link opens in the same tab.** Where it genuinely leaves the product - a specification, a
@@ -348,7 +348,7 @@ Opening animates `grid-template-rows` from `0fr` to `1fr` at `--hw-duration-base
 - **Panels open independently and stay open.** The reader opened each one. Closing a panel they did
   not touch is the product overriding a choice they made. A single-open variant needs a stated
   reason, and if the reason is that the panels are views of one subject, it is a tab set.
-- **No nesting.** An accordion inside an accordion is a tree, and this system has no tree view
+- **No nesting.** An accordion inside an accordion is a tree, and this system has no tree view <!-- covered-by: Tree view -->
   ([05-coverage.md](05-coverage.md) carries the row and its reason).
 - **Nothing essential goes inside a collapsed panel.** A reader skips them. A required form field
   inside one produces an error message pointing at something invisible, which

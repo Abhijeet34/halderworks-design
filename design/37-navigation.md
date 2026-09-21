@@ -130,7 +130,7 @@ The page that has no rail: marketing, documentation, a sign-in page, an error pa
 | height | `--hw-space-64`, 64px | a `--hw-control-h` 32px row with `--hw-space-16` above and below |
 | ground | `--hw-ground`, with a `--hw-border` bottom rule | |
 | content width | inset to `--hw-container-page`, 1200px, inside the page margin | [35-layout.md](35-layout.md) |
-| the mark | the product name at `title-3` (17px/600) in `--hw-text`, left | [00-brand-book.md](00-brand-book.md) - there is no logomark |
+| the mark | the product name at `title-3` (17px/600) in `--hw-text`, left | [00-brand-book.md](00-brand-book.md) - there is no logomark <!-- covered-by: Logomark and wordmark --> |
 | nav items | the navigation item above, laid horizontally | |
 | the one action | a `primary` button at `--hw-control-h`, right | |
 

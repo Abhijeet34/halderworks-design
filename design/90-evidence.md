@@ -31,7 +31,7 @@ Where a count below says "of 41", it is over the sites whose own stylesheets cou
 **What these references were and were not used for.**
 They set principles and they supply the numbers that principles are checked against.
 No expression is carried across: not a palette, not a face, not a component's look.
-The house decisions that came out of them are that a ground is neutral, that colour is scarce, that elevation is a border, that display type is set tight, that a type ramp has about nine steps, that 768 and 1024 are where the field agrees on structure, that hover is a fill, that focus is never removed, and that there is no texture.
+The house decisions that came out of them are that a ground is neutral, that colour is scarce, that elevation is a border, that display type is set tight, that a type ramp has about nine steps, that 768 and 1024 are where the field agrees on structure, that hover is a fill, that focus is never removed, and that there is no texture. <!-- covered-by: Texture, grain, gradient, glass -->
 Each is stated with the count that supports it.
 
 ## The headline counts from pass two

@@ -7,7 +7,7 @@ Two settings, one attribute, and a short list of what each one is allowed to cha
 ```
 
 `data-density="compact"` on any ancestor rebinds four tokens.
-There is no third setting, and a product that wants one has a screen problem rather than a density problem.
+There is no third setting, and a product that wants one has a screen problem rather than a density problem. <!-- covered-by: Density -->
 
 ## What changes
 

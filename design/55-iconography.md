@@ -22,7 +22,7 @@ The alternatives were screened on the same basis, and their licences fetched the
 | Carbon | Apache-2.0 | 32, filled | filled rather than stroked, and a filled set beside a 400-weight text face reads heavier than the text |
 
 **No mark is drawn here.**
-There is no logomark and no wordmark, because a mark is a commission rather than something an agent invents.
+There is no logomark and no wordmark, because a mark is a commission rather than something an agent invents. <!-- covered-by: Logomark and wordmark -->
 That is unchanged from the first pass and is correct.
 
 A set is a choice a system makes once.
@@ -109,7 +109,7 @@ An icon that needs a legend is a label that should have been written.
 
 - **Decorative.** An icon that repeats its own heading, a clipboard beside "Records" or a rocket beside "Get started", is noise with a colour.
   It has a row in [80-anti-patterns.md](80-anti-patterns.md).
-- **An illustration.** This system has no illustration set. An empty state gets a sentence, not a drawing.
+- **An illustration.** This system has no illustration set. An empty state gets a sentence, not a drawing. <!-- covered-by: Illustration -->
   See the section below: the reason for that has been read carefully and half of it is now an open
   decision rather than a settled refusal.
 - **An emoji.** Never, anywhere, in any product surface.
@@ -119,7 +119,7 @@ An icon that needs a legend is a label that should have been written.
 Four files in this book carry a rule about illustration and three of them carry the same sentence:
 
 > no illustration set exists and inventing one per empty state is how a product ends up with six
-> unrelated drawings
+> unrelated drawings <!-- covered-by: Illustration -->
 
 **Read as written, its first half is the gap restated and its second half argues for a coherent set
 rather than against one.** The sentence forbids improvisation. It contains no argument against a

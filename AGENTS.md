@@ -76,8 +76,12 @@ definition, and both [`ci.yml`](.github/workflows/ci.yml) and
 copy each.
 
 A change to a rule file also keeps `tools/check-coverage.py` at 0 unbacked: a refusal written
-anywhere in `design/` must resolve to a row in [design/05-coverage.md](design/05-coverage.md), and
-the header counts must match the table.
+anywhere in `design/` must NAME its row in [design/05-coverage.md](design/05-coverage.md), in a
+comment beside it - `<!-- covered-by: the row's surface, exactly -->` on the refusal's line or the
+one below - and the header counts must match the table. A sentence the check reads as a refusal
+that is not one carries `<!-- not-a-refusal: why -->` instead. The check no longer guesses which
+row a refusal meant from the words it shares with one, because a guess that lands on the wrong row
+reports success.
 
 A source the book cites is named, with what was taken from it and what was left.
 [design/85-considered-and-declined.md](design/85-considered-and-declined.md) is where a screened and
@@ -153,7 +157,7 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
 | every published contrast ratio still holds | `contrast.py` re-derives the matrix and finds a pair below bar or a token outside sRGB |
 | every export still matches its source | `export.py` exits non-zero, or regenerates `exports/` and `git status --porcelain -- exports/` is no longer empty |
-| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal resolving to no row, a manifest with no lists or no date |
+| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a manifest with no lists or no date |
 | every internal link and anchor | the same script, across every Markdown file in the repository |
 | every cited external source still resolves | an HTTP request per distinct URL in the book, failing on 404, 410, any other error status, or no response. A 401, 403 or 429 is reported as alive-but-refusing and does not fail |
 

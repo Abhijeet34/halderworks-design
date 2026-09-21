@@ -151,8 +151,8 @@ redefining an `hw-` token. `design/95-extending.md` is the whole procedure.
   the commands and the counts behind each one. If you disagree with a value, argue with the
   measurement rather than with a preference.
 - **It reports its own gaps.** `tools/check-coverage.py` fails when a refusal stated anywhere in
-  the rules resolves to no inventory row. That check exists because one refusal escaped for three
-  rounds, and nothing else would have found it.
+  the rules does not name the inventory row that carries it. That check exists because one refusal
+  escaped for three rounds, and nothing else would have found it.
 - **It says what it declined.** `design/85-considered-and-declined.md` records what was screened
   and refused, with the reason and what would change the answer. A question answered there does not
   need asking again.
