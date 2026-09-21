@@ -3,7 +3,7 @@
 
 The other four tools in this directory are offline and internally consistent; this one is the
 only one that leaves the machine, which is why it runs on the weekly schedule rather than on
-every change. A source rots in months, so 26 outbound requests per push buy no information.
+every change. A source rots in months, so 22 outbound requests per push buy no information.
 
 What "exists" means is the whole substance of this check, and it is a three-way answer rather
 than a two-way one:

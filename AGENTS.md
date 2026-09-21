@@ -145,7 +145,7 @@ something has actually moved**, so a quiet week is silent rather than noisy.
 pull request as well; only the last row is the weekly job's own, because only a schedule can catch
 a source that went away without anyone touching this repository. That is also why this workflow
 has no `push` trigger: `ci.yml` already runs the consistency call on every push to `main`, and a
-per-push network sweep is 26 outbound requests against a field that moves in months.
+per-push network sweep is 22 outbound requests against a field that moves in months.
 
 | check | how it fails |
 |---|---|
