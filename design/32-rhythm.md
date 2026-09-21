@@ -28,6 +28,17 @@ Measured over the four families the unit governs:
 That line is printed by every build. It is not a claim in prose; it is the build refusing to write
 a token file in which it would be false.
 
+What it refuses is now the whole rule rather than one spelling of it.
+The first version read a value only when it was written as a lowercase `Npx`, and skipped anything
+else without a word, so `13PX`, `calc(13px)`, `+13px`, a bare `13` and the same length in rem were the same
+off-unit length to a browser and all five passed.
+A value in a governed family that the check cannot read as `Npx` is refused, and the three that are
+not lengths at all - `--hw-columns` and the two measures in `ch` - are named in `tools/build.py`
+rather than inferred.
+The four governed families are named there too, because a seed that can narrow the scope can switch
+the rule off for whatever it drops.
+A guarantee is only as wide as the values it reads.
+
 ## The seven exceptions, each with the reason it cannot be on the unit
 
 Four of these are **consequences** rather than choices, which is the distinction that matters: a

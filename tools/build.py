@@ -225,6 +225,16 @@ class Solver:
 
 
 PX = re.compile(r"^(-?\d+(?:\.\d+)?)px$")
+# The families the unit governs, pinned here rather than read from the seed: a seed that can
+# narrow the scope can switch the rule off for whatever it drops, and the rhythm claim is the
+# tool's to make.
+GRID_SCOPE = ("spacing", "layout", "density", "icon")
+# The values in those families that are not px lengths at all, so the unit cannot govern them.
+# Named one by one for the same reason, and matched on their spelling as well as their name.
+NOT_LENGTHS = {"hw-columns": "a count of columns",
+               "hw-measure-ui": "a measure in characters",
+               "hw-measure-prose": "a measure in characters"}
+NOT_LENGTH = re.compile(r"^\d+(?:\.\d+)?(?:ch)?$")
 
 
 def check_grid(seed):
@@ -243,11 +253,26 @@ def check_grid(seed):
     if not g:
         return ["tokens.seed.json carries no grid block, so no rhythm claim is checkable"]
     unit, declared, bad = g["unit"], dict(g["exceptions"]), []
+    if tuple(g["scope"]) != GRID_SCOPE:
+        bad.append(f"grid.scope is {list(g['scope'])} and this check governs {list(GRID_SCOPE)}. "
+                   f"The scope is the tool's, because a seed that can narrow it can switch the "
+                   f"rule off for whatever it drops")
     seen, on_unit = set(), 0
-    for fam in g["scope"]:
+    for fam in GRID_SCOPE:
         for e in seed[fam]["tokens"]:
-            m = PX.match(e["value"]) if isinstance(e["value"], str) else None
+            raw = e["value"]
+            m = PX.match(raw) if isinstance(raw, str) else None
             if not m:
+                # Refused rather than skipped. `13PX`, `calc(13px)`, `0.8125rem`, `+13px` and a
+                # bare `13` are all the same off-unit length to a browser and none of them is a
+                # lowercase Npx, so a check that skips what it cannot parse proves nothing about
+                # the values it did not read.
+                if e["name"] in NOT_LENGTHS and NOT_LENGTH.match(str(raw)):
+                    continue
+                bad.append(f"{e['name']} is {raw!r}, which is not a lowercase Npx. Every value "
+                           f"in {fam} is a length the {unit}px unit governs, so a spelling this "
+                           f"check cannot read is refused: write it as Npx, or name the token in "
+                           f"tools/build.py's NOT_LENGTHS with what it is instead")
                 continue
             value = float(m.group(1))
             if value % unit == 0:
@@ -275,7 +300,7 @@ def check_grid(seed):
 def grid_stats(seed):
     g = seed["grid"]
     on = off = 0
-    for fam in g["scope"]:
+    for fam in GRID_SCOPE:
         for e in seed[fam]["tokens"]:
             m = PX.match(e["value"]) if isinstance(e["value"], str) else None
             if m:
