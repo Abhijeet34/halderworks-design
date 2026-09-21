@@ -83,9 +83,11 @@ def exact_min(repo, pairs):
                for t, fg, bg in pairs)
 
 
-def case(name, expect, mutate, after=None, note="", by=None):
-    """`by` names a check that must be among those refusing, where WHICH tool catches it is the
-    claim: the second instrument measuring a product file on its own, say."""
+def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False):
+    """`by` names a check, or a tuple of checks, that must be among those refusing, where WHICH
+    tool catches it is the claim: the second instrument measuring a product file on its own,
+    say. `no_traceback` asserts a clean refusal rather than an unhandled crash: a crash also
+    exits non-zero, so "caught" alone does not tell the two apart."""
     repo = clone()
     mutate(repo)
     codes, out = {}, ""
@@ -98,8 +100,11 @@ def case(name, expect, mutate, after=None, note="", by=None):
     extra, ok = ("", True)
     if after and codes["build"] == 0:
         extra, ok = after(repo)
-    if by and codes[by] == 0:
-        extra, ok = (extra + f" {by} did not refuse it, and the case requires it to").strip(), False
+    for b in ((by,) if isinstance(by, str) else by or ()):
+        if codes[b] == 0:
+            extra, ok = (extra + f" {b} did not refuse it, and the case requires it to").strip(), False
+    if no_traceback and "Traceback" in out:
+        extra, ok = (extra + " a tool printed a traceback instead of a clean refusal").strip(), False
     passed = ok and (verdict == expect or (expect == "green" and verdict == "caught"))
     label = ("PASS" if verdict == expect and ok
              else "IMPROVED" if expect == "green" and ok
@@ -383,6 +388,18 @@ def x7(repo):
 
 case("X7 quoth-live stops being held apart from hw-danger and moves to hue 20", "caught", x7,
      by="extend", note="a seed can name more colours to stay clear of, never fewer")
+
+
+def x8(repo):
+    p = repo / EXAMPLE
+    seed = json.loads(p.read_text(encoding="utf-8"))
+    seed["color"] = "not-a-dict"
+    p.write_text(json.dumps(seed, indent=2) + "\n", encoding="utf-8")
+
+
+case("X8 the product seed's color field is a string, not an object", "caught", x8,
+     by=("extend", "contrast-extend"), no_traceback=True,
+     note="a structurally malformed product seed is one FAIL line, never a traceback")
 
 
 # ---------------------------------------------------------------- check-coverage.py

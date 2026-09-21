@@ -415,15 +415,57 @@ def raised(bar):
     return max(bar, MORE_BAR[AA]) if bar >= AA else MORE_BAR[NON_TEXT]
 
 
-def extension(themes, seed_path, css_path):
+def extension_shape(ext):
+    """Every way a product seed's raw JSON cannot be trusted, checked once at the boundary so
+    the measuring code after it can index the seed freely."""
+    if not isinstance(ext, dict):
+        return [f"the product seed is {ext!r}, not a JSON object"]
+    bad = []
+    if not isinstance(ext.get("namespace"), str):
+        bad.append(f"namespace {ext.get('namespace')!r} is not a string")
+    color = ext.get("color")
+    if not isinstance(color, dict):
+        bad.append(f"color {color!r} is not an object")
+        return bad
+    tokens = color.get("tokens")
+    if not isinstance(tokens, list) or not tokens:
+        bad.append(f"color.tokens {tokens!r} is not a non-empty list of colour token entries")
+        return bad
+    for e in tokens:
+        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
+            bad.append(f"a colour token entry {e!r} is not an object with a string name")
+            continue
+        name = "--" + e["name"]
+        floors = e.get("floors", [])
+        if not isinstance(floors, list):
+            bad.append(f"{name} has floors {floors!r}, which is not a list")
+        else:
+            for floor in floors:
+                if not isinstance(floor, dict):
+                    bad.append(f"{name} carries a floor {floor!r} that is not an object")
+                    continue
+                if not isinstance(floor.get("bar"), (int, float)):
+                    bad.append(f"{name} carries a floor with bar {floor.get('bar')!r}, which "
+                               f"is not numeric")
+                on = floor.get("on", [])
+                if not (isinstance(on, list) and all(isinstance(g, str) for g in on)):
+                    bad.append(f"{name} carries a floor on {on!r}, which is not a list of "
+                               f"house colour names")
+        apart = e.get("apart", [])
+        if not (isinstance(apart, list) and all(isinstance(a, str) for a in apart)):
+            bad.append(f"{name} has apart {apart!r}, which is not a list of house colour "
+                       f"names")
+    return bad
+
+
+def extension(themes, ext, seed_path, css_path):
     """(failures, report lines) for one product's seed and the CSS built from it."""
-    ext = json.loads(Path(seed_path).read_text(encoding="utf-8"))
+    shape = extension_shape(ext)
+    if shape:
+        return shape, []
     prod = parse_tokens(css_path)
     bad, report = [], []
-    ns = ext.get("namespace")
-    if not isinstance(ns, str):
-        bad.append(f"namespace {ns!r} is not a string")
-        ns = ""
+    ns = ext["namespace"]
     for block, tokens in prod.items():
         for token in tokens:
             if token.startswith("--hw-"):
@@ -431,38 +473,17 @@ def extension(themes, seed_path, css_path):
                            f"can never redefine an hw- token")
             elif not token.startswith(f"--{ns}-"):
                 bad.append(f"{block} {token} is outside the --{ns}- namespace")
-    color_tokens = ext.get("color", {}).get("tokens", [])
-    if not isinstance(color_tokens, list):
-        bad.append(f"color.tokens {color_tokens!r} is not a list of colour token entries")
-        color_tokens = []
-    for e in color_tokens:
-        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
-            bad.append(f"a colour token entry {e!r} is not a dict with a string name")
-            continue
+    for e in ext["color"]["tokens"]:
         name = "--" + e["name"]
         pairs = {s: NON_TEXT for s in SURFACES}
         for floor in e.get("floors", []):
-            if not (isinstance(floor, dict) and isinstance(floor.get("bar"), (int, float))
-                    and isinstance(floor.get("on"), list)):
-                bad.append(f"{name} carries a floor {floor!r} that is not a numeric bar and a "
-                           f"list of grounds")
-                continue
             bar = floor["bar"]
             if bar != NON_TEXT and bar < AA:
                 bad.append(f"{name} claims {bar}:1, which certifies nothing this file holds")
                 continue
-            bad += [f"{name} carries a floor on {g!r}, which is not a house colour's name"
-                    for g in floor["on"] if not isinstance(g, str)]
             for g in floor["on"]:
-                if isinstance(g, str):
-                    pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), bar)
-        raw_apart = e.get("apart", [])
-        if not isinstance(raw_apart, list):
-            bad.append(f"{name} has apart {raw_apart!r}, which is not a list of house colours")
-            raw_apart = []
-        bad += [f"{name} has apart {a!r}, which is not a house colour's name"
-                for a in raw_apart if not isinstance(a, str)]
-        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in raw_apart if isinstance(a, str)})
+                pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), bar)
+        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in e.get("apart", [])})
         for theme in BLOCKS_CERTIFIED:
             fg = prod[theme].get(name)
             if fg is None:
@@ -592,17 +613,27 @@ def main(argv):
 
     if opts.extend:
         seed = Path(opts.extend)
+        try:
+            ext = json.loads(seed.read_text(encoding="utf-8"))
+        except OSError as exc:
+            ext, extend_failures = None, [f"{seed} could not be read: {exc.strerror or exc}"]
+        except json.JSONDecodeError as exc:
+            ext, extend_failures = None, [f"{seed} is not valid JSON: {exc}"]
+        else:
+            extend_failures = None
         css = opts.extend_css
-        if not css:
-            ext_ns = json.loads(seed.read_text(encoding="utf-8")).get("namespace")
+        if ext is not None and not css:
+            ext_ns = ext.get("namespace")
             css = seed.parent / (ext_ns + ".tokens.css") if isinstance(ext_ns, str) and ext_ns \
                 else None
-        if css is None:
-            failures.append(f"{seed} has no usable namespace to derive its built CSS filename "
-                            f"from; pass --extend-css explicitly")
-            print(f"pass 5: {seed} has no derivable css path; 1 failed")
+            if css is None:
+                extend_failures = [f"{seed} has no usable namespace to derive its built CSS "
+                                   f"filename from; pass --extend-css explicitly"]
+        if extend_failures is not None:
+            failures += extend_failures
+            print(f"pass 5: {seed} has no derivable css path; {len(extend_failures)} failed")
         else:
-            bad, report = extension(themes, seed, css)
+            bad, report = extension(themes, ext, seed, css)
             failures += bad
             print(f"pass 5: {Path(css).name} against the house set, every token 3:1 or its "
                   f"claimed bar on all six surfaces and {SEPARATION} in hue and chroma from the "

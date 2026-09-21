@@ -960,20 +960,66 @@ def hue_chroma_separation(a, b):
     return 100 * math.hypot(x[1] - y[1], x[2] - y[2])
 
 
+def extension_shape(seed, ext):
+    """Every way a product seed's raw JSON cannot be trusted, checked once at the boundary so
+    the solving code after it can index the seed freely."""
+    if not isinstance(ext, dict):
+        return [f"the product seed is {ext!r}, not a JSON object"]
+    bad = []
+    if not isinstance(ext.get("namespace"), str):
+        bad.append(f"namespace {ext.get('namespace')!r} is not a string")
+    color = ext.get("color")
+    if not isinstance(color, dict):
+        bad.append(f"color {color!r} is not an object")
+        return bad
+    tokens = color.get("tokens")
+    if not isinstance(tokens, list) or not tokens:
+        bad.append(f"color.tokens {tokens!r} is not a non-empty list of colour token entries")
+        return bad
+    for e in tokens:
+        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
+            bad.append(f"a colour token entry {e!r} is not an object with a string name")
+            continue
+        name = e["name"]
+        for t in theme_ids(seed):
+            anchor = e.get(t, {})
+            if not isinstance(anchor, dict):
+                bad.append(f"{name} has {t} anchor {anchor!r}, which is not an object")
+        floors = e.get("floors", [])
+        if not isinstance(floors, list):
+            bad.append(f"{name} has floors {floors!r}, which is not a list")
+        else:
+            for floor in floors:
+                if not isinstance(floor, dict):
+                    bad.append(f"{name} carries a floor {floor!r} that is not an object")
+                    continue
+                if not isinstance(floor.get("bar"), (int, float)):
+                    bad.append(f"{name} carries a floor with bar {floor.get('bar')!r}, which "
+                               f"is not numeric")
+                on = floor.get("on", [])
+                if not (isinstance(on, list) and all(isinstance(g, str) for g in on)):
+                    bad.append(f"{name} carries a floor on {on!r}, which is not a list of "
+                               f"house colour names")
+        apart = e.get("apart", [])
+        if not (isinstance(apart, list) and all(isinstance(a, str) for a in apart)):
+            bad.append(f"{name} has apart {apart!r}, which is not a list of house colour "
+                       f"names")
+    return bad
+
+
 def check_extension(seed, ext):
     """Refuse a product seed before anything is solved from it."""
-    ns = ext.get("namespace", "")
-    if not isinstance(ns, str) or not NAMESPACE.match(ns) or ns == "hw":
+    shape = extension_shape(seed, ext)
+    if shape:
+        return shape
+    ns = ext["namespace"]
+    if not NAMESPACE.match(ns) or ns == "hw":
         return [f"namespace {ns!r} is not a product's own prefix. It is one lowercase word, "
                 f"the product's name, and never hw"]
     house = {e["name"]: e for e in seed["color"]["tokens"]}
     solved = {n for n, e in house.items() if e["kind"] == "oklch"}
-    tokens = ext.get("color", {}).get("tokens", [])
-    bad = [] if tokens else [f"the {ns} seed declares no colour token"]
-    for e in tokens:
-        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
-            bad.append(f"a colour token entry {e!r} is not a dict with a string name")
-            continue
+    bad = []
+    for e in ext["color"]["tokens"]:
         name = e["name"]
         if name.startswith("hw-") or name in house:
             bad.append(f"{name} is a house token, and a product can never redefine an hw- token "
@@ -992,36 +1038,22 @@ def check_extension(seed, ext):
                 bad.append(f"{name} has no {t} anchor with an L and a C")
         grounds = set()
         for floor in e.get("floors", []):
-            if not (isinstance(floor, dict) and isinstance(floor.get("bar"), (int, float))
-                    and isinstance(floor.get("on"), list)):
-                bad.append(f"{name} carries a floor {floor!r} that is not a numeric bar and a "
-                           f"list of grounds")
-                continue
             if floor["bar"] != NON_TEXT_BAR and floor["bar"] < AA_BAR:
                 bad.append(f"{name} carries a floor at {floor['bar']}:1, which is neither the "
                            f"{NON_TEXT_BAR}:1 of WCAG SC 1.4.11 nor at least the {AA_BAR}:1 of "
                            f"SC 1.4.3")
                 continue
-            bad += [f"{name} carries a floor on {g!r}, which is not a house colour's name"
-                    for g in floor["on"] if not isinstance(g, str)]
-            on = [g for g in floor["on"] if isinstance(g, str)]
-            for g in on:
+            for g in floor["on"]:
                 if f"hw-{g}" not in solved:
                     bad.append(f"{name} carries a floor on --hw-{g}, which is not a solved house "
                                f"colour")
-            grounds |= set(on)
+            grounds |= set(floor["on"])
         missing = [g for g in PRODUCT_SURFACES if g not in grounds]
         if missing:
             bad.append(f"{name} carries no floor on --hw-{', --hw-'.join(missing)}. A product "
                        f"colour can land on any of the six surfaces, so it holds at least "
                        f"{NON_TEXT_BAR}:1 on every one")
         apart = e.get("apart", [])
-        if not isinstance(apart, list):
-            bad.append(f"{name} has apart {apart!r}, which is not a list of house colours")
-            continue
-        bad += [f"{name} has apart {a!r}, which is not a house colour's name"
-                for a in apart if not isinstance(a, str)]
-        apart = [a for a in apart if isinstance(a, str)]
         bad += [f"{name} is held apart from {a}, which is not a solved house colour"
                 for a in apart if a not in solved]
         bad += [f"{name} is not held apart from {a}. Every product colour stays clear of the "
@@ -1090,8 +1122,14 @@ def verify_extension(house_css, ext_css, seed, ext):
 def extend(seed, accent, solvers, house_css, a):
     """--extend: solve a product seed against the house set and write its one file."""
     path = Path(a.extend)
-    ext = json.loads(path.read_text(encoding="utf-8"))
-    failures = check_extension(seed, ext)
+    try:
+        ext = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        failures = [f"{path} could not be read: {exc.strerror or exc}"]
+    except json.JSONDecodeError as exc:
+        failures = [f"{path} is not valid JSON: {exc}"]
+    else:
+        failures = check_extension(seed, ext)
     if failures:
         for f in failures:
             print("FAIL  " + f, file=sys.stderr)
