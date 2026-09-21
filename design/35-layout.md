@@ -162,6 +162,22 @@ A permanent rail and a content pane, which is what quoth, treadling, foliot and 
   Its width, depth limit, active-section rule and scroll-spy behaviour are in
   [37-navigation.md](37-navigation.md); the header and footer of a page with no rail are there too.
 
+## Direction, and text in another script
+
+Every product here is built left to right today, and none has a localised, mirrored build.
+**The content inside one is not always left to right.**
+quoth's transcription language accepts automatic detection, so a transcript can arrive in Arabic, Hebrew or Urdu, and a file name, a commit message or a pasted value can be in any script.
+That half is a correctness rule rather than a market decision, and it costs nothing in a left-to-right build:
+
+- **`dir="auto"` on every element that shows text the product did not write**: a transcript segment, a user-named title, a file name, a value in a table cell, and every text input and textarea, so what a reader types in Arabic starts at the right as they type it. The browser takes the direction from the first strong character, so a transcript sets it per segment, never once for the whole transcript.
+- **`<bdi>` around user text placed inside a product sentence**, as in `Deleted <bdi>{name}</bdi>`, so a right-to-left name cannot reorder the punctuation and the words around it.
+- **`text-align: start`, never `left`**, on anything that holds such text, so a right-to-left segment aligns to its own start edge while the layout around it stays put.
+- **Inline-axis properties are logical in this book's CSS**: `inset-inline-start`, `margin-inline-end`, `padding-inline-start`, `border-inline-start`. Block-axis properties stay physical, because no product sets a vertical writing mode. Where this book's prose says left or right, read start or end.
+
+The layout itself does not mirror: the rail stays on the left, numeric columns stay right-aligned, and a directional icon keeps its direction, because the product's own words are all left to right.
+Mirroring is what a localised build would add, and the logical properties above are what would let it add that without rewriting a rule.
+Whether any product ships one is an [open decision](05-coverage.md#open-decisions).
+
 ## Layering
 
 Seven layers, and a number that is not on this list is a layer nobody decided on.

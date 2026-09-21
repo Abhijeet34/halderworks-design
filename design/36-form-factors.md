@@ -211,3 +211,4 @@ Any of them can be added, and each names what it would cost.
 | **Watch, TV, car, and any voice surface** | no product has one and none is planned | a new system |
 
 A browser-extension popup is **not** on this list: it is the menu-bar panel with a different anchor, and section 2 covers it unchanged.
+Nor is a social slide sequence: it is a set of rasters with nothing interactive in them, so it is a format rather than a form factor, and [75-spec-sheet.md](75-spec-sheet.md#slide-sequence) specifies it.

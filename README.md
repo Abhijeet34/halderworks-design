@@ -123,16 +123,18 @@ first publication was scrubbed and verified.
 
 ## What is open
 
-[design/05-coverage.md](design/05-coverage.md) is the full answer and it is checkable. Ten rows are
-`partial`, each naming what is missing, and six decisions are recorded as open with the measurement
-already done - they are in
-[that file's open-decisions table](design/05-coverage.md#open-decisions). The three worth knowing
-before you read anything else:
+[design/05-coverage.md](design/05-coverage.md) is the full answer and it is checkable. Nine rows are
+`partial`, each naming what is missing, and three decisions are recorded as open with the
+measurement already done and a recommendation on each - they are in
+[that file's open-decisions table](design/05-coverage.md#open-decisions), beside the ones since
+settled and why. The three worth knowing before you read anything else:
 
-- **Right-to-left and localisation** have no coverage and no decision. It is the one row that is
-  neither answered nor deliberately set aside.
-- **A high-contrast theme.** The tool to emit one now exists; what is open is which question it
-  answers, because the field's two strategies are opposite and one theme cannot do both.
+- **A localised, mirrored build** has no decision. Right-to-left text inside a left-to-right
+  product is specified; whether any product ever mirrors its whole interface is open, and the
+  recommendation is no.
+- **A high-contrast theme** is not built. Forced colours is answered by one rule; the
+  `prefers-contrast: more` re-solve waits on a minimum separation between roles, because the
+  solver run at a 7:1 bar puts secondary and muted text on one value.
 - **There is no logomark and no wordmark.** A mark is a commission rather than something an agent
   invents.
 
@@ -140,8 +142,8 @@ before you read anything else:
 
 Apache-2.0. See [LICENSE](LICENSE).
 
-The typefaces this system names - Public Sans, Newsreader, IBM Plex Mono - and the icon set it
-chooses - Lucide, ISC - are third-party and carry their own licences, which
+The typefaces this system names - Public Sans, Newsreader, IBM Plex Mono - the icon set it
+chooses - Lucide, ISC - and the pictogram set - `@carbon/pictograms`, Apache-2.0 - are third-party and carry their own licences, which
 [design/55-iconography.md](design/55-iconography.md) and
 [design/90-evidence.md](design/90-evidence.md) record as fetched rather than recalled. Nothing from
 any reference measured in the evidence file is reproduced here: every spec-sheet entry states what

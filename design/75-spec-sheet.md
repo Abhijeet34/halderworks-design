@@ -17,7 +17,7 @@ That second line is the test, and it is a standing rule of this system rather th
 **An entry that cannot honestly fill the Left behind line is a copy and does not ship.**
 One candidate failed exactly that way and is recorded under [What was declined, and why](#what-was-declined-and-why) rather than quietly dropped.
 
-The sources are the four accounts screened in [90-evidence.md](90-evidence.md), which is also where the account-by-account reading and the capture provenance live.
+The sources are the accounts screened in [90-evidence.md](90-evidence.md), which is also where the account-by-account reading and the capture provenance live.
 
 ## 1. Themes
 
@@ -82,7 +82,7 @@ Marketing, documentation, release notes and dated reports.
 | display face | Newsreader at `display-1` and `display-2`, and nowhere else |
 | density | comfortable |
 | running measure | `--hw-measure-prose`, 68ch, at `body-lg` |
-| formats available | all six in section 3 |
+| formats available | all seven in section 3 |
 | colour scheme | Page (section 5) |
 
 ```css
@@ -193,7 +193,7 @@ Content that came from somewhere else, presented as a quotation of a surface rat
 ## 3. Formats
 
 Composition recipes: a layout in tokens, not a component and not a picture.
-All six are available on the Editorial overlay and none on Instrument.
+All seven are available on the Editorial overlay and none on Instrument.
 
 ### Masthead frame
 
@@ -368,9 +368,64 @@ framed screenshot, a collage of interface chips, a portrait with overlaid text, 
 beside an illustration - and Railway's art, which bleeds to all four edges. Ours is the ninth, a
 wordmark with one line under it, reduced to the product's name and a headline on a solved ground.
 
+### Slide sequence
+
+The carousel: a set of 4:5 slides read one after another, which is the outward-facing format a
+product's announcements take on a social feed.
+
+**Measured on three independent accounts.** `khushidotjpeg` and `ui.ux.jam` carry the same
+four-corner frame, and `figma.expert` carries it a third time with a different payload in each
+corner ([90-evidence.md](90-evidence.md#a-third-independent-instance-of-the-four-corner-frame)).
+Instagram labels that third account `AI-generated profile`. Its frame counts as an instance,
+because a frame is a frame whoever drew it; its colour claims are not evidence and contribute
+nothing here ([85-considered-and-declined.md](85-considered-and-declined.md#an-unsourced-superlative-as-a-palette-source)).
+The proportions below were read on `khushidotjpeg`'s 1080 x 1350 slides.
+
+Every dimension is a fraction of the frame, as in the link-preview card, because the pixel size is
+whatever the export chose.
+
+| part | value | at 1080 x 1350 | derivation |
+|---|---|---:|---|
+| the frame | aspect 0.800, 4:5 | | both measured carousels; the feed's portrait frame |
+| margin, four sides | one inset at `0.104` of the short side | 112px | measured 110 to 117px |
+| corner labels | `micro`'s treatment - uppercase, 0.06em, 600 - at a glyph height of `0.017 H`, one size for all four | 23px | head and foot measured identical |
+| cover ordinal | the **count of the set**, Newsreader at a glyph height of `0.156 H`, `--hw-text` | 211px | measured 15.63% |
+| cover headline | `display-1`'s face, weight and tracking, line pitch `0.070 H` | 94px | measured 6.96% |
+| body ordinal | the **index of the item** on this slide, Newsreader at `0.102 H`, `--hw-text-muted` | 137px | measured 10.15% |
+| advance mark | Lucide `arrow-right` at `0.014 H`, in the ink of the text beside it | 19px | measured 1.41% |
+
+**Contrast:** `--hw-text` and `--hw-text-muted` on `--hw-ground`, 14.83:1 and 4.88:1 light, 16.38:1
+and 5.38:1 dark, already certified. Like the link-preview card, each slide is a raster with no
+theme switch, so a sequence carries one theme's pairs and never mixes the two.
+
+**Rules.**
+The frame holds still: the margin, the ground, the ink, the label size and the mark are the same
+on every slide, and only what sits inside the margin changes. A slide that changes any of those has
+left the sequence.
+The cover states the size of the set; every body slide states the position of its own item. Those
+are two numbers with two jobs, and they are never set at one size.
+Each corner carries a fact that is true of this slide or this sequence - the mark, the series, the
+position, the advance mark - and a corner with nothing true to carry stays empty.
+Every ordinal passes the three tests under [the oversized ordinal](#the-oversized-ordinal), so a
+position reads `2 / 6` and never `02 / 06`.
+The advance mark depicts only what the surface does. An arrow is honest on a feed that swipes; a
+drawn control that does nothing when tapped is not.
+
+**What the consumer provides:** the content of each slide, the export at 1080 x 1350 or a multiple
+of it, and alt text on every slide carrying its words, because a slide's text is otherwise in
+pixels only.
+
+**Taken:** a sequence reads as one object when its frame holds still and only the inside of the
+margin changes, and the cover and the body carry different numbers because they answer different
+questions.
+**Left behind:** `khushidotjpeg`'s pastiche selection toolbar at 1.13:1 against its ground, its body
+ordinal at 1.41:1, and the brown of its cover ordinal; `ui.ux.jam`'s cover photograph; and every
+colour `figma.expert` publishes, together with the `01 / 06` leading zero on its counter. Ours is
+the frame alone, on a solved ground, with the product's name in one corner.
+
 ## 4. Typography treatments
 
-Four treatments beyond the ramp in [20-type.md](20-type.md), and one named gap.
+Five treatments beyond the ramp in [20-type.md](20-type.md).
 For each, the boundary that separates it from the decorative-marker entries in [80-anti-patterns.md](80-anti-patterns.md) is the load-bearing half.
 
 ### The oversized ordinal
@@ -432,16 +487,33 @@ One aside per headline. Never in a control label, an error or a table header.
 **Taken:** a qualification that is genuinely subordinate should be set as subordinate rather than promoted to its own sentence.
 **Left behind:** the hand-lettered italic brackets, and the conversational register of the reference text.
 
-### The mixed-face headline, which is a named gap
+### The mixed-face headline
 
-**Not specified.**
-Splitting one headline across Newsreader and Public Sans is the treatment that gives `khushidotjpeg`'s and `ui.ux.jam`'s headlines their voice, and it is the one candidate here that cannot be settled by measurement.
+One display headline set in Public Sans with a single term in Newsreader.
+The span marks **the term the headline names**, never emphasis.
 
-It collides with two standing decisions rather than with a preference: [20-type.md](20-type.md) fixes that emphasis is weight, and the two faces in this system carry roles rather than tones, so mixing them inside a line makes the face a decoration and removes the only cue that says which face means what.
-Specifying it would mean deciding that face may carry emphasis within a line, and that is a decision about what this system is, not a value to solve for.
+That is what makes it specifiable without touching either standing rule.
+[20-type.md](20-type.md) fixes that emphasis is weight and gives one other job to a change of style, marking a term being defined, which italic does in running text.
+In this headline the face does that job instead, so the face still carries a role rather than a tone and emphasis is still weight.
 
-It is filed as a partial in the coverage inventory with that decision named as what is missing.
-It is also the first thing to revisit if a marketing-only exception is ever wanted, because the Editorial overlay is already the only place Newsreader appears.
+| part | token |
+|---|---|
+| the headline | `display-1` or `display-2` size, line-height, tracking and weight, in `--hw-font-sans` |
+| the term | the same size, weight and tracking in `--hw-font-display`, roman and never also italic |
+| both | `--hw-text` on `--hw-ground`, 14.83:1 light and 16.38:1 dark, already certified |
+
+```css
+[data-overlay="editorial"] .hw-headline-mixed { font-family: var(--hw-font-sans); }
+[data-overlay="editorial"] .hw-headline-mixed > .hw-term { font-family: var(--hw-font-display); }
+```
+
+**The term test.** The span's words are the name of the thing the page is about, and the body uses the same words again, unmarked. A span on a verb, an adjective or an intensifier is emphasis set in a second face and is refused.
+
+**Rules.** One span per headline and one mixed-face headline per view. Editorial overlay only, which is already the only place Newsreader appears; never on Instrument or Console and never in product UI. No hue on the span and no marker highlight in the same headline, because two marks in one line have marked nothing.
+The two faces are set at one size and not optically matched. Newsreader's cap height is 0.676em ([20-type.md](20-type.md#why-not-inter)) and Public Sans's was not re-measured, because the faces could not be loaded where this entry was written; checking it needs one browser with both faces loaded.
+
+**Taken:** two faces in one line can carry information, that these words are a name, when the second face is reserved for that one job.
+**Left behind:** the second face as the carrier of the headline's voice, spent on whichever word the line leans on. That is emphasis by face, which is the reading `khushidotjpeg`'s and `ui.ux.jam`'s headlines invite and the one [20-type.md](20-type.md) refuses.
 
 ## 5. Colour schemes
 
@@ -508,7 +580,7 @@ All 112 entries in `tokens/tokens.json` carry one, and `exports/design-tokens.js
 
 ## What was declined, and why
 
-Eight devices were screened. Five became entries above, two became named gaps, and one is declined outright.
+Eight devices were screened. Six became entries above, one is a named gap, and one is declined outright.
 
 **The stacked-label overlay** - translucent pills layered over a photograph, each carrying one clause of a sentence - **does not ship, and it is the entry that failed the Left behind test.**
 

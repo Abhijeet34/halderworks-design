@@ -109,17 +109,16 @@ An icon that needs a legend is a label that should have been written.
 
 - **Decorative.** An icon that repeats its own heading, a clipboard beside "Records" or a rocket beside "Get started", is noise with a colour.
   It has a row in [80-anti-patterns.md](80-anti-patterns.md).
-- **An illustration.** This system has no illustration set. An empty state gets a sentence, not a drawing. <!-- covered-by: Illustration -->
-  See the section below: the reason for that has been read carefully and half of it is now an open
-  decision rather than a settled refusal.
+- **An illustration.** An icon is never scaled up to stand in for a drawing. The one illustration
+  set is a pictogram set with its own sizes and rule, in the section below.
 - **An emoji.** Never, anywhere, in any product surface.
 
-## Illustration, which is an open decision rather than a closed refusal
+## Illustration: one pictogram set, and no figurative drawing
 
-Four files in this book carry a rule about illustration and three of them carry the same sentence:
+Four files in this book carried a rule about illustration, and three of them carried the same sentence:
 
 > no illustration set exists and inventing one per empty state is how a product ends up with six
-> unrelated drawings <!-- covered-by: Illustration -->
+> unrelated drawings <!-- covered-by: Pictograms, the one illustration set -->
 
 **Read as written, its first half is the gap restated and its second half argues for a coherent set
 rather than against one.** The sentence forbids improvisation. It contains no argument against a
@@ -142,12 +141,26 @@ a 32 grid, **2.25% of its frame**, against Lucide's 2 on 24 at **8.33%** - 3.7x 
 its frame. That is what makes it illustration-class, drawn for a 48 to 96px block, and what makes
 it invisible at `--hw-icon` 16px. It is a different package and it does not compete with Lucide.
 
-**What is open, and it is a decision rather than a measurement.**
-Whether this system adopts a monochrome pictogram set at zero palette cost, and whether it ever
-commissions a figurative one, are the system owner's calls: the first is a dependency decision and
-the second is a budget question. [05-coverage.md](05-coverage.md) carries both as open decisions
-beside the Illustration row, with the recommendation that the row be split.
+**The set is `@carbon/pictograms`**, Apache-2.0, measured at version 12.84.0 in
+[90-evidence.md](90-evidence.md#illustration-measured-rather-than-argued).
+It is named here the way the typefaces and Lucide are named, and it is not vendored: a product that
+uses a pictogram installs the package itself, and this repository stays free of dependencies.
 
-**Until one is taken, the rule above stands unchanged** - and it stands for its own reason, which
-no set removes: one drawing per screen, chosen by whoever built the screen, is the failure, and a
-licensed set does not prevent it. A set plus a rule does.
+| what it fixes | value |
+|---|---|
+| size | `--hw-space-48` or `--hw-space-64`, which paint the 0.72 line at 1.08px and 1.44px |
+| never | at `--hw-icon` 16px, where the same line paints 0.36px and disappears. A pictogram is never an icon |
+| colour | `currentColor`, inherited from `--hw-text-secondary`, 6.37:1 light and 7.01:1 dark on `--hw-ground`. It takes the surrounding text colour by construction and brings no colour of its own |
+| where | the **nothing yet** kind of [empty state](65-components.md#emptystate-the-three-kinds-which-are-not-interchangeable), and a section of a marketing page. Never in a control, a row, a table or a toast |
+| how many | one per view, from this set only |
+| markup | `aria-hidden="true"`, because the words beside it carry the meaning and the drawing repeats them |
+
+That keeps the rule above standing for its own reason, which no set removes: one drawing per screen,
+chosen from anywhere by whoever built the screen, is the failure, and a licensed set does not
+prevent it. **A set plus a rule does**, and this is the set and the rule.
+
+**Figurative illustration stays excluded.** A figurative set would carry its own colours, and the
+only construction measured has five baked values and no dark-theme answer. If one is ever
+commissioned it brings its palette through [a product's own namespace](95-extending.md#a-products-own-namespace),
+never through an `hw-` token. Whether to commission one is an
+[open decision](05-coverage.md#open-decisions).
