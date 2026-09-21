@@ -18,7 +18,7 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 
 ## The tools, which are the checks
 
-Python 3, no dependencies, no network.
+Python 3, no dependencies. Only `check-sources.py` uses the network.
 
 ```bash
 python3 tools/build.py            # tokens/tokens.seed.json -> tokens.json + tokens.css
