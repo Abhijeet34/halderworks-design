@@ -580,7 +580,7 @@ All 112 entries in `tokens/tokens.json` carry one, and `exports/design-tokens.js
 
 ## What was declined, and why
 
-Eight devices were screened. Six became entries above, one is a named gap, and one is declined outright.
+Eight devices were screened. Seven became entries above, and one is declined outright.
 
 **The stacked-label overlay** - translucent pills layered over a photograph, each carrying one clause of a sentence - **does not ship, and it is the entry that failed the Left behind test.**
 
