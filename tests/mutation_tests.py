@@ -82,7 +82,9 @@ def exact_min(repo, pairs):
                for t, fg, bg in pairs)
 
 
-def case(name, expect, mutate, after=None, note=""):
+def case(name, expect, mutate, after=None, note="", by=None):
+    """`by` names a check that must be among those refusing, where WHICH tool catches it is the
+    claim: the second instrument measuring a product file on its own, say."""
     repo = clone()
     mutate(repo)
     codes, out = {}, ""
@@ -95,6 +97,8 @@ def case(name, expect, mutate, after=None, note=""):
     extra, ok = ("", True)
     if after and codes["build"] == 0:
         extra, ok = after(repo)
+    if by and codes[by] == 0:
+        extra, ok = (extra + f" {by} did not refuse it, and the case requires it to").strip(), False
     passed = ok and (verdict == expect or (expect == "green" and verdict == "caught"))
     label = ("PASS" if verdict == expect and ok
              else "IMPROVED" if expect == "green" and ok
@@ -319,26 +323,34 @@ def x1(repo):
         e["hue"] = 27
         e["light"]["L"], e["dark"]["L"] = "0.30", "0.85"
     product_edit(repo, f)
+    # The values that seed solves to, written into the product file as a contributor who
+    # bypassed the build would, so the second instrument has to refuse them on its own.
+    p = repo / "examples" / "quoth.tokens.css"
+    red = {"0.515": "0.3 0.1207", "0.4467": "0.3 0.1207", "0.6255": "0.85 0.0793",
+           "0.7424": "0.85 0.0793"}
+    p.write_text(re.sub(r"oklch\((\S+) \S+ 297\)", lambda m: f"oklch({red[m[1]]} 27)",
+                        p.read_text(encoding="utf-8")), encoding="utf-8")
 
 
 case("X1 quoth-live becomes recording red: hue 27, a maroon in light and a pink in dark", "caught",
-     x1, note="both sit 9.8 or more from hw-danger in full oklab distance and 0.9 and 3.1 in hue "
-              "and chroma: lightness alone must not clear a colour of reading as a state")
+     x1, by="contrast-extend",
+     note="both sit 9.8 or more from hw-danger in full oklab distance and 0.9 and 3.1 in hue "
+          "and chroma: lightness alone must not clear a colour of reading as a state")
 
 
 case("X2 quoth-live collides with a semantic: hue 150, beside hw-success", "caught",
-     lambda r: product_edit(r, lambda e: e.__setitem__("hue", 150)),
+     lambda r: product_edit(r, lambda e: e.__setitem__("hue", 150)), by="extend",
      note="95-extending.md: a product colour sits 8.0 from each state colour")
 
 
 case("X3 the product seed names its token hw-accent", "caught",
-     lambda r: product_edit(r, lambda e: e.__setitem__("name", "hw-accent")),
+     lambda r: product_edit(r, lambda e: e.__setitem__("name", "hw-accent")), by="extend",
      note="95-extending.md: never redefine an hw- token, and the tool refuses it")
 
 
 case("X4 quoth.tokens.css is hand-edited to redefine --hw-accent", "caught",
      lambda r: product_css_edit(r, "  --quoth-live:", "  --hw-accent: oklch(0.9 0.02 297);\n"
-                                                      "  --quoth-live:"),
+                                                      "  --quoth-live:"), by="contrast-extend",
      note="the second instrument refuses an hw- declaration in a product file on its own")
 
 
@@ -347,15 +359,18 @@ def x5(repo):
         e["floors"] = [{"bar": 3.0, "on": ["ground"]}]
         e["light"]["L"] = "0.80"
     product_edit(repo, f)
+    product_css_edit(repo, "--quoth-live: oklch(0.515 ", "--quoth-live: oklch(0.80 ")
 
 
-case("X5 quoth-live's floors narrow to the ground at 3:1, and its light anchor moves to L 0.80",
-     "caught", x5, note="a product colour holds 3:1 on all six surfaces, whatever its seed says")
+case("X5 quoth-live's floors narrow to the ground and its light value moves to L 0.80, one edit",
+     "caught", x5, by="contrast-extend",
+     note="the second instrument holds a product colour to 3:1 on all six surfaces, whatever "
+          "its seed says")
 
 
 case("X6 quoth.tokens.css is hand-edited to light L 0.80, under its floor", "caught",
      lambda r: product_css_edit(r, "--quoth-live: oklch(0.515 ", "--quoth-live: oklch(0.80 "),
-     note="the second instrument measures the file, not the seed")
+     by="contrast-extend", note="the second instrument measures the file, not the seed")
 
 
 def x7(repo):
@@ -366,7 +381,7 @@ def x7(repo):
 
 
 case("X7 quoth-live stops being held apart from hw-danger and moves to hue 20", "caught", x7,
-     note="a seed can name more colours to stay clear of, never fewer")
+     by="extend", note="a seed can name more colours to stay clear of, never fewer")
 
 
 # ---------------------------------------------------------------- check-coverage.py
