@@ -86,7 +86,7 @@ A summary is worth building at three failed fields; below that the per-field mes
 ## Success and pending
 
 **A field that passes says nothing.**
-There is no green tick.
+There is no green tick. <!-- covered-by: Success and pending states -->
 Passing is the expected case and marking it spends the reader's attention on the outcome that needed none, and a column of green ticks beside every field makes the one red field harder to find rather than easier.
 
 Success belongs at the **form** level, not the field level, and it is the toast in [65-components.md](65-components.md): past tense, matching the button.

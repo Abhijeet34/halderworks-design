@@ -3,6 +3,7 @@
 How a surface is distinguished from the one behind it, and what is allowed to carry that distinction.
 
 ## There is no texture, and that is a decision
+<!-- covered-by: Texture, grain, gradient, glass -->
 
 **No noise, no grain, no paper, no gradient, no glass behind text.**
 The system has no token for any of them and will not be given one.
@@ -80,7 +81,7 @@ A hover fill that reads as a colour change is a hover fill that makes a table fl
 ## Borders
 
 One border token at one width.
-`--hw-border-w` is 1px and there is no 2px border in this system: a 2px line is a state, which is why the only two 2px strokes that exist are `--hw-focus-w` and `--hw-tab-active-w`.
+`--hw-border-w` is 1px and there is no 2px border in this system: a 2px line is a state, which is why the only two 2px strokes that exist are `--hw-focus-w` and `--hw-tab-active-w`. <!-- covered-by: Borders -->
 
 A border separates a container from its ground.
 It does not separate every row from every other row: a rule between every row is a table that needed row spacing, and that has its own entry in [80-anti-patterns.md](80-anti-patterns.md).

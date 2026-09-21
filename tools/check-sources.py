@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that every source the book cites still exists.
 
-The other four tools in this directory are offline and internally consistent; this one is the
+The other five tools in this directory are offline and internally consistent; this one is the
 only one that leaves the machine, which is why it runs on the weekly schedule rather than on
 every change. A source rots in months, so 22 outbound requests per push buy no information.
 

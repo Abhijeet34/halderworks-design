@@ -15,21 +15,35 @@ patterns, and the inventory had no row for it for three rounds. Seven of eight r
 stated in rule files reached the inventory and one escaped, into exactly the class of gap the
 inventory exists to report.
 
-  4  every refusal stated in a rule file must resolve to an inventory row
+  4  every refusal stated in a rule file must NAME the inventory row that carries it
 
 A refusal is a sentence of the form "There is no X", "This system has no X" or "No X exists".
 A sentence refusing two things - "no half-width rail and no resizable splitter" - is two
-refusals and each must resolve on its own.
+refusals, and the line must name a row for them.
 
-Resolving means one inventory row carries a content word of that refusal which is
-DISTINCTIVE: present in at most MAX_ROWS rows of 141. A common word cannot resolve anything,
-and that threshold is the whole strength of the rule rather than a detail. Measured on the
-first version of this check, which accepted any match: deleting the Window splitter row left
-the sweep at 22 of 22 resolved, because "rail" appears in several unrelated rows. The check
-built to catch that leak did not catch it. With the threshold it does.
+The refusal names its row in an HTML comment on its own line or the line below it:
 
-What a pass still does not prove: that the row it matched is the RIGHT row. The failure names
-the words it looked for, so a reader can check.
+    There is no green tick. <!-- covered-by: Success and pending states -->
+
+and a sentence the patterns read as a refusal that is not one says so instead:
+
+    <!-- not-a-refusal: this refuses a measurement, not a surface -->
+
+This replaces a keyword heuristic, and the replacement is the finding rather than a
+refinement of it. That heuristic resolved a refusal to whichever row shared a word present in
+at most three rows: 2 of 23 live refusals resolved to a row about something else - HTML email
+to "Accordion and disclosure" via "export", and a sentence that refuses no surface at all to
+"The mixed-face headline" via "measurement" - and four ordinary phrasings of a refusal were
+not read as refusals at all. A check that reports the wrong row is worse than one that reports
+none, because it reports success; and a rule that must guess at prose will keep guessing,
+since the prose carries no fact about which row was meant. The declaration carries it.
+
+The patterns now only ASK for a declaration rather than supplying one, so a phrasing they miss
+costs a missing demand rather than a wrong answer. A declaration that sits on no refusal is
+itself a failure, which is what catches a refusal reworded out of the patterns' reach.
+
+What a pass still does not prove: that the named row is the right row for the surface, only
+that the refusal names a row that exists, in the file a reader can see it in.
 
   5  the cross-check manifest must name the external taxonomies and the date
 
@@ -41,7 +55,9 @@ check instead of trusting it.
   6  every internal link and anchor in the book must resolve
 
 Same discipline, one level down. A row that names a section is a claim; so is a link in the
-prose, and the book carries hundreds of them across three directories.
+prose, and the book carries hundreds of them. Every Markdown file in the repository is opened,
+in whatever directory it sits, and a link is a link in all four notations Markdown offers:
+inline, inline with a title, reference definition, and a raw <a href>.
 
 Exits non-zero, and names every failure, when any claim is unbacked.
 
@@ -53,11 +69,15 @@ from pathlib import Path
 
 STATUSES = {"covered", "partial", "excluded"}
 ROW = re.compile(r"^\|(?P<cells>.*)\|\s*$")
-LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
+# All four ways a Markdown file names a target. The first three were the only one checked
+# before, which left a titled link, a reference definition and a raw anchor unread, in a
+# repository whose whole claim is that its internal references resolve.
+LINKS = [
+    re.compile(r"\[[^\]]*\]\(\s*<?([^)\s>]+)>?(?:\s+[\"'(][^)]*)?\s*\)"),
+    re.compile(r"^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?"),
+    re.compile(r"<a\s[^>]*href\s*=\s*[\"']([^\"']+)[\"']", re.I),
+]
 ISO_DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
-# A word present in more rows than this is too common to be evidence that a refusal was
-# considered. Three is the widest value at which "rail" stops resolving the splitter.
-MAX_ROWS = 3
 # A refusal sentence can carry more than one refused object.
 SPLIT_REFUSAL = re.compile(r"\s+(?:and|or)\s+no\s+", re.I)
 # "...when there is no error" and "where this system has no answer" are conditionals, not
@@ -73,19 +93,12 @@ REFUSALS = [
     re.compile(r"\bno\s+([^.:;,\n]+?)\s+exists\b", re.I),
 ]
 
-# Words that carry no subject. Anything left after this and shorter than four characters is
-# not distinctive enough to resolve a row on.
-STOPWORDS = {
-    "a", "an", "the", "and", "or", "not", "in", "on", "of", "for", "to", "it", "its", "this",
-    "that", "here", "there", "with", "from", "as", "at", "by", "is", "are", "be", "been",
-    "has", "have", "than", "then", "other", "second", "third", "own", "one", "two", "three",
-    "more", "less", "any", "every", "all", "only", "still", "yet", "today", "such", "no",
-    "system", "systems", "thing", "things", "way", "ways", "case", "cases", "kind", "kinds",
-    "part", "parts", "point", "place", "line", "lines", "file", "files", "book", "them",
-    "we", "our", "ours", "you", "your", "they", "their", "which", "what", "when", "where",
-    "because", "also", "does", "do", "done", "made", "make", "makes", "here", "beside",
-    "into", "over", "under", "about", "after", "before", "between", "within", "without",
-}
+# A refusal names the inventory row that carries it, in a comment beside it. A comment is
+# invisible in the rendered book and visible in the file a reviewer reads, which is the point:
+# the fact lives where the refusal is written rather than being inferred from its words.
+DECLARED = re.compile(r"<!--\s*covered-by:\s*(.+?)\s*-->")
+WAIVED = re.compile(r"<!--\s*not-a-refusal:\s*(.+?)\s*-->")
+COMMENT = re.compile(r"<!--.*?-->")
 
 
 def slug(heading: str) -> str:
@@ -130,15 +143,6 @@ def rows(text: str):
         if cells[1].lower() in ("status",):
             continue
         yield n, cells
-
-
-def content_words(phrase: str):
-    phrase = re.sub(r"`([^`]*)`", r"\1", phrase)
-    out = []
-    for w in re.findall(r"[a-z][a-z-]*", phrase.lower()):
-        if len(w) >= 4 and w not in STOPWORDS:
-            out.append(w)
-    return out
 
 
 def check_inventory(inventory: Path, book: Path, failures: list):
@@ -210,45 +214,76 @@ def check_inventory(inventory: Path, book: Path, failures: list):
     return counts, total, claims
 
 
+def refusals_in(path: Path):
+    """(line_no, phrase) for every refusal the patterns read in one rule file."""
+    for line_no, line in unfenced(path):
+        line = COMMENT.sub("", line)    # a declaration is not part of the sentence it marks
+        for pattern in REFUSALS:
+            for m in pattern.finditer(line):
+                if SUBORDINATOR.search(line[:m.start()]):
+                    continue
+                for phrase in SPLIT_REFUSAL.split(m.group(1).strip()):
+                    if phrase.strip():
+                        yield line_no, phrase.strip()
+
+
 def check_refusals(book: Path, inventory: Path, claims, failures: list):
     """Rule 4. The inventory itself is excluded from the sweep: its own rows state refusals by
-    design, and a row cannot be the evidence that it exists."""
-    index = [(surface, (surface + " " + note).lower()) for surface, note in claims]
+    design, and a row cannot be the evidence that it exists.
 
-    def rows_carrying(word):
-        return [surface for surface, blob in index if word in blob]
-
-    swept = resolved = 0
+    A declaration is read from the refusal's own line or the one below it, because a comment
+    cannot go on a heading without entering its anchor, and cannot go on its own line inside a
+    table without ending the table. Where a line carries two refusals it carries the rows for
+    both, and the check holds each named row to existing rather than pairing them off.
+    """
+    surfaces = {surface for surface, _ in claims}
+    swept = resolved = waived = 0
     for path in sorted(book.glob("*.md")):
         if path.name == inventory.name:
             continue
-        for line_no, line in unfenced(path):
-            for pattern in REFUSALS:
-                for m in pattern.finditer(line):
-                    if SUBORDINATOR.search(line[:m.start()]):
-                        continue
-                    for phrase in SPLIT_REFUSAL.split(m.group(1).strip()):
-                        words = content_words(phrase)
-                        if not words:
-                            continue
-                        swept += 1
-                        hit = None
-                        for w in words:
-                            carriers = rows_carrying(w)
-                            if 1 <= len(carriers) <= MAX_ROWS:
-                                hit = (w, carriers[0])
-                                break
-                        if hit:
-                            resolved += 1
-                        else:
-                            seen = {w: len(rows_carrying(w)) for w in words}
-                            failures.append(
-                                f"{path.name}:{line_no}  refuses {phrase!r} and no row in "
-                                f"{inventory.name} carries a distinctive word from it. Rows "
-                                f"carrying each word: {seen}; a word needs 1 to {MAX_ROWS}. "
-                                f"A refusal that is written down is coverage; a refusal that "
-                                f"is not is a gap")
-    return swept, resolved
+        lines = path.read_text(encoding="utf-8").splitlines()
+
+        def nearby(line_no, pattern):
+            window = lines[line_no - 1:line_no + 1]
+            return [m.group(1) for l in window for m in pattern.finditer(l)]
+
+        declaring = set()
+        for line_no, phrase in refusals_in(path):
+            if nearby(line_no, WAIVED):
+                waived += 1
+                declaring.add(line_no)
+                continue
+            swept += 1
+            named = nearby(line_no, DECLARED)
+            declaring.add(line_no)
+            if not named:
+                failures.append(
+                    f"{path.name}:{line_no}  refuses {phrase!r} and names no row in "
+                    f"{inventory.name}. Write the row it is covered by beside it, as "
+                    f"<!-- covered-by: the row's surface, exactly --> on this line or the "
+                    f"next. A refusal that is written down is coverage; a refusal that is "
+                    f"not is a gap")
+                continue
+            unknown = [n for n in named if n not in surfaces]
+            if unknown:
+                failures.append(
+                    f"{path.name}:{line_no}  refuses {phrase!r} and names "
+                    f"{', '.join(repr(u) for u in unknown)}, which {inventory.name} has no "
+                    f"row for. The surface must match a row exactly")
+                continue
+            resolved += 1
+
+        # A declaration the patterns found no refusal beside is the other half of the rule:
+        # reword a refusal out of their reach and the declaration is left pointing at nothing,
+        # which is the one signal available that the sweep has stopped seeing a refusal.
+        for n, line in enumerate(lines, 1):
+            for m in DECLARED.finditer(line):
+                if n not in declaring and n - 1 not in declaring:
+                    failures.append(
+                        f"{path.name}:{n}  declares the row {m.group(1)!r} and no refusal was "
+                        f"read on this line or the one above it. Either the sentence beside it "
+                        f"no longer reads as a refusal, or the declaration is stale")
+    return swept, resolved, waived
 
 
 def check_manifest(inventory: Path, failures: list):
@@ -265,8 +300,8 @@ def check_manifest(inventory: Path, failures: list):
                len(lines))
     section = lines[start:end]
     body = [l for l in section if ROW.match(l) and not set(l.replace("|", "").replace(" ", "")) <= {"-", ":"}]
-    if len(body) < 6:
-        failures.append(f"{inventory.name}  the cross-check manifest names fewer than five "
+    if len(body) < 7:
+        failures.append(f"{inventory.name}  the cross-check manifest names fewer than six "
                         f"external lists; it holds {max(len(body) - 1, 0)}")
     if not any(ISO_DATE.search(l) for l in section):
         failures.append(f"{inventory.name}  the cross-check manifest carries no date, so a "
@@ -276,11 +311,12 @@ def check_manifest(inventory: Path, failures: list):
 
 def check_links(root: Path, failures: list):
     """Rule 6. Every internal link, and every anchor inside one, across the whole repository."""
-    files = sorted([*(root / "design").glob("*.md"), *(root / "docs").glob("*.md"), *root.glob("*.md")])
+    files = sorted(f for f in root.rglob("*.md")
+                   if ".git" not in f.parts and "node_modules" not in f.parts)
     cache, checked = {}, 0
     for path in files:
         for line_no, line in unfenced(path):
-            for target in LINK.findall(line):
+            for target in [t for pat in LINKS for t in pat.findall(line)]:
                 if re.match(r"^[a-z][a-z0-9+.-]*:", target) or target.startswith("//"):
                     continue
                 checked += 1
@@ -310,7 +346,7 @@ def main() -> int:
 
     failures = []
     counts, total, claims = check_inventory(inventory, book, failures)
-    swept, resolved = check_refusals(book, inventory, claims, failures)
+    swept, resolved, waived = check_refusals(book, inventory, claims, failures)
     lists = check_manifest(inventory, failures)
     links = check_links(root, failures)
 
@@ -318,7 +354,9 @@ def main() -> int:
         print("FAIL  " + f, file=sys.stderr)
     print(f"\n{total} surfaces checked: {counts['covered']} covered, {counts['partial']} partial, "
           f"{counts['excluded']} excluded.")
-    print(f"{swept} refusals swept across the rule files, {resolved} resolved to a row.")
+    print(f"{swept} refusals swept across the rule files, {resolved} naming a row that "
+          f"exists. {waived} sentence{'' if waived == 1 else 's'} declared not to be a "
+          f"refusal.")
     print(f"{lists} external taxonomies named in the cross-check manifest.")
     print(f"{links} internal links and anchors checked.")
     print(f"{len(failures)} unbacked.")

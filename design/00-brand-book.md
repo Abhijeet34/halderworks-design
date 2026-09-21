@@ -85,7 +85,7 @@ An icon that needs a legend is a label that should have been written.
 
 ## The mark
 
-There is no logomark and no wordmark yet, and none has been drawn here, because a mark is a commission rather than something an agent invents.
+There is no logomark and no wordmark yet, and none has been drawn here, because a mark is a commission rather than something an agent invents. <!-- covered-by: Logomark and wordmark -->
 Until one exists, the name is set plainly in the display face at `display-2` weight 500, as the cover shows.
 `halderworks.com` is the registered umbrella domain, and it is a name here rather than a link: its mail resolves, and no web host answers the apex yet.
 The visual identity that will sit on it is open work.

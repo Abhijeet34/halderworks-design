@@ -127,7 +127,7 @@ A permanent rail and a content pane, which is what quoth, treadling, foliot and 
   It is a well, not a floating panel: see [50-surface-texture.md](50-surface-texture.md).
 - Below `--hw-bp-lg` the rail leaves the layout entirely and returns as a dismissible sheet at `--hw-z-rail`, which is the one time it earns a shadow.
 - `--hw-rail-collapsed` at 56px is the only other rail state, and it shows icons with their labels in tooltips.
-  There is no half-width rail and no resizable splitter: a splitter is a per-user layout the product then has to store, migrate and support.
+  There is no half-width rail and no resizable splitter: a splitter is a per-user layout the product then has to store, migrate and support. <!-- covered-by: Window splitter -->
   [05-coverage.md](05-coverage.md) carries the window splitter as an excluded row. It did not for
   three rounds, and that single escape is what `tools/check-coverage.py`'s fourth rule now exists
   to catch.

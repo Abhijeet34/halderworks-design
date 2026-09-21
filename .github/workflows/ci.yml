@@ -34,6 +34,11 @@ permissions:
   contents: read
 
 jobs:
+  # `@main` is a moving ref, and it stays one. See AGENTS.md, "What `@main` on the shared gates
+  # buys and what it costs": shared-secret-scan.yml fails any caller whose .gitleaks.toml or
+  # .githooks/pre-push has drifted from the canonical digests, so a caller pinned to a SHA would
+  # keep matching yesterday's digests and the drift detection would be switched off - and would
+  # keep running an old scanner after a detection bug was fixed upstream.
   secrets:
     uses: Abhijeet34/gates/.github/workflows/shared-secret-scan.yml@main
   watermark:

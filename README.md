@@ -44,7 +44,7 @@ and "not bloat" are the same requirement rather than two competing ones.
 - **It reports its own gaps.** A coverage inventory that only lists what a system has cannot report
   what it lacks. This one was audited against six external component and accessibility taxonomies,
   which returned 34 rows it had never named, and `tools/check-coverage.py` now fails when a refusal
-  written anywhere in the rules resolves to no row.
+  written anywhere in the rules does not name the row that carries it.
 - **It records what it declined.** [design/85-considered-and-declined.md](design/85-considered-and-declined.md)
   carries what was screened and refused, the reason, and what would change the answer.
 - **Permission is a table, not a convention.** Two tokens both existing does not make them a pair.

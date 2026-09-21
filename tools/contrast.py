@@ -97,7 +97,7 @@ def parse_tokens(path):
     """Return {'light': {...}, 'dark': {...}}. Light is the :root/[data-theme=light] block,
     dark the [data-theme=dark] block; the prefers-color-scheme copy is ignored as a duplicate."""
     themes, cur = {"light": {}, "dark": {}}, None
-    for line in open(path):
+    for line in open(path, encoding="utf-8"):
         s = line.strip()
         if s.startswith(":root, [data-theme=\"light\"]"): cur = "light"; continue
         if s.startswith("[data-theme=\"dark\"]"): cur = "dark"; continue
@@ -211,5 +211,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    from pathlib import Path
     sys.exit(main(sys.argv))

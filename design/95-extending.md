@@ -123,7 +123,7 @@ That sentence is worth more than a correct-looking screen with `28px` written in
 ```
 
 Nothing else is required.
-There is no component library to install, no build step, and no runtime: the system is a token file, a set of rules, and the discipline to report a gap rather than invent a value.
+There is no component library to install, no build step, and no runtime: the system is a token file, a set of rules, and the discipline to report a gap rather than invent a value. <!-- covered-by: A shipped component library -->
 
 ## For an agent building against this system
 

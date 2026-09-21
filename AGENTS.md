@@ -76,8 +76,12 @@ definition, and both [`ci.yml`](.github/workflows/ci.yml) and
 copy each.
 
 A change to a rule file also keeps `tools/check-coverage.py` at 0 unbacked: a refusal written
-anywhere in `design/` must resolve to a row in [design/05-coverage.md](design/05-coverage.md), and
-the header counts must match the table.
+anywhere in `design/` must NAME its row in [design/05-coverage.md](design/05-coverage.md), in a
+comment beside it - `<!-- covered-by: the row's surface, exactly -->` on the refusal's line or the
+one below - and the header counts must match the table. A sentence the check reads as a refusal
+that is not one carries `<!-- not-a-refusal: why -->` instead. The check no longer guesses which
+row a refusal meant from the words it shares with one, because a guess that lands on the wrong row
+reports success.
 
 A source the book cites is named, with what was taken from it and what was left.
 [design/85-considered-and-declined.md](design/85-considered-and-declined.md) is where a screened and
@@ -97,6 +101,38 @@ refuses any result that is not `success`.
 converse is the trap: a context required by the ruleset that no workflow publishes blocks every
 pull request forever, so **`ci.yml` ships first and the ruleset follows only once the context has
 been seen reporting on a real pull request**.
+
+## What `@main` on the shared gates buys and what it costs
+
+`ci.yml` calls two workflows from `Abhijeet34/gates` at `@main`, which is a moving ref: what
+gates this repository can change with no commit here. That is a deliberate call, and these are
+the numbers behind it.
+
+**What a hostile change to `gates` `main` would get.** Both calls run under the caller's
+`permissions: contents: read`, a called workflow cannot raise its own permissions above the
+caller's, and neither call passes `secrets:`. So the reachable outcome is a read-only token on a
+public repository, which is nothing, and a false green on the secret scan and the watermark scan,
+which is the real exposure. `gates` has one collaborator, its `main` carries ruleset `23545843`
+with no bypass actors, required signatures, a pull request and a required `checks` context.
+
+**What pinning would cost.** `shared-secret-scan.yml` hard-codes the sha256 of the canonical
+`.gitleaks.toml` and `.githooks/pre-push` and fails any caller whose synced copies differ. A
+caller pinned to a SHA keeps matching the digests of the day it was pinned, so the drift check
+the shared workflow exists to perform is switched off in exactly the repository that most needs
+it. A pin also freezes the scanner: a detection bug fixed upstream never reaches a pinned caller,
+and a stale gate reports green for the same reason a hostile one would.
+
+So: keep `@main`, and treat `gates` `main` as part of this repository's trusted computing base
+rather than as a third-party dependency. The residual gap is a `gates` change that lands between
+a green run and a merge; the ruleset's `strict_required_status_checks_policy: true` covers
+staleness of this repository's branch and nothing covers that, so a re-run before merge is the
+only control and it is a person's to apply.
+
+**What would change the answer**, any one of them: `gates` gains a collaborator or a bypass actor
+on `main`, a call here starts passing `secrets:` or needs a permission above `contents: read`, or
+`gates` stops being owned by the same account. At that point the shared workflows become a
+third-party dependency and get pinned by SHA, with a scheduled job to compare the pin against
+`main` so the drift detection is replaced rather than dropped.
 
 ## The settings that are not files
 
@@ -153,7 +189,7 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
 | every published contrast ratio still holds | `contrast.py` re-derives the matrix and finds a pair below bar or a token outside sRGB |
 | every export still matches its source | `export.py` exits non-zero, or regenerates `exports/` and `git status --porcelain -- exports/` is no longer empty |
-| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal resolving to no row, a manifest with no lists or no date |
+| the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a manifest with no lists or no date |
 | every internal link and anchor | the same script, across every Markdown file in the repository |
 | every cited external source still resolves | an HTTP request per distinct URL in the book, failing on 404, 410, any other error status, or no response. A 401, 403 or 429 is reported as alive-but-refusing and does not fail |
 
