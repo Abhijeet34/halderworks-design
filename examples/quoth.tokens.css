@@ -1,0 +1,36 @@
+/* quoth - the product's own colour tokens.
+   Load after the house tokens.css, never instead of it.
+   Generated from quoth.seed.json by tools/build.py --extend, against the house set at accent hue 198.
+   Do not hand-edit this file; edit the seed and rebuild.
+
+   Every token clears each of its floors on the float value and at 8-bit, and sits at least
+   8.0 in hue and chroma from every house colour its seed holds it apart from,
+   in both themes and under prefers-contrast: more. */
+:root, [data-theme="light"] {
+  --quoth-live: oklch(0.515 0.13 297);
+}
+
+[data-theme="dark"] {
+  --quoth-live: oklch(0.6255 0.11 297);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --quoth-live: oklch(0.6255 0.11 297);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root, [data-theme="light"] {
+    --quoth-live: oklch(0.4467 0.13 297);
+  }
+  [data-theme="dark"] {
+    --quoth-live: oklch(0.7424 0.11 297);
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --quoth-live: oklch(0.7424 0.11 297);
+  }
+}
