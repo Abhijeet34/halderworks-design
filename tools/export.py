@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Emit this system in the four interchange formats, from tokens.json alone.
+"""Emit this system in the five interchange formats, from tokens.json alone.
 
 The requirement is that the book be usable irrespective of which model reads it.
-A design system that exists only as prose is a system every agent re-interprets; these four
+A design system that exists only as prose is a system every agent re-interprets; these five
 are the forms agents actually consume:
 
   exports/DESIGN.md            the extended brief: every token with its role, plus the rules
@@ -11,10 +11,10 @@ are the forms agents actually consume:
   exports/variables.css        plain CSS custom properties, both themes
   exports/design-tokens.json   W3C DTCG format, $value / $type / $description per token
 
-This is NOT tools/build.py. build.py solves colour to a contrast target and is still missing
-(05-coverage.md carries that gap). This only re-expresses values that are already solved, so
-it can never invent one - and it proves that by re-deriving every colour it emits against the
-shipped tokens.css and refusing to write if any one differs.
+This is NOT tools/build.py. build.py solves colour to a contrast target; this only re-expresses
+values that are already solved, so it can never invent one - and it proves that by re-deriving
+every colour it emits against the shipped tokens.css and refusing to write if any one differs.
+The DTCG file is held to its own module's value syntax as well, by dtcg_violations().
 
     python3 tools/export.py [design-system-dir]
 """
@@ -30,12 +30,21 @@ TW_NAMESPACE = {
     "color": "color", "spacing": "spacing", "radius": "radius",
     "shadow": "shadow", "icon": "spacing",
 }
-DTCG_TYPE = {
-    "color": "color", "spacing": "dimension", "radius": "dimension",
-    "shadow": "shadow", "icon": "dimension", "layout": "dimension",
-    "density": "dimension", "stroke": "dimension", "zIndex": "number",
-}
-LENGTH = re.compile(r"^-?[0-9.]+(px|rem|em|ch|%)$")
+# Design Tokens Format Module 2025.10 types a value by its SHAPE, not by the family it sits
+# in: a dimension is {value, unit} with unit px or rem, a duration is {value, unit} in ms or s,
+# a cubicBezier is four numbers, a colour is a colour space plus components. A CSS string under
+# any of those types is an invalid token, and a family map cannot type `layout`, which holds
+# lengths, a count and two measures in ch. So the type is read off the value.
+NUM = r"-?\d+(?:\.\d+)?"
+DIMENSION = re.compile(rf"^({NUM})(px|rem)$")
+DURATION = re.compile(rf"^({NUM})(ms|s)$")
+BEZIER = re.compile(
+    rf"^cubic-bezier\(\s*({NUM})\s*,\s*({NUM})\s*,\s*({NUM})\s*,\s*({NUM})\s*\)$")
+OKLCH = re.compile(rf"^oklch\(\s*({NUM})\s+({NUM})\s+({NUM})\s*\)$")
+RGBA = re.compile(
+    rf"^rgba?\(\s*({NUM})\s*,\s*({NUM})\s*,\s*({NUM})\s*(?:,\s*({NUM})\s*)?\)$")
+CHARS = re.compile(rf"^({NUM})ch$")
+BARE = re.compile(rf"^{NUM}$")
 
 
 def load(root):
@@ -61,10 +70,95 @@ def value_for(entry, theme, first):
     return v.get(theme, v.get(first))
 
 
-def dtcg_type(fam, value):
-    if fam in DTCG_TYPE:
-        return DTCG_TYPE[fam]
-    return "dimension" if LENGTH.match(str(value)) else "number"
+def num(text):
+    """A JSON number, integral where the CSS was integral, so 0 does not ship as 0.0."""
+    f = float(text)
+    return int(f) if f == int(f) else f
+
+
+def as_color(value):
+    m = OKLCH.match(value)
+    if m:
+        return {"colorSpace": "oklch", "components": [num(g) for g in m.groups()]}
+    m = RGBA.match(value)
+    if not m:
+        raise ValueError(f"not a colour this emitter can express: {value!r}")
+    r, g, b = (int(round(float(c))) for c in m.groups()[:3])
+    out = {"colorSpace": "srgb", "components": [round(c / 255, 6) for c in (r, g, b)],
+           "hex": f"#{r:02x}{g:02x}{b:02x}"}
+    if m.group(4) is not None:
+        out["alpha"] = num(m.group(4))
+    return out
+
+
+def split_outside_parens(value, sep):
+    parts, depth, cur = [], 0, ""
+    for ch in value:
+        depth += (ch == "(") - (ch == ")")
+        if ch == sep and depth == 0:
+            parts.append(cur.strip()); cur = ""
+        else:
+            cur += ch
+    parts.append(cur.strip())
+    return [p for p in parts if p]
+
+
+def as_shadow(value):
+    """[{color, offsetX, offsetY, blur, spread}] - a CSS shadow list, layer by layer.
+
+    Both separators inside a shadow list are ambiguous to a plain split: the layers are comma
+    separated and so are the rgba() components, and the lengths are space separated inside a
+    layer whose colour also contains spaces in other notations. Depth-aware splitting is the
+    only reading that survives both.
+    """
+    layers = []
+    for layer in split_outside_parens(value, ","):
+        parts = split_outside_parens(layer, " ")
+        lengths, colour = parts[:-1], parts[-1]
+        if len(lengths) == 3:
+            lengths.append("0")
+        if len(lengths) != 4:
+            raise ValueError(f"not a shadow layer this emitter can express: {layer!r}")
+        keys = ("offsetX", "offsetY", "blur", "spread")
+        out = {"color": as_color(colour)}
+        out.update(zip(keys, (as_dimension(x) for x in lengths)))
+        layers.append(out)
+    return layers if len(layers) > 1 else layers[0]
+
+
+def as_dimension(value):
+    m = DIMENSION.match(value)
+    if m:
+        return {"value": num(m.group(1)), "unit": m.group(2)}
+    if BARE.match(value):           # a bare 0 in a shadow offset is a length of zero pixels
+        return {"value": num(value), "unit": "px"}
+    raise ValueError(f"not a DTCG dimension: {value!r}")
+
+
+def dtcg_node(fam, value):
+    """The `$type` and `$value` of one CSS value, as the 2025.10 module defines them."""
+    if fam == "shadow":
+        return {"$type": "shadow", "$value": as_shadow(value)}
+    m = BEZIER.match(value)
+    if m:
+        return {"$type": "cubicBezier", "$value": [num(g) for g in m.groups()]}
+    m = DURATION.match(value)
+    if m:
+        return {"$type": "duration", "$value": {"value": num(m.group(1)), "unit": m.group(2)}}
+    if OKLCH.match(value) or RGBA.match(value):
+        return {"$type": "color", "$value": as_color(value)}
+    if DIMENSION.match(value):
+        return {"$type": "dimension", "$value": as_dimension(value)}
+    m = CHARS.match(value)
+    if m:
+        # ch is not a DTCG dimension unit - the module allows px and rem and nothing else - and
+        # a measure in ch is a count of characters rather than a length, so it ships as the
+        # number it is, with the CSS it came from beside it.
+        return {"$type": "number", "$value": num(m.group(1)),
+                "$extensions": {"halderworks": {"css": value}}}
+    if BARE.match(value):
+        return {"$type": "number", "$value": num(value)}
+    raise ValueError(f"no DTCG type for {fam} value {value!r}")
 
 
 # --- the self-check, which is why this file is allowed to write anything ------------------
@@ -227,32 +321,93 @@ def emit_theme_css(tokens):
 def emit_dtcg(tokens):
     ids = theme_ids(tokens)
     doc = {"$description": (
-        "Halderworks Instrument. Generated by tools/export.py from tokens.json. "
-        "Colour tokens carry one $value per theme under $extensions.halderworks.themes; "
-        "$value is the first theme.")}
+        "Halderworks Instrument. Generated by tools/export.py from tokens.json, to the Design "
+        "Tokens Format Module 2025.10. Colour tokens carry one $value per theme under "
+        "$extensions.halderworks.themes; $value is the first theme.")}
     for fam, entries in families(tokens):
         group = {"$description": f"{fam} tokens"}
         for e in entries:
-            node = {"$value": value_for(e, ids[0], ids[0]),
-                    "$type": dtcg_type(fam, value_for(e, ids[0], ids[0])),
-                    "$description": e.get("usage", "")}
+            node = dtcg_node(fam, value_for(e, ids[0], ids[0]))
+            node["$description"] = e.get("usage", "")
             if isinstance(e["value"], dict):
-                node["$extensions"] = {"halderworks": {"themes": {
-                    t: value_for(e, t, ids[0]) for t in ids}}}
+                themes = {t: dtcg_node(fam, value_for(e, t, ids[0]))["$value"] for t in ids}
+                node.setdefault("$extensions", {}).setdefault(
+                    "halderworks", {})["themes"] = themes
             group[e["name"][len("hw-"):]] = node
         doc[fam] = group
     typ = {"$description": "type styles", "$type": "typography"}
     for g in tokens["type"]["groups"]:
         for s in g["styles"]:
-            typ[s["name"]] = {"$type": "typography", "$description": s.get("usage", ""),
-                              "$value": {k: v for k, v in (
-                                  ("fontFamily", tokens["type"]["families"][g["family"]]),
-                                  ("fontSize", s.get("fontSize")),
-                                  ("lineHeight", s.get("lineHeight")),
-                                  ("letterSpacing", s.get("letterSpacing")),
-                                  ("fontWeight", s.get("fontWeight"))) if v is not None}}
+            node = {"$type": "typography", "$description": s.get("usage", ""),
+                    "$value": {"fontFamily": font_stack(tokens, g["family"]),
+                               "fontSize": as_dimension(s["fontSize"]),
+                               "lineHeight": s["lineHeight"],
+                               "fontWeight": s["fontWeight"]}}
+            # letterSpacing is a dimension in DTCG and this system tracks in em, which the
+            # module's dimension does not admit. Emitting "-0.022em" under it would be an
+            # invalid token, and converting to px would bind the tracking to one font size.
+            if s.get("letterSpacing"):
+                node["$extensions"] = {"halderworks": {"letterSpacing": s["letterSpacing"]}}
+            typ[s["name"]] = node
     doc["type"] = typ
+    bad = dtcg_violations(doc)
+    if bad:
+        raise ValueError("; ".join(bad))
     return json.dumps(doc, indent=2) + "\n"
+
+
+def font_stack(tokens, family):
+    """A DTCG fontFamily is an ordered list of names, not one CSS string."""
+    return [n.strip().strip('"') for n in tokens["type"]["families"][family].split(",")]
+
+
+# Every $type below is a type the module defines, and every check is its $value syntax. The
+# emitter is the only thing that decides a type, so nothing else in this repository would
+# notice it deciding wrongly: this is what makes "W3C DTCG" a checked claim rather than a
+# label. Section 9.8's own example is the authority for the typography shape.
+DTCG_SHAPE = {
+    "number": lambda v: isinstance(v, (int, float)) and not isinstance(v, bool),
+    "dimension": lambda v: (isinstance(v, dict) and set(v) == {"value", "unit"}
+                            and isinstance(v["value"], (int, float))
+                            and v["unit"] in ("px", "rem")),
+    "duration": lambda v: (isinstance(v, dict) and set(v) == {"value", "unit"}
+                           and isinstance(v["value"], (int, float))
+                           and v["unit"] in ("ms", "s")),
+    "cubicBezier": lambda v: (isinstance(v, list) and len(v) == 4
+                              and all(isinstance(n, (int, float)) for n in v)
+                              and 0 <= v[0] <= 1 and 0 <= v[2] <= 1),
+    "color": lambda v: (isinstance(v, dict) and isinstance(v.get("colorSpace"), str)
+                        and isinstance(v.get("components"), list)
+                        and all(isinstance(n, (int, float)) for n in v["components"])),
+    "shadow": lambda v: all(
+        isinstance(l, dict) and set(l) == {"color", "offsetX", "offsetY", "blur", "spread"}
+        and DTCG_SHAPE["color"](l["color"])
+        and all(DTCG_SHAPE["dimension"](l[k]) for k in
+                ("offsetX", "offsetY", "blur", "spread"))
+        for l in (v if isinstance(v, list) else [v])),
+    "typography": lambda v: (isinstance(v, dict) and isinstance(v.get("fontFamily"), list)
+                             and DTCG_SHAPE["dimension"](v.get("fontSize"))
+                             and isinstance(v.get("lineHeight"), (int, float))
+                             and isinstance(v.get("fontWeight"), (int, float))),
+}
+
+
+def dtcg_violations(doc, path=""):
+    """Every token in the emitted document, against the $value syntax its $type names."""
+    bad = []
+    for key, node in doc.items():
+        if key.startswith("$") or not isinstance(node, dict):
+            continue
+        where = f"{path}{key}"
+        if "$value" not in node:
+            bad += dtcg_violations(node, where + ".")
+            continue
+        kind = node.get("$type") or doc.get("$type")
+        if kind not in DTCG_SHAPE:
+            bad.append(f"{where}: $type {kind!r} is not a type the module defines")
+        elif not DTCG_SHAPE[kind](node["$value"]):
+            bad.append(f"{where}: $value {node['$value']!r} is not a valid {kind}")
+    return bad
 
 
 RULES = [
@@ -342,12 +497,19 @@ def main() -> int:
 
     out = root / "exports"
     out.mkdir(exist_ok=True)
+    try:
+        dtcg = emit_dtcg(tokens)
+    except ValueError as exc:
+        print(f"FAIL  {exc}", file=sys.stderr)
+        print("\nrefusing to write: the DTCG export would not be valid DTCG", file=sys.stderr)
+        return 1
+
     written = {
         "DESIGN.md": emit_design_md(tokens, compact=False),
         "DESIGN.compact.md": emit_design_md(tokens, compact=True),
         "theme.css": emit_theme_css(tokens),
         "variables.css": emit_variables_css(tokens),
-        "design-tokens.json": emit_dtcg(tokens),
+        "design-tokens.json": dtcg,
     }
     for name, text in written.items():
         (out / name).write_text(text, encoding="utf-8")
@@ -380,8 +542,8 @@ def main() -> int:
           f"0 mismatched.")
     for name in written:
         print(f"  exports/{name:20s} {len(written[name]):7,d} bytes")
-    print(f"\n{n} tokens exported in 4 formats. {n_props} CSS custom properties re-derived "
-          f"against tokens.css, 0 divergent. 0 failures.")
+    print(f"\n{n} tokens exported in {len(written)} formats. {n_props} CSS custom properties "
+          f"re-derived against tokens.css, 0 divergent. 0 failures.")
     return 0
 
 
