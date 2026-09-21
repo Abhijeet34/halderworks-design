@@ -536,7 +536,7 @@ def check_separation(seed, blocks):
             for sem in ("success", "warning", "danger"):
                 d = separation(t[name], t[f"hw-{sem}"])
                 if d < bar:
-                    bad.append(f"{name} at hue {t[name][2]} sits {d:.1f} from hw-{sem} in {theme} "
+                    bad.append(f"{name} at hue {t[name][2]:g} sits {d:.1f} from hw-{sem} in {theme} "
                                f"theme, below the {bar} this system requires "
                                f"(10-color.md#why-hue-198)")
         for i, a in enumerate(CHARTS):

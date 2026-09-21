@@ -235,6 +235,57 @@ case("B9 fmt() is coarsened to two decimals, so the written value is not the sol
      note="a build that cannot re-derive its own emitted values must refuse to write them")
 
 
+# The four chart guards, one mutation each, each moving one property and leaving the other three
+# clear. Until 2026-09-21 none existed and the shipped ramp sat 1.6 from hw-danger.
+def g1(repo):
+    seed_edit(repo, lambda s: tok(s, "hw-chart-4")["light"].__setitem__("L", "0.49"))
+
+
+case("G1 hw-chart-4 moves to light L 0.49, within 5 of hw-danger and 0.13 from its neighbours",
+     "caught", g1, note="10-color.md: every chart colour sits at least 8.0 from each semantic")
+
+
+def g2(repo):
+    seed_edit(repo, lambda s: tok(s, "hw-chart-4").__setitem__("hue", "accent+80"))
+
+
+case("G2 hw-chart-4's hue moves to accent+80, 10 degrees from hw-chart-2 at the same lightness",
+     "caught", g2, note="10-color.md: the closest chart pair sits 15.4 apart in light")
+
+
+def g3(repo):
+    seed_edit(repo, lambda s: tok(s, "hw-chart-2")["light"].__setitem__("L", "0.55"))
+
+
+case("G3 hw-chart-2 moves to light L 0.55, 0.07 from both neighbours", "caught", g3,
+     note="10-color.md: adjacent series alternate in lightness")
+
+
+def g4(repo):
+    def f(s):
+        e = tok(s, "hw-chart-1")
+        e["floors"] = [{"bar": 3.0, "on": ["ground"]}]
+        e["light"]["L"] = "0.635"
+    seed_edit(repo, f)
+
+
+case("G4 hw-chart-1's floors narrow to the ground alone, and light L moves to 0.635", "caught",
+     g4, lambda r: ("exact ratio now: %.3f (%s %s on %s)" % exact_min(
+         r, [("light", "hw-chart-1", "hw-surface-sunken")]), True)
+     if (r / "tokens" / "tokens.css").exists() else ("", True),
+     note="10-color.md: the chart colours hold 3:1 on all four surfaces, not the ground alone")
+
+
+def w3(repo):
+    seed_edit(repo, lambda s: tok(s, "hw-text-muted")["floors"].append(
+        {"bar": 4.5, "on": ["border"]}))
+
+
+case("W3 hw-text-muted gains a 4.5 floor on hw-border, so the solver lifts the refused pair",
+     "caught", w3, note="75-spec-sheet.md#ruled refuses muted ink on a rule; a pair that stops "
+                        "being refusable makes the published refusal stale")
+
+
 # ---------------------------------------------------------------- check-coverage.py
 def cov_edit(repo, fn):
     p = repo / "design" / "05-coverage.md"
