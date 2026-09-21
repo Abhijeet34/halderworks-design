@@ -39,7 +39,7 @@ The product surface: a screen that reports state and takes action.
 | what it fixes | value |
 |---|---|
 | largest permitted step | `title-1` |
-| display face | none. Newsreader does not appear |
+| display face | none. The display face, Newsreader or a brand's own, does not appear; a brand shows on a product screen through its text face ([12-brand.md](12-brand.md#faces)) |
 | density | comfortable |
 | running measure | `--hw-measure-ui`, 56ch |
 | formats available | none of section 3. A screen is not an issue of anything |

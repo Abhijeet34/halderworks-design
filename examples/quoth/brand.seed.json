@@ -1,0 +1,14 @@
+{
+  "name": "quoth",
+  "note": "quoth, the quiet instrument: monochrome, and the only vivid colour it paints is --quoth-live, the open microphone. A slate accent under the chromatic floor, the text ink as the focus ring, cool neutrals, soft corners, Bricolage Grotesque for display and Instrument Sans, the face quoth already ships, for text. Maintainer decision, 2026-09-21; 12-brand.md#quoth.",
+  "accentHue": 255,
+  "accentChroma": 0.35,
+  "quietChroma": 0.4,
+  "ring": "ink",
+  "neutralHue": 255,
+  "neutralChroma": 1.5,
+  "shape": "soft",
+  "iconStroke": "1.5px",
+  "display": "Bricolage Grotesque",
+  "text": "Instrument Sans"
+}

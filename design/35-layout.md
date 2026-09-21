@@ -111,7 +111,8 @@ A 1200px container with no measure produces 140-character lines on a wide monito
 
 ### The app shell
 
-A permanent rail and a content pane, which is what quoth, treadling, foliot and gates all are.
+A permanent rail and a content pane, which is what quoth's own window is when it is opened from its panel.
+treadling, foliot and gates have no interface today; when one of them gets a screen, this is the shell it starts from.
 
 ```text
 >= 1024px                                  < 1024px

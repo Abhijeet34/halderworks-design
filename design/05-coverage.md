@@ -36,7 +36,7 @@ A row is a claim, and the script is what makes it a checkable one.
 
 Counts, which are what a reader should look at first, and which the script verifies against the
 table so they cannot drift - here and in every other live copy, `README.md` and `SKILL.md` included:
-**149 surfaces, 115 covered, 8 partial, 26 excluded.**
+**154 surfaces, 120 covered, 8 partial, 26 excluded.**
 
 ## The cross-check manifest
 
@@ -78,6 +78,7 @@ inline alert - produced nothing, which is how the audit stayed short.
 |---|---|---|---|
 | Colour palette, and how each value was arrived at | covered | `10-color.md#why-hue-198` | 33 tokens per theme, and the palette is closed at that size. There is no fifth colour beyond the ink, the accent and the three semantics: a treatment that needs one is asking for a colour with no meaning to carry, and `75-spec-sheet.md` refuses the one candidate on exactly that ground |
 | Which colours may sit on which | covered | `15-color-combinations.md#ink-on-ground` | |
+| A status badge on a selected row | covered | `15-color-combinations.md#ink-on-a-quiet-fill` | the badge keeps its own pill, so its ink sits on its own certified fill and never on `hw-accent-quiet`; the fill bar keeps the pill visible on the row |
 | Light and dark theming | covered | `10-color.md#the-contrast-matrix` | both tables certified; `tokens/tokens.css` carries the attribute and the media query |
 | Contrast verification as a process, not a claim | covered | `90-evidence.md#the-solver` | |
 | Typeface choice and fallbacks | covered | `20-type.md#why-not-inter` | |
@@ -95,6 +96,7 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Scrim | covered | `50-surface-texture.md#the-scrim` | |
 | Motion: durations, easings, what may animate | covered | `40-motion.md#easing` | the three curves are now measured against fourteen others on one axis in `90-evidence.md`. What makes a movement start and stop - the dismissal thresholds and the one case where two properties in a transition take different durations - is `74-interaction-constants.md` |
 | Reduced motion | covered | `40-motion.md#reduced-motion` | |
+| A product's own large transition | covered | `40-motion.md#a-products-own-transition` | one named move in the product's namespace, on a house duration, removed under reduced motion; the house curves stay the house's |
 | Density | covered | `45-density.md#what-changes` | two settings and one attribute. A third density setting is refused there with its reason, and a published system's opposite answer - shrink the glyph and raise the leading ratio - is recorded beside it as a choice rather than an oversight |
 | Iconography: set, grid, stroke, alignment | covered | `55-iconography.md#stroke-weight-which-is-the-part-that-is-usually-got-wrong` | |
 | Pictograms, the one illustration set | covered | `55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing` | `@carbon/pictograms`, Apache-2.0, named and not vendored: `currentColor`, at 48 or 64px and never at the 16px icon size, one per view, in the nothing-yet empty state or a marketing section. The sentence four files carried, that inventing one drawing per empty state ends in six unrelated drawings, argued for one set rather than none |
@@ -205,7 +207,10 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Anti-patterns, by surface | covered | `80-anti-patterns.md#colour` | |
 | A ship checklist | covered | `80-anti-patterns.md#the-checklist` | |
 | This coverage inventory | covered | `05-coverage.md#foundations` | checked by `tools/check-coverage.py` |
-| The token build and its verification | covered | `95-extending.md#the-one-thing-a-product-may-change` | `tools/build.py` exists and both halves are closed. It reads `tokens/tokens.seed.json`, resolves every hue from one accent seed, clamps chroma into sRGB, re-solves lightness for any token whose floor no longer holds, and refuses to write if one still fails. It also refuses an accent hue that sits closer than 8 in oklab distance to a semantic, which is what makes this book's claim that a product cannot take hue 150 true rather than merely written. `tools/contrast.py` remains the second, independent instrument |
+| The token build and its verification | covered | `95-extending.md#a-brand-seed-and-nothing-else` | `tools/build.py` exists and both halves are closed. It reads `tokens/tokens.seed.json`, resolves every hue from the accent and neutral seeds, clamps chroma into sRGB, re-solves lightness for any token whose floor no longer holds, and refuses to write if one still fails. It also refuses an accent whose ink, selected-row fill or focus ring sits closer to a state colour than 14, 5 or 17 in CIEDE2000, which is what makes this book's claim that a product cannot take hue 150 true rather than merely written. `tools/contrast.py` remains the second, independent instrument, with its own CIEDE2000 |
+| A product's brand identity | covered | `12-brand.md#the-eleven-inputs` | eleven bounded inputs that `tools/build.py --brand` refuses out of bound and solves with the house's own code into the house's token names; `tools/contrast.py` certifies each brand file on its own declarations, shape register and stroke included, and CI builds, certifies and exports every `examples/*/brand.seed.json` |
+| Telling two product brands apart | covered | `12-brand.md#telling-brands-apart` | `tools/distinct.py` reports the painted distances between brands and refuses one brand built twice; whether two brands read as two is a render, which is a release step |
+| A brand's faces and how they are delivered | covered | `20-type.md#a-brands-faces` | a roster of faces, each with its delivery, its upstream file and sha256, and the text face held to the house x-height with `font-size-adjust`; `tools/faces.py` reads the metrics from the file |
 | A shipped component library | excluded | `95-extending.md#loading-the-system-in-a-product` | there is no build step and no runtime by design: the system is a token file, a set of rules, and the discipline to report a gap rather than invent a value |
 
 ## The spec sheet
@@ -322,7 +327,8 @@ three rested on a premise the book does not support; those three are retitled he
 | decision | settled | why |
 |---|---|---|
 | Whether Illustration moves off the excluded row | split: the [pictogram set](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing) is named, figurative illustration stays excluded | naming an Apache-2.0 set is what this book already does for its typefaces and its icon set |
-| Whether quoth's live-microphone state gets its own hue | yes, decided by the system's owner on 2026-09-21, and [solved](95-extending.md#the-worked-example-quoths-live-colour) as `--quoth-live` at hue 297 | the accent already means selection and focus, and recording red sits on `--hw-danger`'s hue. The recommendation's bar was raised twice on the evidence: the separation is measured in hue and chroma, because a maroon at hue 27 cleared 8.0 from `--hw-danger` on lightness alone, and the floor is 4.5:1 rather than 3:1, because the word `Recording` is set in the colour. Hue 297 keeps 15.5 from all four state colours |
+| Whether each product gets an identity beyond an accent hue | yes, decided by the system's owner on 2026-09-21: [a brand seed](12-brand.md) of eleven bounded inputs, and the accent held apart from the states by three painted bars rather than one distance | the accent-only rule could seat at most three products 8.0 apart, and its bar measured one of the three things the accent paints. The three product brands are the constraint audit's, and treadling, foliot and gates keep reserved slots until they have an interface |
+| Whether quoth's live-microphone state gets its own hue | yes, decided by the system's owner on 2026-09-21, and [solved](95-extending.md#the-worked-example-quoths-live-colour) as `--quoth-live` at hue 297 | the accent already means selection and focus, and recording red sits on `--hw-danger`'s hue. The recommendation's bar was raised twice on the evidence: the separation is measured in hue and chroma, because a maroon at hue 27 cleared 8.0 from `--hw-danger` on lightness alone, and the floor is 4.5:1 rather than 3:1, because the word `Recording` is set in the colour. Hue 297 keeps 15.5 from all four state colours against the house set, and 8.8 against quoth's own, whose slate accent is its nearest colour |
 | Whether an illustration set inherits the accent hue or carries its own | dissolved | a `currentColor` set takes the surrounding text colour, and a figurative one would bring its own through a product namespace |
 | **Slide sequences are in scope because the owner asked for them**, retitled from "yes, on the precedent of the 404 page and the link-preview card" | yes, [specified](75-spec-sheet.md#slide-sequence) | the old ground cited two entries that did not exist when it was written. The real one is the owner's request for carousel art, and the frame is measured on three independent accounts |
 | **The eighteen exclusions are not waiting on a roadmap**, retitled from "which, if any, is about to be needed" | not pending | all eighteen are written down, and the one product read forbids the riskiest in its own source. [The section above](#ruled-out-with-the-reason) says so |

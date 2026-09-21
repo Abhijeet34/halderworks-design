@@ -1,0 +1,45 @@
+{
+  "name": "quoth",
+  "namespace": "quoth",
+  "note": "A worked example of a product's own colour seed, and the fixture the house checks build on every change. quoth owns its copy; this one is what the house tools are tested against. tools/build.py --brand brand.seed.json --extend solves every token here against quoth's own brand set and writes quoth.tokens.css beside this file; tools/contrast.py --extend verifies it with the second instrument against tokens/tokens.css in this directory.",
+  "color": {
+    "tokens": [
+      {
+        "name": "quoth-live",
+        "kind": "oklch",
+        "hue": 297,
+        "light": {
+          "L": "0.515",
+          "C": "0.13"
+        },
+        "dark": {
+          "L": "0.619",
+          "C": "0.11"
+        },
+        "floors": [
+          {
+            "bar": 4.5,
+            "on": [
+              "ground",
+              "surface",
+              "surface-raised",
+              "surface-sunken",
+              "surface-hover",
+              "surface-active"
+            ]
+          }
+        ],
+        "apart": [
+          "hw-success",
+          "hw-warning",
+          "hw-danger",
+          "hw-accent"
+        ],
+        "usage": "The microphone is open and audio is being captured, and nothing else. It is the ink of the word Recording and of the mic icon beside it, on any of the six house surfaces; the word and the icon are always both present, so the state never rests on colour. Hue 297 is the hue whose worst separation in hue and chroma from hw-success, hw-warning, hw-danger and hw-accent is largest against the house set, 15.5, in a one-degree sweep; against quoth's own set it sits 8.8 from quoth's slate accent. The lightness anchors are the house accent's and the chroma is hw-danger's in each theme, so recording is exactly as loud as an error and no louder.",
+        "notFor": "Selection, focus, a link or a chart series. Never a fill, never a pulse or any other loop, and never the menu-bar item, which sits on a ground the house does not own.",
+        "state": "active",
+        "introduced": "1.0.0"
+      }
+    ]
+  }
+}

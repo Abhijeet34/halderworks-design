@@ -1,0 +1,17 @@
+{
+  "name": "papertrace",
+  "note": "papertrace, blue-black ink on warm paper: the seal keeps the blue and the depth it ships, oklch(0.42 0.10 250), on a warm ground, with crisp corners and the system serif for display and text, because the report is set as a document. Maintainer decision, 2026-09-21; 12-brand.md#papertrace.",
+  "accentHue": 250,
+  "accentChroma": 1.27,
+  "accentLightness": {
+    "light": 0.42,
+    "dark": 0.78
+  },
+  "quietChroma": 0.6,
+  "neutralHue": 85,
+  "neutralChroma": 3.0,
+  "shape": "crisp",
+  "iconStroke": "1.5px",
+  "display": "system serif",
+  "text": "system serif"
+}

@@ -1,4 +1,5 @@
 /* Halderworks Instrument - token definitions.
+   Brand: house.
    Generated from tokens/tokens.seed.json by tools/build.py, which solves every colour against
    its contrast floor in the same run and refuses to emit if one does not hold.
    Do not hand-edit this file or tokens/tokens.json; edit the seed and rebuild.

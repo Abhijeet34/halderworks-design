@@ -14,10 +14,15 @@ The chart colours are the sharpest case of it. Their hues rotate with the accent
 semantics stay put, so a collision between a series and a state moves around the wheel with
 every rebuild; each built hue is therefore also measured for chart separation.
 
+A brand moves more than the hue, so the sweep also builds every fifth hue at the four corners of
+the two chroma multipliers a brand seed can reach furthest (accentChroma 0.3 and 1.3, against
+neutralChroma 0 and 4.0; 12-brand.md#the-eleven-inputs), with the selected-row fill at its
+lowest, and asks the second instrument about each of those too.
+
     python3 tests/hue_sweep.py [repo-root]
 
-It runs in-process rather than through 507 subprocesses, which is what keeps 360 hues inside a
-CI step's patience: about 13 seconds against 25.
+It runs in-process rather than through subprocesses, which is what keeps 648 builds inside a CI
+step's patience, at about 90 seconds.
 """
 import collections
 import contextlib
@@ -34,6 +39,11 @@ import build          # noqa: E402
 import contrast       # noqa: E402
 
 
+# (accentChroma, neutralChroma): the furthest a brand seed can move the two multipliers that
+# reach every colour pair, from build.py's own BOUNDS.
+CORNERS = [(ac, nc) for ac in build.BOUNDS["accentChroma"] for nc in build.BOUNDS["neutralChroma"]]
+
+
 def main():
     seed = json.loads((ROOT / "tokens" / "tokens.seed.json").read_text(encoding="utf-8"))
     floors = [(e["name"], "hw-" + g, floor["bar"])
@@ -42,14 +52,25 @@ def main():
 
     tmp = Path(tempfile.mkdtemp(prefix="hw-sweep."))
     refused, built, contrast_fail, under, collisions = collections.Counter(), [], {}, {}, {}
+    runs = [(str(hue), ["--accent-hue", str(hue)]) for hue in range(360)]
+    for ac, nc in CORNERS:
+        for hue in range(0, 360, 5):
+            seed_file = tmp / f"c{ac}-{nc}-{hue}.json"
+            seed_file.write_text(json.dumps({"name": "corner", "accentHue": hue,
+                                             "accentChroma": ac, "neutralChroma": nc,
+                                             "quietChroma": 0.3}), encoding="utf-8")
+            runs.append((f"{hue} at accentChroma {ac}, neutralChroma {nc}",
+                         ["--brand", str(seed_file)]))
     try:
-        for hue in range(360):
+        for hue, args in runs:
             out = tmp / "h"
             err = io.StringIO()
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
-                rc = build.main(["--accent-hue", str(hue), "--out", str(out)])
+                rc = build.main(args + ["--out", str(out)])
             if rc:
                 kinds = {("accent separation" if "hw-accent at hue" in line else
+                          "ring from border" if "from hw-border-strong in" in line else
+                          "state fill from ground" if "from hw-ground in" in line else
                           "chart separation" if "hw-chart" in line else
                           "no lightness clears its floor" if "no lightness" in line else "other")
                          for line in err.getvalue().splitlines() if line.startswith("FAIL")}
@@ -79,21 +100,22 @@ def main():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    print(f"hues 0..359: {sum(refused.values())} refused by build, {len(built)} built")
+    print(f"hues 0..359, and every fifth hue at {len(CORNERS)} brand corners: "
+          f"{sum(refused.values())} refused by build, {len(built)} built")
     for kind, n in refused.most_common():
         print(f"  refused for: {kind}: {n}")
     print(f"built and refused by tools/contrast.py: {len(contrast_fail)} of {len(built)}")
-    for hue in sorted(contrast_fail)[:6]:
+    for hue in list(contrast_fail)[:6]:
         print(f"  hue {hue}: {contrast_fail[hue][0][:150]}")
     print(f"built, and carrying a floor under its bar on an exact reading: "
           f"{len(under)} of {len(built)}")
-    for hue in sorted(under)[:6]:
+    for hue in list(under)[:6]:
         print(f"  hue {hue}: {under[hue][0]}")
     print(f"built, and carrying a chart colour too close to a semantic, to another series, or to "
           f"its neighbour's lightness: {len(collisions)} of {len(built)}")
-    for hue in sorted(collisions)[:6]:
+    for hue in list(collisions)[:6]:
         print(f"  hue {hue}: {collisions[hue][0]}")
-    documented = 318
+    documented = "318"
     print(f"the worked example AGENTS.md documents, hue {documented}: "
           f"{'built' if documented in built else 'refused by build'}, "
           f"{'refused' if documented in contrast_fail else 'green'} in contrast.py, "

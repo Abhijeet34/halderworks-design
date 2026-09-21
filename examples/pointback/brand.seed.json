@@ -1,0 +1,17 @@
+{
+  "name": "pointback",
+  "note": "pointback, the pencil in the margin, as it ships: non-photo blue at its own depth, oklch(0.78 0.12 230) in dark, which is also its focus ring, on a cool ink ground, a 2px stroke and the system stack. The product pins the dark theme with data-theme=\"dark\"; both themes are still solved and certified. Maintainer decision, 2026-09-21; 12-brand.md#pointback.",
+  "accentHue": 230,
+  "accentChroma": 1.25,
+  "accentLightness": {
+    "light": 0.45,
+    "dark": 0.78
+  },
+  "ring": "accent",
+  "neutralHue": 260,
+  "neutralChroma": 3.0,
+  "shape": "house",
+  "iconStroke": "2px",
+  "display": "system sans",
+  "text": "system sans"
+}

@@ -44,6 +44,7 @@ Every icon sits on a **16px box on the 4px grid**, whatever its rendered size, s
 ## Stroke weight, which is the part that is usually got wrong
 
 **The painted stroke is 1.5px at every size.**
+A brand may take 1.75px or 2px instead ([12-brand.md](12-brand.md#shape-and-stroke)), and the arithmetic below holds whichever weight it takes constant across sizes, because `--hw-icon-stroke` is the input to it.
 
 Lucide is drawn on a 24-unit grid with `stroke-width="2"`, which is confirmed by reading the files: all nine fetched icons carry `viewBox="0 0 24 24"`, `stroke-width="2"`, `stroke-linecap="round"`, `stroke-linejoin="round"`, `fill="none"` and `stroke="currentColor"`.
 
@@ -162,5 +163,7 @@ prevent it. **A set plus a rule does**, and this is the set and the rule.
 **Figurative illustration stays excluded.** A figurative set would carry its own colours, and the
 only construction measured has five baked values and no dark-theme answer. If one is ever
 commissioned it brings its palette through [a product's own namespace](95-extending.md#a-products-own-namespace),
-never through an `hw-` token. Whether to commission one is an
+never through an `hw-` token, and its files carry no literal colour: every fill is a `--<product>-illo-N`
+token solved by `tools/build.py --extend`, so the set has a dark-theme answer by construction and a
+literal `fill="#..."` in an asset is a defect a text search finds. Whether to commission one is an
 [open decision](05-coverage.md#open-decisions).

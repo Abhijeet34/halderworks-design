@@ -8,15 +8,19 @@ itself can never report" was exactly the disagreement neither could report, and 
 in the same file as the values they guarded, so one edit could move a chart fill to 1.2:1 and
 delete the floor that would have caught it.
 
-Five invariants, each failing loudly rather than warning:
+Seven invariants, each failing loudly rather than warning:
 
   1. The two converters share no code, and neither file imports the other.
   2. They still agree numerically, to a bound stated here rather than assumed.
+  2a. Their two CIEDE2000 paths reproduce the published test pairs, and on every painted pair
+      the house and the example brands certify, the build never reads a pair as further apart
+      than the second instrument does, so the build cannot pass what contrast.py refuses.
   3. The seed's floors and tools/contrast.py's REQUIRED set are the same set of pairs.
   4. That set contains, by name, the claims the book makes in prose: six chart fills on the
      ground, the accent as text on all six surfaces, body text on all four quiet fills. Naming
      them in a third place is what stops a weakening that edits both lists at once.
   5. The counts the book prints in three places are the counts tools/build.py computes.
+  6. The separation bars the maintainer decided are the bars both instruments declare.
 
     python3 tests/invariants.py [repo-root]
 """
@@ -70,6 +74,71 @@ def converters_agree(css, fails):
     n = 2 * len(list(contrast.required()))
     print(f"  agreement:    max |contrast - build| = {worst:.5f} over {n} pairs "
           f"(bound {CONVERTER_BOUND}), worst at {where}")
+
+
+# Sharma, Wu and Dalal 2005, "The CIEDE2000 color-difference formula", Table 1, pairs 1, 7, 9,
+# 16, 17 and 25: a blue pair, a near-neutral pair, a pair across the hue wrap, and three others.
+SHARMA = [((50, 2.6772, -79.7751), (50, 0, -82.7485), 2.0425),
+          ((50, 0, 0), (50, -1, 2), 2.3669),
+          ((50, 2.49, -0.001), (50, -2.49, 0.0009), 7.1792),
+          ((50, 2.5, 0), (50, 0, -2.5), 4.3065),
+          ((50, 2.5, 0), (73, 25, -18), 27.1492),
+          ((60.2574, -34.0099, 36.2677), (60.4626, -34.1751, 39.4387), 1.2644)]
+
+
+def colour_difference_agrees(fails):
+    for name, fn in (("build.ciede2000", build.ciede2000), ("contrast.de2000", contrast.de2000)):
+        for a, b, want in SHARMA:
+            if abs(fn(a, b) - want) > 1e-4 or abs(fn(b, a) - want) > 1e-4:
+                fails.append(f"{name} gives {fn(a, b):.4f} for Sharma's {a} / {b}, which the "
+                             f"paper gives as {want}")
+    if build.ciede2000 is contrast.de2000:
+        fails.append("build.ciede2000 and contrast.de2000 are the same object")
+    files = [ROOT / "tokens" / "tokens.css", *sorted(ROOT.glob("examples/*/tokens/tokens.css"))]
+    n, worst = 0, (0.0, None)
+    for css in files:
+        themes = contrast.parse_tokens(css)
+        for t in contrast.BLOCKS_CERTIFIED:
+            tok = themes[t]
+            pairs = [(ours, f"--hw-{s}{suffix}") for _, ours, suffix, states, _ in
+                     contrast.ACCENT_BARS for s in states]
+            pairs += [("--hw-accent-ring", "--hw-border-strong")]
+            pairs += [(f"--hw-{s}-quiet", "--hw-ground") for s in ("success", "warning", "danger")]
+            for a, b in pairs:
+                over = build.painted(tok[a], tok[b]) - contrast.painted(tok[a], tok[b])
+                n += 1
+                if over > worst[0]:
+                    worst = (over, f"{css.relative_to(ROOT)} {t} {a} / {b}")
+    if worst[0] > 0.01:
+        fails.append(f"build.py reads {worst[1]} {worst[0]:.3f} CIEDE2000 further apart than "
+                     f"tools/contrast.py does, so the build could pass a pair the second "
+                     f"instrument refuses")
+    print(f"  difference:   both CIEDE2000 paths reproduce {len(SHARMA)} Sharma pairs; over "
+          f"{n} painted pairs in {len(files)} files the build is never more lenient "
+          f"(largest excess {worst[0]:.3f})")
+
+
+# The separation bars decided on 2026-09-21 (design/10-color.md and design/12-brand.md), named
+# here as a third declaration so lowering both instruments' copies in one edit still fails.
+DECIDED = {"ink": 14, "fill": 5, "ring": 17, "ringFromBorder": 14, "stateFillFromGround": 6,
+           "chartSeparation": 8.0, "productSeparation": 8.0}
+
+
+def bars_hold(seed, fails):
+    sd = seed["seed"]
+    seed_bars = {**sd["accentSeparation"], **{k: sd[k] for k in (
+        "ringFromBorder", "stateFillFromGround", "chartSeparation", "productSeparation")}}
+    contrast_bars = {kind: bar for kind, _, _, _, bar in contrast.ACCENT_BARS}
+    contrast_bars.update(ringFromBorder=contrast.RING_FROM_BORDER,
+                         stateFillFromGround=contrast.FILL_FROM_GROUND,
+                         chartSeparation=contrast.CHART_SEPARATION,
+                         productSeparation=contrast.PRODUCT_SEPARATION)
+    for where, got in (("tokens.seed.json", seed_bars), ("tools/contrast.py", contrast_bars)):
+        for k, want in DECIDED.items():
+            if got.get(k) != want:
+                fails.append(f"{where} holds {k} at {got.get(k)}, and the decided bar is {want}")
+    print(f"  bars:         {len(DECIDED)} decided separation bars, the same in the seed and in "
+          f"tools/contrast.py")
 
 
 def seed_pairs(seed):
@@ -174,9 +243,11 @@ def main():
     print("invariants of the two instruments:")
     converters_are_independent(fails)
     converters_agree(css, fails)
+    colour_difference_agrees(fails)
     certificate_agrees(seed, fails)
     named_claims_are_certified(seed, fails)
     headline_counts_hold(seed, fails)
+    bars_hold(seed, fails)
     for f in fails:
         print("FAIL  " + f, file=sys.stderr)
     print(f"\n{len(fails)} failures")

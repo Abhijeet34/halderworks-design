@@ -27,20 +27,26 @@ It runs four passes and exits non-zero if any fails:
      that clears 3:1 on floats and reads 2.999 in hex is not a pair any third-party checker
      will agree about. The @media (prefers-contrast: more) blocks are held to the same pairs at
      7:1 and 4.5:1.
-  3. The six chart colours are told apart from the three semantics and from each other, and
-     neighbours alternate in lightness. A chart hue is the accent plus a fixed rotation while
-     the semantics stay put, so a collision moves around the wheel with every accent rebuild;
-     until 2026-09-21 nothing measured it and three series sat within 1.6 to 4.4 of a semantic.
-     The text roles keep a visible lightness step, which raising the floors once erased.
+  3. The accent is told apart from the three states on each element it paints, in CIEDE2000 on
+     the 8-bit value a display receives: its ink, the selected-row fill, and the focus ring
+     against the error border. The ring is told apart from a control's own edge, and each state's
+     quiet fill from the ground. The six chart colours are told apart from the three semantics
+     and from each other, and neighbours alternate in lightness; a chart hue is the accent plus a
+     fixed rotation while the semantics stay put, so a collision moves around the wheel with
+     every rebuild. The text roles keep a visible lightness step, which raising the floors once
+     erased. A brand's shape register and icon stroke are one of the house's own.
   4. Every colour token is inside sRGB, and each dark block a user with no explicit choice
      actually gets, through a prefers-color-scheme query, is identical to the explicit one. That
      copy used to be discarded as a duplicate, which is a guess about a file this tool is here
      to stop guessing about.
 
-  Pass 1 is measured at the shipped accent hue. Run against a set rebuilt at a different hue -
-  `tools/build.py --accent-hue N` - the published ratios no longer describe that palette, so
-  pass 1 reports itself skipped and names the hue rather than failing rows that were never
-  claimed about it. Passes 2 to 4 are hue-independent and always run; they are the certificate.
+  Pass 1 is measured on the house set, which the file's header names as `Brand: house.`. Run
+  against a brand's set or a rebuild at another hue - `tools/build.py --brand` or
+  `--accent-hue N` - the published ratios no longer describe that palette, so pass 1 reports
+  itself skipped and names the brand rather than failing rows that were never claimed about it.
+  Until the brand tier it recognised the house by hue 198, which held a brand that kept 198
+  with other neutrals to ratios it never claimed. Passes 2 to 4 always run; they are the
+  certificate.
 
   Pass 5 runs only with --extend: a product's own colour tokens, from the file tools/build.py
   --extend wrote beside the product's seed, held to what this file requires of any product
@@ -135,6 +141,72 @@ def hexof(L, C, h):
     return "#" + "".join("%02X" % round(min(max(v, 0), 1) * 255) for v in oklch_to_rgb(L, C, h))
 
 
+# --- painted colour difference: CIEDE2000 on the 8-bit value --------------------------------
+# linear sRGB -> XYZ is conversions.js's lin_sRGB_to_XYZ, as exact rationals, and D65 is its
+# white; build.py derives both from the inverse of its own matrix instead. The difference formula
+# is Sharma, Wu and Dalal 2005, written here in their numbered steps, and tests/invariants.py
+# holds this and build.py's to the paper's own test pairs.
+
+LIN_SRGB_TO_XYZ = tuple(tuple(float(x) for x in row) for row in (
+    (F(506752, 1228815), F(87881, 245763), F(12673, 70218)),
+    (F(87098, 409605), F(175762, 245763), F(12673, 175545)),
+    (F(7918, 409605), F(87881, 737289), F(1001167, 1053270))))
+D65 = (0.3127 / 0.3290, 1.0, (1.0 - 0.3127 - 0.3290) / 0.3290)
+
+
+def lab(fg):
+    """CIELAB (D65) of an oklch triple as the display receives it, quantized to 8 bits."""
+    xyz = _mul(LIN_SRGB_TO_XYZ, [_lin(c) for c in quantize(oklch_to_rgb(*fg))])
+    eps, kappa = 216 / 24389, 24389 / 27
+    f = [v ** (1 / 3) if v > eps else (kappa * v + 16) / 116 for v in
+         (xyz[0] / D65[0], xyz[1] / D65[1], xyz[2] / D65[2])]
+    return (116 * f[1] - 16, 500 * (f[0] - f[1]), 200 * (f[1] - f[2]))
+
+
+def _lin(c):
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def de2000(lab1, lab2):
+    (L1, a1, b1), (L2, a2, b2) = lab1, lab2
+    # (1) a' and C' and h', with the chroma-dependent G stretch of the a axis
+    cmean = (math.sqrt(a1 * a1 + b1 * b1) + math.sqrt(a2 * a2 + b2 * b2)) / 2
+    G = 0.5 * (1 - math.sqrt(cmean ** 7 / (cmean ** 7 + 6103515625)))
+    p1, p2 = complex(a1 * (1 + G), b1), complex(a2 * (1 + G), b2)
+    C1, C2 = abs(p1), abs(p2)
+    h1 = math.degrees(math.atan2(p1.imag, p1.real)) % 360 if C1 else 0.0
+    h2 = math.degrees(math.atan2(p2.imag, p2.real)) % 360 if C2 else 0.0
+    # (2) the three differences
+    dL, dC = L2 - L1, C2 - C1
+    if C1 * C2 == 0:
+        dh = 0.0
+    elif abs(h2 - h1) <= 180:
+        dh = h2 - h1
+    else:
+        dh = h2 - h1 - 360 if h2 > h1 else h2 - h1 + 360
+    dH = 2 * math.sqrt(C1 * C2) * math.sin(math.radians(dh) / 2)
+    # (3) the weighting functions at the pair's mean
+    Lm, Cm = (L1 + L2) / 2, (C1 + C2) / 2
+    if C1 * C2 == 0:
+        hm = h1 + h2
+    elif abs(h1 - h2) <= 180:
+        hm = (h1 + h2) / 2
+    else:
+        hm = (h1 + h2 + 360) / 2 if h1 + h2 < 360 else (h1 + h2 - 360) / 2
+    T = (1 - 0.17 * math.cos(math.radians(hm - 30)) + 0.24 * math.cos(math.radians(2 * hm))
+         + 0.32 * math.cos(math.radians(3 * hm + 6)) - 0.2 * math.cos(math.radians(4 * hm - 63)))
+    SL = 1 + (0.015 * (Lm - 50) ** 2) / math.sqrt(20 + (Lm - 50) ** 2)
+    SC, SH = 1 + 0.045 * Cm, 1 + 0.015 * Cm * T
+    RC = 2 * math.sqrt(Cm ** 7 / (Cm ** 7 + 6103515625))
+    RT = -RC * math.sin(math.radians(2 * 30 * math.exp(-(((hm - 275) / 25) ** 2))))
+    return math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2
+                     + RT * (dC / SC) * (dH / SH))
+
+
+def painted(a, b):
+    return de2000(lab(a), lab(b))
+
+
 TOKEN_RE = re.compile(r"^\s*(--[a-z][a-z0-9]*-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
 
@@ -197,9 +269,6 @@ SURFACES = ["--hw-ground", "--hw-surface", "--hw-surface-raised", "--hw-surface-
 QUIET = ["--hw-accent-quiet", "--hw-success-quiet", "--hw-warning-quiet", "--hw-danger-quiet"]
 SEMANTICS = ["accent", "success", "warning", "danger"]
 
-# The accent hue pass 1's tables were measured at. 10-color.md#why-hue-198 owns the choice.
-PUBLISHED_HUE = 198
-
 
 def required():
     """(bar, foreground, background, what relies on it), every pair the book certifies.
@@ -247,11 +316,20 @@ def refused():
     yield AA, "--hw-text-muted", "--hw-border", "75-spec-sheet.md#ruled refuses muted ink on a rule"
 
 
-# 10-color.md#why-hue-198's bar, in oklab distance times 100, and the lightness step adjacent
-# chart series alternate by. Declared here rather than read from the seed, for the same reason
-# the pairs are: 0.12 of lightness is a separation of 12 on its own, so neighbours stay apart
+# The bars, declared here rather than read from the seed, for the same reason the pairs are.
+# The accent is held apart from the states on each element it paints, in CIEDE2000 on the 8-bit
+# value (10-color.md, "The three bars the accent is held to"): its ink from every state ink, the
+# selected-row fill from every state's quiet fill, and the focus ring from hw-danger, the one
+# state drawn as a border around a control. The ring is also held apart from hw-border-strong, the control's own edge, and every
+# state's quiet fill from hw-ground (12-brand.md). A chart colour is an ink, held to one bar in
+# oklab distance times 100 against each semantic and each other series, and neighbours alternate
+# in lightness: 0.12 of lightness is a separation of 12 on its own, so neighbours stay apart
 # where hue is lost, in greyscale print or to a reader who cannot see it.
-SEPARATION, NEIGHBOUR_DL = 8.0, 0.12
+ACCENT_BARS = (("ink", "--hw-accent", "", ("success", "warning", "danger"), 14),
+               ("fill", "--hw-accent-quiet", "-quiet", ("success", "warning", "danger"), 5),
+               ("ring", "--hw-accent-ring", "", ("danger",), 17))
+RING_FROM_BORDER, FILL_FROM_GROUND = 14, 6
+CHART_SEPARATION, NEIGHBOUR_DL = 8.0, 0.12
 CHARTS = [f"--hw-chart-{n}" for n in range(1, 7)]
 
 
@@ -265,30 +343,84 @@ def separation(a, b, lightness=True):
 
 
 def separations(tokens):
-    """(failures, closest chart pair), for one theme's block.
-
-    hw-chart-1 shares the accent's hue by design, so it is not held apart from the accent; every
-    chart colour, and the accent, is held apart from each semantic."""
-    bad, closest = [], None
-    for fg in ["--hw-accent"] + CHARTS:
+    """(failures, closest chart pair, worst painted distance per bar), for one block."""
+    bad, closest, worst = [], None, {}
+    for kind, ours, suffix, states, bar in ACCENT_BARS:
+        for sem in states:
+            d = painted(tokens[ours], tokens[f"--hw-{sem}{suffix}"])
+            worst[kind] = min(worst.get(kind, d), d)
+            if d < bar:
+                bad.append(f"{ours}, the accent's {kind}, sits {d:.1f} from --hw-{sem}{suffix}, "
+                           f"below {bar} CIEDE2000: an accent that reads as a state")
+    d = painted(tokens["--hw-accent-ring"], tokens["--hw-border-strong"])
+    worst["ring-border"] = d
+    if d < RING_FROM_BORDER:
+        bad.append(f"--hw-accent-ring sits {d:.1f} from --hw-border-strong, below "
+                   f"{RING_FROM_BORDER} CIEDE2000: a focused control that reads as a bordered one")
+    for sem in SEMANTICS[1:]:
+        d = painted(tokens[f"--hw-{sem}-quiet"], tokens["--hw-ground"])
+        worst["fill-ground"] = min(worst.get("fill-ground", d), d)
+        if d < FILL_FROM_GROUND:
+            bad.append(f"--hw-{sem}-quiet sits {d:.1f} from --hw-ground, below "
+                       f"{FILL_FROM_GROUND} CIEDE2000: a status fill that sinks into the ground")
+    for fg in CHARTS:
         for sem in SEMANTICS[1:]:
             d = separation(tokens[fg], tokens[f"--hw-{sem}"])
-            if d < SEPARATION:
-                bad.append(f"{fg} sits {d:.1f} from --hw-{sem}, below {SEPARATION}: a series "
-                           f"colour that reads as a state")
+            if d < CHART_SEPARATION:
+                bad.append(f"{fg} sits {d:.1f} from --hw-{sem}, below {CHART_SEPARATION}: a "
+                           f"series colour that reads as a state")
     for i, a in enumerate(CHARTS):
         for b in CHARTS[i + 1:]:
             d = separation(tokens[a], tokens[b])
             if closest is None or d < closest[0]:
                 closest = (d, a, b)
-            if d < SEPARATION:
-                bad.append(f"{a} sits {d:.1f} from {b}, below {SEPARATION}")
+            if d < CHART_SEPARATION:
+                bad.append(f"{a} sits {d:.1f} from {b}, below {CHART_SEPARATION}")
         if i + 1 < len(CHARTS):
             dl = abs(tokens[a][0] - tokens[CHARTS[i + 1]][0])
             if dl < NEIGHBOUR_DL:
                 bad.append(f"{a} and {CHARTS[i + 1]} are adjacent series {dl:.3f} apart in "
                            f"lightness, below {NEIGHBOUR_DL}")
-    return bad, closest
+    return bad, closest, worst
+
+
+# A brand's shape and stroke, one of the house's own (12-brand.md). Three radii bound to three
+# roles, child never larger than parent, is what a register guarantees; a free triple does not.
+REGISTERS = {"crisp": ("2px", "3px", "6px"), "house": ("4px", "6px", "10px"),
+             "soft": ("6px", "8px", "14px")}
+ICON_STROKES = ("1.5px", "1.75px", "2px")
+DECLARATION = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*([^;]+);")
+
+
+def root_values(path):
+    """The declarations of the file's one unconditional :root block, the theme-free tokens."""
+    out, inside = {}, False
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        if line.strip() == ":root {":
+            inside = True
+        elif inside and line.strip().startswith("}"):
+            break
+        elif inside and DECLARATION.match(line):
+            m = DECLARATION.match(line)
+            out[m.group(1)] = m.group(2).strip()
+    return out
+
+
+def geometry(path):
+    """(failures, register name) for the shape and stroke a file declares."""
+    root = root_values(path)
+    radii = tuple(root.get(f"--hw-radius-{s}") for s in ("sm", "md", "lg"))
+    register = next((n for n, r in REGISTERS.items() if r == radii), None)
+    bad = [] if register else [f"radii sm/md/lg are {'/'.join(map(str, radii))}, which is none of "
+                               f"the registers " + ", ".join(f"{n} {'/'.join(r)}"
+                                                            for n, r in REGISTERS.items())]
+    stroke = root.get("--hw-icon-stroke")
+    if stroke not in ICON_STROKES:
+        bad.append(f"--hw-icon-stroke is {stroke}, which is none of {', '.join(ICON_STROKES)}")
+    return bad, f"{register or 'none'}, stroke {stroke}"
+
+
+BRAND_LINE = re.compile(r"^\s*Brand: (.+)\.$", re.M)
 
 
 # The text roles, most prominent first, and the smallest lightness step the default themes keep
@@ -406,9 +538,14 @@ def published_ratios(root):
 # --- pass 5: a product's own colour ---------------------------------------------------------
 # What every product colour is held to, declared here rather than read from the product's seed,
 # so a product cannot weaken it in the same edit as the value it guards: at least 3:1 on each of
-# the six surfaces, and SEPARATION in hue and chroma from the three states and the accent. The
-# seed is read only for what it adds - a pair at a text bar, or a further colour to stay clear of.
+# the six surfaces, and PRODUCT_SEPARATION in hue and chroma from the three states and the
+# accent. The seed is read only for what it adds - a pair at a text bar, or a further colour to
+# stay clear of.
 PRODUCT_APART = [f"--hw-{s}" for s in SEMANTICS]
+# In hue and chroma alone, with lightness left out, because a product colour's anchors are its
+# own and a maroon clears any reading that counts lightness while still reading as red
+# (95-extending.md#why-the-separation-leaves-lightness-out).
+PRODUCT_SEPARATION = 8.0
 
 
 def raised(bar):
@@ -534,8 +671,8 @@ def extension(themes, ext, seed_path, css_path):
             seps = sorted((separation(fg, themes[theme][a], lightness=False), a)
                           for a in valid_apart)
             bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below "
-                    f"{SEPARATION}: a product colour that reads as a house state"
-                    for d, a in seps if d < SEPARATION]
+                    f"{PRODUCT_SEPARATION}: a product colour that reads as a house state"
+                    for d, a in seps if d < PRODUCT_SEPARATION]
             if seps:
                 report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
                               f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to "
@@ -561,8 +698,9 @@ def main(argv):
     themes = parse_tokens(path)
     failures = []
 
-    hue = themes["light"]["--hw-accent"][2]
-    if abs(hue - PUBLISHED_HUE) < 0.5:
+    m = BRAND_LINE.search(Path(path).read_text(encoding="utf-8"))
+    brand = m.group(1) if m else "not named in the header"
+    if brand == "house":
         claims = published_ratios(ROOT) + PROSE
         for theme, fg, bg, want in claims:
             got, _ = ratio(themes[theme][fg], themes[theme][bg])
@@ -575,8 +713,8 @@ def main(argv):
               f"{', '.join('design/' + t for t in TABLES)} and the prose list, "
               f"{len(failures)} mismatched")
     else:
-        print(f"pass 1: skipped. This set is built at accent hue {hue:.0f}; the published "
-              f"ratios were measured at {PUBLISHED_HUE} and do not describe it.")
+        print(f"pass 1: skipped. This set's brand is {brand}; the published ratios were "
+              f"measured on the house set and do not describe it.")
 
     checked, worst = 0, {}
     for base, fg, bg, why in required():
@@ -615,11 +753,16 @@ def main(argv):
         print(f"  worst {kind:8} {theme:10} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
 
     for theme in BLOCKS_CERTIFIED:
-        bad, (d, a, b) = separations(themes[theme])
+        bad, (d, a, b), w = separations(themes[theme])
         bad += roles(themes[theme])
         failures += [f"{theme} {f}" for f in bad]
-        print(f"pass 3: {theme:10} separation and role steps, {len(bad)} below bar; "
-              f"closest chart pair {d:.1f}, {a} / {b}")
+        print(f"pass 3: {theme:10} {len(bad)} below bar; accent ink {w['ink']:.1f}, fill "
+              f"{w['fill']:.1f}, ring {w['ring']:.1f}; ring from border {w['ring-border']:.1f}; "
+              f"state fill from ground {w['fill-ground']:.1f}; closest chart pair {d:.1f}, "
+              f"{a[5:]} / {b[5:]}")
+    bad, shape = geometry(path)
+    failures += bad
+    print(f"pass 3: shape register {shape}, {len(bad)} outside the house's own")
 
     for theme in BLOCKS_CERTIFIED:
         for token, (L, C, H) in sorted(themes[theme].items()):
@@ -643,8 +786,9 @@ def main(argv):
         else:
             bad, report = extension(themes, ext, seed, css)
             failures += bad
-            print(f"pass 5: {Path(css).name} against the house set, every token 3:1 or its "
-                  f"claimed bar on all six surfaces and {SEPARATION} in hue and chroma from the "
+            print(f"pass 5: {Path(css).name} against this set, every token 3:1 or its "
+                  f"claimed bar on all six surfaces and {PRODUCT_SEPARATION} in hue and chroma "
+                  f"from the "
                   f"states and the accent; {len(bad)} failed")
             print("\n".join(report))
 

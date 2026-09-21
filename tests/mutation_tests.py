@@ -38,14 +38,24 @@ from pathlib import Path
 SRC = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
 RESULTS = []
 
-# The worked product seed, which CI solves and verifies beside the house set.
-EXAMPLE = "examples/quoth.seed.json"
+# The worked product seed, which CI solves against quoth's brand set and verifies beside it, and
+# the three example brands CI builds and certifies on every change.
+EXAMPLE = "examples/quoth/quoth.seed.json"
+BRANDS = ("quoth", "papertrace", "pointback")
 CHECKS = [("build", ("tools/build.py",)), ("--check", ("tools/build.py", "--check")),
           ("contrast", ("tools/contrast.py",)), ("export", ("tools/export.py",)),
           ("check-coverage", ("tools/check-coverage.py",)),
           ("invariants", ("tests/invariants.py",)),
-          ("extend", ("tools/build.py", "--check", "--extend", EXAMPLE)),
-          ("contrast-extend", ("tools/contrast.py", "--extend", EXAMPLE))]
+          ("extend", ("tools/build.py", "--check", "--brand", "examples/quoth/brand.seed.json",
+                      "--extend", EXAMPLE)),
+          ("contrast-extend", ("tools/contrast.py", "examples/quoth/tokens/tokens.css",
+                               "--extend", EXAMPLE)),
+          *[(f"brand-{b}", ("tools/build.py", "--check", "--brand",
+                            f"examples/{b}/brand.seed.json")) for b in BRANDS],
+          *[(f"contrast-{b}", ("tools/contrast.py", f"examples/{b}/tokens/tokens.css"))
+            for b in BRANDS],
+          ("distinct", ("tools/distinct.py", "tokens/tokens.css",
+                        *[f"examples/{b}/tokens/tokens.css" for b in BRANDS]))]
 
 
 def clone():
@@ -83,11 +93,12 @@ def exact_min(repo, pairs):
                for t, fg, bg in pairs)
 
 
-def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False):
+def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False, says=()):
     """`by` names a check, or a tuple of checks, that must be among those refusing, where WHICH
     tool catches it is the claim: the second instrument measuring a product file on its own,
     say. `no_traceback` asserts a clean refusal rather than an unhandled crash: a crash also
-    exits non-zero, so "caught" alone does not tell the two apart."""
+    exits non-zero, so "caught" alone does not tell the two apart. `says` names phrases the
+    refusal must contain, where WHICH rule refuses is the claim."""
     repo = clone()
     mutate(repo)
     codes, out = {}, ""
@@ -105,6 +116,9 @@ def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False)
             extra, ok = (extra + f" {b} did not refuse it, and the case requires it to").strip(), False
     if no_traceback and "Traceback" in out:
         extra, ok = (extra + " a tool printed a traceback instead of a clean refusal").strip(), False
+    for phrase in ((says,) if isinstance(says, str) else says):
+        if phrase not in out:
+            extra, ok = (extra + f" no refusal says {phrase!r}").strip(), False
     passed = ok and (verdict == expect or (expect == "green" and verdict == "caught"))
     label = ("PASS" if verdict == expect and ok
              else "IMPROVED" if expect == "green" and ok
@@ -318,7 +332,7 @@ def product_edit(repo, fn):
 
 
 def product_css_edit(repo, old, new):
-    p = repo / "examples" / "quoth.tokens.css"
+    p = repo / "examples" / "quoth" / "quoth.tokens.css"
     t = p.read_text(encoding="utf-8")
     assert old in t
     p.write_text(t.replace(old, new, 1), encoding="utf-8")
@@ -331,9 +345,9 @@ def x1(repo):
     product_edit(repo, f)
     # The values that seed solves to, written into the product file as a contributor who
     # bypassed the build would, so the second instrument has to refuse them on its own.
-    p = repo / "examples" / "quoth.tokens.css"
-    red = {"0.515": "0.3 0.1207", "0.4467": "0.3 0.1207", "0.6255": "0.85 0.0793",
-           "0.7424": "0.85 0.0793"}
+    p = repo / "examples" / "quoth" / "quoth.tokens.css"
+    red = {"0.515": "0.3 0.1207", "0.4467": "0.3 0.1207", "0.6252": "0.85 0.0793",
+           "0.7396": "0.85 0.0793"}
     p.write_text(re.sub(r"oklch\((\S+) \S+ 297\)", lambda m: f"oklch({red[m[1]]} 27)",
                         p.read_text(encoding="utf-8")), encoding="utf-8")
 
@@ -475,12 +489,128 @@ x10()
 
 
 def x11(repo):
-    (repo / "examples" / "quoth.tokens.css").unlink()
+    (repo / "examples" / "quoth" / "quoth.tokens.css").unlink()
 
 
 case("X11 quoth.tokens.css is deleted before contrast.py --extend runs", "caught", x11,
      by="contrast-extend", no_traceback=True,
      note="a well-formed seed with no built CSS is one FAIL line, never a traceback")
+
+
+# ---------------------------------------------------------------- the brand tier
+def brand_edit(repo, name, fn, rebuild=False):
+    """Change one example brand's seed; with `rebuild`, regenerate its token files the way a
+    contributor following 12-brand.md would, so only a rule can refuse it, never staleness."""
+    p = repo / "examples" / name / "brand.seed.json"
+    brand = json.loads(p.read_text(encoding="utf-8"))
+    fn(brand)
+    p.write_text(json.dumps(brand, indent=2) + "\n", encoding="utf-8")
+    if rebuild:
+        run(repo, "tools/build.py", "--brand", str(p))
+
+
+def brand_css_edit(repo, name, old, new):
+    p = repo / "examples" / name / "tokens" / "tokens.css"
+    t = p.read_text(encoding="utf-8")
+    assert old in t, old
+    p.write_text(t.replace(old, new, 1), encoding="utf-8")
+
+
+def seed_accent(**inputs):
+    return lambda b: (b.update(inputs), [b.pop(k, None) for k in ("accentLightness", "ring")
+                                         if k not in inputs])
+
+
+case("N1 quoth's accentChroma rises to 1.31, over the bound", "caught",
+     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("accentChroma", 1.31)),
+     by="brand-quoth", says="accentChroma 1.31 is outside 0.3 to 1.3",
+     note="12-brand.md: no brand accent is louder than an error")
+
+case("N2 papertrace's neutralChroma rises to 6 at hue 85, a cream ground", "caught",
+     lambda r: brand_edit(r, "papertrace", lambda b: b.__setitem__("neutralChroma", 6)),
+     by="brand-papertrace", says="neutralChroma 6 is outside 0.0 to 4.0",
+     note="12-brand.md: the ground stops reading as paper past 4 times the house chroma")
+
+case("N3 papertrace's tokens.css is hand-edited to a cream ground", "caught",
+     lambda r: brand_css_edit(r, "papertrace", "  --hw-ground: oklch(0.978 0.0090 85);",
+                              "  --hw-ground: oklch(0.96 0.03 85);"),
+     by="contrast-papertrace", says="from --hw-ground, below 6 CIEDE2000",
+     note="the second instrument holds every state's quiet fill 6 from the ground on its own")
+
+case("N4 quoth's tokens.css is hand-edited to radii 6/6/14 and a 3px icon stroke", "caught",
+     lambda r: (brand_css_edit(r, "quoth", "--hw-radius-md: 8px;", "--hw-radius-md: 6px;"),
+                brand_css_edit(r, "quoth", "--hw-icon-stroke: 1.5px;",
+                               "--hw-icon-stroke: 3px;")),
+     by="contrast-quoth", says=("none of the registers", "--hw-icon-stroke is 3px"),
+     note="12-brand.md: shape is one of three registers and stroke one of three weights")
+
+case("N5 pointback's tokens.css is hand-edited to radii 8/6/10, a child larger than its parent",
+     "caught", lambda r: brand_css_edit(r, "pointback", "--hw-radius-sm: 4px;",
+                                        "--hw-radius-sm: 8px;"),
+     by="contrast-pointback", says="none of the registers",
+     note="30-space-radius-elevation.md: child never larger than parent")
+
+case("N6 quoth's display face is one the roster does not carry", "caught",
+     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("display", "Comic Sans MS")),
+     by="brand-quoth", says="display 'Comic Sans MS' is not one of",
+     note="20-type.md: a brand face is a roster entry with its delivery and its measured metrics")
+
+case("N7 quoth's brand seed sets hw-accent directly", "caught",
+     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("hw-accent",
+                                                               "oklch(0.5 0.1 255)")),
+     by="brand-quoth", says="'hw-accent' is not a brand input",
+     note="95-extending.md: never redefine an hw- token, not even from a brand seed")
+
+case("N8 quoth's accentChroma rises to 0.6, which puts hw-accent 7.7 from --quoth-live", "caught",
+     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("accentChroma", 0.6)),
+     by="extend", says="sits 7.7 from hw-accent in hue and chroma",
+     note="95-extending.md: a product colour is solved against its own brand's set")
+
+case("N9 papertrace's brand seed is emptied to the house defaults and rebuilt", "caught",
+     lambda r: brand_edit(r, "papertrace", lambda b: [b.pop(k) for k in list(b)
+                                                      if k not in ("name", "note")],
+                          rebuild=True),
+     by="distinct", says="one brand built twice",
+     note="12-brand.md: two brands that paint the same colours in the same faces are one brand")
+
+case("N10 papertrace takes an oxblood accent, hue 30, deep", "caught",
+     lambda r: brand_edit(r, "papertrace", seed_accent(accentHue=30, accentChroma=0.8,
+                                                        accentLightness={"light": 0.38,
+                                                                         "dark": 0.76})),
+     by="brand-papertrace", says=("its ink", "its fill", "its ring"),
+     note="10-color.md: a red-family accent reads as the error state on all three elements")
+
+case("N11 papertrace takes a full-chroma hue 52 accent at the house anchors", "caught",
+     lambda r: brand_edit(r, "papertrace", seed_accent(accentHue=52, accentChroma=1.0,
+                                                        quietChroma=1.0)),
+     by="brand-papertrace", says=("its ink", "its fill"),
+     note="10-color.md: the peach selected row reads as a status")
+
+case("N12 papertrace takes an umber accent, hue 70, deep and quiet, with the ink ring", "green",
+     lambda r: brand_edit(r, "papertrace", seed_accent(accentHue=70, accentChroma=0.6,
+                                                        accentLightness={"light": 0.38,
+                                                                         "dark": 0.76},
+                                                        quietChroma=0.3, ring="ink"),
+                          rebuild=True),
+     note="10-color.md: a warm accent is buildable, and both instruments certify it")
+
+case("N13 papertrace takes a rose accent, hue 5", "caught",
+     lambda r: brand_edit(r, "papertrace", seed_accent(accentHue=5, accentChroma=0.7,
+                                                        quietChroma=0.4)),
+     by="brand-papertrace", says="its fill, hw-accent-quiet, sits 3.5 from hw-danger-quiet",
+     note="10-color.md: the pink-grey selected row reads as a failed row")
+
+case("N14 quoth keeps its 0.6 accent chroma's ring instead of the ink ring", "caught",
+     lambda r: brand_edit(r, "quoth", lambda b: (b.__setitem__("accentChroma", 0.6),
+                                                 b.pop("ring"))),
+     by="brand-quoth", says="from hw-border-strong",
+     note="12-brand.md: a quiet ring reads as a second grey outline, not as focus")
+
+case("N15 papertrace's accentLightness asks for L 0.60 in light, past its 4.5:1 floor", "caught",
+     lambda r: brand_edit(r, "papertrace", lambda b: b["accentLightness"].__setitem__(
+         "light", 0.60)),
+     by="brand-papertrace", says="accentLightness light 0.6 does not clear",
+     note="12-brand.md: an input the build would discard is refused, not silently re-solved")
 
 
 # ---------------------------------------------------------------- check-coverage.py

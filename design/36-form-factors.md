@@ -27,7 +27,7 @@ The phrase is absent; the layer is not.
 
 ## 1. The desktop application shell
 
-A permanent rail and a content pane, which is what treadling, foliot and gates are, and what quoth's own window is when it is opened from the panel.
+A permanent rail and a content pane, which is what quoth's own window is when it is opened from the panel, and the shell treadling, foliot or gates would start from if one of them got a screen; none has an interface today.
 
 Fully specified in [35-layout.md](35-layout.md), and nothing here changes it.
 What that file does not say, and forms need:

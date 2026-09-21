@@ -40,43 +40,52 @@ Two rules:
 - **Prefer a composition to a constant.**
   A token defined as `calc()` over house tokens tracks the system. A token defined as `24px` stops tracking it the day the scale moves.
 
-## The one thing a product may change
+## A brand seed, and nothing else
 
-**The accent hue, and nothing else.**
+A product's identity is a **brand seed**: eleven bounded inputs the build solves into a full token set with the house's names, never a stylesheet of overrides.
+[12-brand.md](12-brand.md) owns the inputs, their bounds and the three product brands.
+papertrace is the worked example here, because it is the warm one:
 
-The whole accent family is generated from one hue by the solver, so a product takes a different accent by regenerating, not by hand-picking:
+```json
+{
+  "name": "papertrace",
+  "accentHue": 250, "accentChroma": 1.27, "accentLightness": {"light": 0.42, "dark": 0.78},
+  "quietChroma": 0.6, "neutralHue": 85, "neutralChroma": 3.0,
+  "shape": "crisp", "iconStroke": "1.5px", "display": "system serif", "text": "system serif"
+}
+```
 
 ```bash
-python3 tools/build.py --accent-hue 318 --out ./my-tokens   # solve a full set at a new hue
-python3 tools/contrast.py ./my-tokens/tokens.css            # verify it independently
+python3 tools/build.py --brand examples/papertrace/brand.seed.json   # writes examples/papertrace/tokens/
+python3 tools/contrast.py examples/papertrace/tokens/tokens.css        # verify it independently
 ```
 
 **The build refuses to emit if the matrix does not hold.**
 That refusal is the feature: it caught three defects in this system's own first pass, including a
 dark focus ring at 2.56:1 on `--hw-surface-raised`.
 
-What it does with a new hue, in order: every neutral, accent and chart hue follows the seed, while
-the three semantics do not, because a green that means "passed" cannot follow a brand decision.
-Chroma is clamped to the in-gamut maximum at each token's lightness and hue. Then any token whose
-contrast floor no longer holds has its lightness re-solved by binary search, as close to its anchor
-as the floor permits - which is not a formality, because rotating a hue at fixed lightness moves
-WCAG luminance. Rebuilt at hue 318, five tokens re-solve and all 198 certified pairs still clear
-their bar, on the float value and at 8-bit: worst 3.030:1 non-text and 4.532:1 text.
+What it does with a brand seed, in order: every input is checked against its bound, and a key that is not an input, an `hw-` token included, is refused.
+The inputs are applied to a copy of the house seed: the sixteen neutrals follow the neutral hue and chroma together, the accent family follows the accent hue, chroma and lightness, and the chart ramp rotates with the accent, while the three semantics do not move, because a green that means "passed" cannot follow a brand decision.
+Then the copy is solved exactly as the house is: chroma clamped to the in-gamut maximum, and any token whose contrast floor no longer holds re-solved by binary search, as close to its anchor as the floor permits - which is not a formality, because rotating a hue at fixed lightness moves WCAG luminance.
+Built from papertrace's seed, three tokens re-solve and all 198 certified pairs clear their bar, on the float value and at 8-bit: worst 3.031:1 non-text and 4.594:1 text.
 
-**A new hue must clear an oklab separation above 8 from every semantic**, which is the test recorded
-in [10-color.md](10-color.md). A product cannot take hue 150 because it is close to `hw-success`,
-and the build says so with the number rather than refusing on principle:
+**An accent must stand apart from every state on each thing it paints**: its ink, the selected-row fill and the focus ring, each in CIEDE2000 on the 8-bit value, which [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) owns.
+A product cannot take hue 150 because it is close to `hw-success`, and the build says so with the number rather than refusing on principle:
 
 ```text
-FAIL  accent hue 150 sits 4.4 from hw-success in light theme, below the 8.0 this system
-      requires (10-color.md#why-hue-198)
+FAIL  hw-accent at hue 150: its ink, hw-accent, sits 6.1 from hw-success in light, below the 14
+      CIEDE2000 this system requires (10-color.md#the-three-bars-the-accent-is-held-to)
+FAIL  hw-accent at hue 150: its fill, hw-accent-quiet, sits 0.3 from hw-success-quiet in light,
+      below the 5 CIEDE2000 this system requires (10-color.md#the-three-bars-the-accent-is-held-to)
 ```
 
 That is a measurement rather than a veto, and it is executable rather than merely written down.
 
-**Do not hand-edit `tokens/tokens.css` or `tokens/tokens.json`.** Both are the build's output.
+`--accent-hue` stays as the one-input form: `python3 tools/build.py --accent-hue 318 --out ./my-tokens` is a brand whose only input is its hue, and at 318 five tokens re-solve and all 198 certified pairs still clear their bar.
+
+**Do not hand-edit a `tokens.css` or a `tokens.json`,** the house's or a brand's. Both are the build's output.
 `tokens/tokens.seed.json` is the source, and it carries, per colour token, a lightness and chroma
-anchor and the contrast floor that token must hold.
+anchor and the contrast floor that token must hold; a brand's `brand.seed.json` carries only its inputs.
 
 ## A colour of the product's own
 
@@ -85,16 +94,18 @@ A composition of `hw-` tokens is still the first answer.
 When no house colour means the thing, the product declares its own colour and the house tools solve it, for the same reason the accent is regenerated rather than hand-picked.
 
 The product owns a seed in its own namespace, with the per-token shape of `tokens/tokens.seed.json`: a hue, a lightness and chroma anchor per theme, the `floors` it must hold, and `apart`, the house colours it must never be mistaken for.
-[examples/quoth.seed.json](../examples/quoth.seed.json) is the worked example, and the one CI builds on every change, so a house change that breaks a product colour fails here first.
+[examples/quoth/quoth.seed.json](../examples/quoth/quoth.seed.json) is the worked example, and the one CI builds on every change, so a house change that breaks a product colour fails here first.
+
+A product colour is solved against its own brand's set, because the surfaces it lands on and the accent it must stay clear of are its brand's, not the house's:
 
 ```bash
-python3 tools/build.py --extend ../quoth/quoth.seed.json      # solve it; writes quoth.tokens.css beside the seed
-python3 tools/contrast.py --extend ../quoth/quoth.seed.json   # verify it with the second instrument
+python3 tools/build.py --brand quoth/brand.seed.json --extend quoth/quoth.seed.json   # writes quoth.tokens.css beside the seed
+python3 tools/contrast.py quoth/tokens/tokens.css --extend quoth/quoth.seed.json     # verify it with the second instrument
 ```
 
 The build solves each token in all four blocks, light, dark and both `prefers-contrast: more` tiers, exactly as it solves a house token: chroma clamped into sRGB, lightness re-solved from the anchor when a floor fails, and every value re-measured on the string it writes, on the float value and at 8-bit.
-It writes the product's file and nothing else, because the house `tokens.css` is loaded first and does not change.
-A product that also regenerates the accent passes the same `--accent-hue` to both commands and verifies against that `tokens.css`.
+It writes the product's file and nothing else, because the brand's `tokens.css` is loaded first and does not change.
+A product with no brand seed solves against the house set by leaving `--brand` out and verifying against `tokens/tokens.css`.
 
 What both tools refuse, whatever the product's seed says:
 
@@ -119,28 +130,34 @@ Every leaf a solver later reads is checked once at that boundary, so a bad leaf 
 
 ### Why the separation leaves lightness out
 
-The accent's 8.0 is oklab distance with lightness in, measured at the semantics' own lightness, where the two readings agree: 8.9 and 8.2 from `hw-success` either way.
+The accent is held apart from the states in CIEDE2000, which counts lightness, and that is right for the accent: its lightness is solved to the same floors as the states', so what separates it has to be hue and chroma anyway, and a brand's own lightness is a real, visible difference.
 A product colour's anchors are its own, so a rule that counts lightness can be cleared by lightness alone.
 Recording red is the case.
 Hue 27 anchored at L 0.30 in light and 0.85 in dark solves to a maroon, `#5C0105`, and a salmon, `#FEBAB2`, which sit 23.9 and 20.9 from `hw-danger` counting lightness, and 14.0 and 9.8 under more contrast.
 In hue and chroma they sit 0.9 and 3.1, which is what a reader sees: a red.
-So a product colour is held to 8.0 in hue and chroma, which is never looser than the reading with lightness in.
+The accent's own bar would not catch it either: the maroon sits 21.6 CIEDE2000 from `hw-danger`, past the 14 the accent is held to.
+So a product colour is held to 8.0 in hue and chroma, oklab distance times 100 with lightness left out, which lightness cannot clear.
 
 ### The worked example, quoth's live colour
 
 The microphone-open state takes its own colour, decided by the system's owner on 2026-09-21.
 The accent already marks selection, focus and the active tab, so a shared accent makes "the microphone is open" read as "this row is selected", and recording red sits on `hw-danger`.
 
+Solved against quoth's brand set, [examples/quoth/quoth.tokens.css](../examples/quoth/quoth.tokens.css):
+
 | block | value | hex | worst contrast, six surfaces | closest in hue and chroma |
 |---|---|---|---:|---|
-| light | `oklch(0.515 0.13 297)` | `#7054A8` | 5.26:1 | 16.2 from `hw-accent` |
-| dark | `oklch(0.6255 0.11 297)` | `#8F79C2` | 4.53:1 | 15.6 from `hw-danger` |
-| light, more contrast | `oklch(0.4467 0.13 297)` | `#5D4192` | 7.07:1 | 15.5 from `hw-accent` |
-| dark, more contrast | `oklch(0.7424 0.11 297)` | `#B39DE9` | 7.09:1 | 15.6 from `hw-danger` |
+| light | `oklch(0.515 0.13 297)` | `#7054A8` | 5.25:1 | 11.1 from `hw-accent` |
+| dark | `oklch(0.6252 0.11 297)` | `#8F79C2` | 4.53:1 | 8.8 from `hw-accent` |
+| light, more contrast | `oklch(0.4467 0.13 297)` | `#5D4192` | 7.07:1 | 11.1 from `hw-accent` |
+| dark, more contrast | `oklch(0.7396 0.11 297)` | `#B29CE8` | 7.03:1 | 8.8 from `hw-accent` |
+
+Against the house set the dark value was L 0.6255; quoth's own surfaces move it to 0.6252, which is the reason a product colour is solved against its brand's set rather than the house's.
+Its closest colour is now quoth's own slate accent, at hue 255, rather than a state.
 
 The derivation, one input at a time:
 
-- **Hue 297** is the hue whose worst separation from the four state colours is largest, 15.5, in a one-degree sweep of the wheel. The 99 hues from 246 to 344 clear 8.0 with every floor held; no other hue does.
+- **Hue 297** was chosen against the house set, where it is the hue whose worst separation from the four state colours is largest, 15.5, in a one-degree sweep of the wheel. Against quoth's set the 67 hues from 278 to 344 clear 8.0 with every floor held, and 297 is among them at 8.8.
 - **The anchors** are the accent's lightness, 0.515 and 0.619, and `hw-danger`'s chroma, 0.13 and 0.11, so recording is exactly as loud as an error and no louder.
 - **The floor is the text bar, 4.5:1 on all six surfaces**, because the word is set in this colour; that subsumes the 3:1 a mark needs.
   It carries no pair on a quiet fill, because quoth has no live fill, so a live badge is the fill-less form [15-color-combinations.md](15-color-combinations.md) already gives a badge on a tinted row.
@@ -150,7 +167,7 @@ So the live state is always the word `Recording` and Lucide's `mic` icon at `--h
 It does not pulse, because [40-motion.md](40-motion.md) lets only a determinate progress indicator loop, and the change is announced in a `role="status"` region, which quoth provides.
 It is not certified on the menu-bar item, which sits on a ground the house does not own.
 
-It sits 6.3 from `hw-chart-2` and 5.7 from `hw-chart-3` at its closest, and no hue clears 8.0 from all six chart colours and the four state colours at once: the best, hue 295, reaches 5.9.
+It sits 5.2 from quoth's `hw-chart-2` at its closest, and no hue clears 8.0 from all six chart colours and the four state colours at once: the best, hue 290, reaches 6.4.
 A quoth screen that colours speakers from the chart ramp therefore keeps the live state out of the chart, and relies on the word and the icon beside it.
 
 ## Adding a component
@@ -187,15 +204,23 @@ That sentence is worth more than a correct-looking screen with `28px` written in
 
 ## Loading the system in a product
 
-```html
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+```css
+@import "hw/tokens.css";      /* the house set, or a brand's own tokens/tokens.css */
+@import "quoth/tokens.css";   /* the product's own namespace, after */
+
+/* The faces, self-hosted: each file is the upstream one 20-type.md cites. A brand whose faces are
+   system stacks loads none of these; a self-hosted brand face is added the same way. */
+@font-face { font-family: "Public Sans"; src: url("fonts/PublicSans[wght].ttf") format("truetype");
+             font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Public Sans"; src: url("fonts/PublicSans-Italic[wght].ttf") format("truetype");
+             font-weight: 100 900; font-style: italic; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url("fonts/Newsreader[opsz,wght].ttf") format("truetype");
+             font-weight: 200 800; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("fonts/IBMPlexMono-Regular.ttf") format("truetype");
+             font-weight: 400; font-display: swap; }
 ```
 
-```css
-@import "hw/tokens.css";      /* the house system */
-@import "quoth/tokens.css";   /* the product's own namespace, after */
-```
+No font is loaded from a font service: three of the products this system serves make no network request or refuse one by policy, and a system that told them to load a stylesheet from a CDN was a system they could not follow.
 
 Nothing else is required.
 There is no component library to install, no build step, and no runtime: the system is a token file, a set of rules, and the discipline to report a gap rather than invent a value. <!-- covered-by: A shipped component library -->
