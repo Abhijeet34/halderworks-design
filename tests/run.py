@@ -19,20 +19,12 @@ measure belongs to another task's findings:
     python3 tests/coverage_probe.py          # which row each refusal resolved to, and by what word
     python3 tests/ident_sweep.py . HEAD      # identifiers in a tree, with a per-pattern hit count
 """
-import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-
-# tests/mutation_tests.py's E cases extract consistency.yml's step body and run it verbatim,
-# because running anything less than the body a merge depends on is testing a paraphrase. That
-# body now calls this file, so the harness would re-enter itself once per case, for ever. The
-# harness sets this variable in the environment it hands the extracted body; nothing else may,
-# and tests/invariants.py refuses a workflow file that does.
-NESTED = "HW_TESTS_ARE_THE_SUBJECT"
 
 SUITES = [
     ("invariants", "the two instruments are independent and still agree", "invariants.py"),
@@ -42,10 +34,6 @@ SUITES = [
 
 
 def main():
-    if os.environ.get(NESTED):
-        print(f"tests/run.py: standing down. {NESTED} is set, so this is the copy the mutation "
-              f"harness is running as its subject rather than as a check.")
-        return 0
     failed = []
     for name, what, script in SUITES:
         print(f"\n{'=' * 78}\n== {name}: {what}\n{'=' * 78}")

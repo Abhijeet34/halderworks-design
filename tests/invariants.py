@@ -8,7 +8,7 @@ itself can never report" was exactly the disagreement neither could report, and 
 in the same file as the values they guarded, so one edit could move a chart fill to 1.2:1 and
 delete the floor that would have caught it.
 
-Six invariants, each failing loudly rather than warning:
+Five invariants, each failing loudly rather than warning:
 
   1. The two converters share no code, and neither file imports the other.
   2. They still agree numerically, to a bound stated here rather than assumed.
@@ -17,8 +17,6 @@ Six invariants, each failing loudly rather than warning:
      ground, the accent as text on all six surfaces, body text on all four quiet fills. Naming
      them in a third place is what stops a weakening that edits both lists at once.
   5. The counts the book prints in three places are the counts tools/build.py computes.
-  6. The one environment variable that makes tests/run.py stand down is set by nothing in
-     .github/workflows/, so the suite cannot be silenced into a green step.
 
     python3 tests/invariants.py [repo-root]
 """
@@ -163,19 +161,6 @@ def headline_counts_hold(seed, fails):
           f"{agreed} of {len(COUNTS)} files that state them agree")
 
 
-def the_suite_cannot_be_switched_off(fails):
-    """tests/run.py stands down when HW_TESTS_ARE_THE_SUBJECT is set, so that the mutation
-    harness can run the CI step body verbatim without re-entering itself. A workflow that set
-    it would turn the whole suite into a step that asserts nothing and still reports green."""
-    seen = 0
-    for wf in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
-        seen += 1
-        if "HW_TESTS_ARE_THE_SUBJECT" in wf.read_text(encoding="utf-8"):
-            fails.append(f".github/workflows/{wf.name} sets HW_TESTS_ARE_THE_SUBJECT, which "
-                         f"makes tests/run.py exit 0 without running anything")
-    print(f"  kill switch: none of the {seen} workflow files sets HW_TESTS_ARE_THE_SUBJECT")
-
-
 def main():
     seed = json.loads((ROOT / "tokens" / "tokens.seed.json").read_text(encoding="utf-8"))
     css = ROOT / "tokens" / "tokens.css"
@@ -186,7 +171,6 @@ def main():
     certificate_agrees(seed, fails)
     named_claims_are_certified(seed, fails)
     headline_counts_hold(seed, fails)
-    the_suite_cannot_be_switched_off(fails)
     for f in fails:
         print("FAIL  " + f, file=sys.stderr)
     print(f"\n{len(fails)} failures")

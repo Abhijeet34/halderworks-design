@@ -314,14 +314,19 @@ def wf(name, expect, mutate, note=""):
     mutate(repo)
     subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam",
                     "mutation", "--no-verify"], cwd=repo, check=True)
-    # The extracted body calls tests/run.py, which calls this file. tests/run.py stands down when
-    # it sees this variable, which is the only thing between a faithful run of the real step body
-    # and a harness that re-enters itself once per case for ever.
     env = dict(os.environ, GITHUB_OUTPUT=str(repo.parent / "out"),
-               GITHUB_STEP_SUMMARY=str(repo.parent / "sum"),
-               HW_TESTS_ARE_THE_SUBJECT="1")
+               GITHUB_STEP_SUMMARY=str(repo.parent / "sum"))
     direct, dout = run(repo, "tools/export.py")
     subprocess.run(["git", "checkout", "-q", "--", "."], cwd=repo)
+    # The extracted body calls tests/run.py, which calls this file, which would clone and run the
+    # body again, once per case, for ever. This clone is disposable and thrown away with
+    # shutil.rmtree below, so overwriting its uncommitted copy of tests/run.py with a stand-in
+    # that prints and exits 0 breaks the recursion without touching the real repository or the
+    # real test file; the checkout above already restored every tracked file, so this write is
+    # the last thing that happens to the clone before the body runs.
+    (repo / "tests" / "run.py").write_text(
+        "#!/usr/bin/env python3\n"
+        "print('tests/run.py: standing in for the suite under mutation.')\n", encoding="utf-8")
     p = subprocess.run(["bash", "-e", "-c", workflow_block(repo)], cwd=repo, env=env,
                        capture_output=True, text=True)
     verdict = "green" if p.returncode == 0 else "caught"
