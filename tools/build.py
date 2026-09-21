@@ -15,7 +15,8 @@ hand-pick.
     python3 tools/build.py                    # rebuild in place from the seed
     python3 tools/build.py --accent-hue 318   # a different accent, fully re-solved
     python3 tools/build.py --check            # emit nothing; fail if the files are stale
-    python3 tools/build.py --extend examples/quoth.seed.json   # a product's own colour, solved
+    python3 tools/build.py --brand examples/papertrace/brand.seed.json   # a full brand, solved
+    python3 tools/build.py --extend examples/quoth/quoth.seed.json   # a product's own colour, solved
 
 What the build does, in order:
 
@@ -24,13 +25,14 @@ What the build does, in order:
      accent should look native to the palette. The six chart hues are the accent plus a fixed
      rotation. The three semantics do not move: a green that means "passed" cannot follow a
      brand decision.
-  2. Refuse a hue that puts the accent or any chart colour closer than the recorded separation
-     to a semantic. 10-color.md records 8.2 and 8.9 in oklab distance times 100 as the
-     separation hue 198 keeps from success, and rejects a teal candidate at 3.8 on that
-     measurement. This is that test made executable, which is what 95-extending.md's "a product
-     cannot take hue 150" needs to be true rather than merely written. The chart colours rotate
-     with the accent and the semantics do not, so they are held to the same bar, to it against
-     each other, and to an alternating lightness between neighbours.
+  2. Refuse a hue whose accent ink, selected-row fill or focus ring paints closer than the
+     recorded CIEDE2000 bar to a semantic it could be mistaken for. 10-color.md records 14, 5
+     and 17 as those three bars ("The three bars the accent is held to"), measured on the 8-bit
+     value a display receives. This is that test made executable, which is what 95-extending.md's
+     "a product cannot take hue 150" needs to be true rather than merely written. The chart
+     colours rotate with the accent and the semantics do not, so they are held to their own
+     8.0 oklab bar against each state, to it against each other, and to an alternating
+     lightness between neighbours.
   3. Clamp chroma to the in-gamut maximum at each token's lightness and hue. An out-of-gamut
      oklch triple is simply not the colour the token file claims, and 90-evidence.md records a
      warning at chroma 0.12 shipping exactly that way.
