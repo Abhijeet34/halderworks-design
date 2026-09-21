@@ -11,7 +11,7 @@ name: maintenance
 # The consistency job is a call into .github/workflows/consistency.yml, which ci.yml also calls
 # and which the `checks` context there gates a merge on. This workflow used to carry that job's
 # body and its own path-filtered `pull_request` trigger; both are gone, because ci.yml now runs
-# the same four tools on every pull request with no path filter. What is left here is the part
+# the same five tools on every pull request with no path filter. What is left here is the part
 # only a schedule can do: the network liveness check, and the issue.
 #
 # No `push` trigger, deliberately. ci.yml already runs the consistency call on every push to
@@ -34,7 +34,13 @@ jobs:
   sources:
     name: every cited source still resolves
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # 40, not a round guess: check-sources.py budgets ATTEMPTS=3 x TIMEOUT=25s per source, so
+    # 26 sources cost at most 26 * 75s ~= 32.5 minutes before the step's own output block runs.
+    # The job timeout must sit above that arithmetic, not below it - a timeout that could fire
+    # first would cancel the job before it writes GITHUB_OUTPUT, and a cancelled job's `failed`
+    # output is empty rather than '1', which the `report` job below cannot tell apart from a
+    # clean run.
+    timeout-minutes: 40
     # Its own job, not its own exemption: a timed-out CDN must not be able to mask a real
     # contrast failure, which is why this is separate from `consistency`. It used to carry
     # `continue-on-error: true` as well, and that made the job's red X and the run's green
@@ -76,9 +82,16 @@ jobs:
     # Every event this workflow runs on, not just the schedule. The old `schedule` gate meant a
     # failure on any other event reached nobody: it surfaced on the commit page and nowhere
     # else, which is where it was found rather than reported.
+    #
+    # `result != 'success'` alongside `failed == '1'`, for both jobs: the `failed` output is
+    # only ever written by the step that produces it, so a job that was cancelled, timed out,
+    # or failed before reaching that step leaves `failed` empty rather than '1' - which the
+    # equality check alone reads as a clean run. A failure that reaches nobody is exactly what
+    # this workflow exists to rule out, including the one that never finished.
     if: >-
       always() &&
-      (needs.consistency.outputs.failed == '1' || needs.sources.outputs.failed == '1')
+      (needs.consistency.outputs.failed == '1' || needs.consistency.result != 'success' ||
+       needs.sources.outputs.failed == '1' || needs.sources.result != 'success')
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -90,7 +103,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CONSISTENCY: ${{ needs.consistency.outputs.report }}
+          CONSISTENCY_RESULT: ${{ needs.consistency.result }}
           SOURCES: ${{ needs.sources.outputs.report }}
+          SOURCES_RESULT: ${{ needs.sources.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -99,7 +114,21 @@ jobs:
           {
             printf 'The weekly run found at least one check that no longer passes.\n\n'
             printf 'Run: %s\n\n' "$RUN_URL"
-            printf '%s\n%s\n' "$CONSISTENCY" "$SOURCES"
+            # A job that did not finish (cancelled, timed out, failed before its own report step
+            # ran) has no report to print, so say that plainly rather than leaving a blank
+            # section that reads as "nothing to report".
+            if [ "$CONSISTENCY_RESULT" != 'success' ] && [ -z "$CONSISTENCY" ]; then
+              printf '### consistency did not complete (%s)\n\nNo report was produced; see the run.\n\n' \
+                "$CONSISTENCY_RESULT"
+            else
+              printf '%s\n' "$CONSISTENCY"
+            fi
+            if [ "$SOURCES_RESULT" != 'success' ] && [ -z "$SOURCES" ]; then
+              printf '### sources did not complete (%s)\n\nNo report was produced; see the run.\n\n' \
+                "$SOURCES_RESULT"
+            else
+              printf '%s\n' "$SOURCES"
+            fi
             printf -- '---\n\n'
             printf 'What this run did **not** check: it did not re-screen the field, judge\n'
             printf 'whether a value is still correct, render a single screen, or re-run the\n'
