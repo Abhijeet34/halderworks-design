@@ -3,7 +3,7 @@
 A design system for instruments of record: software whose job is to be trusted about a number, a
 state or a record rather than to be admired.
 
-One token set, two themes, two densities, fifteen components, and **145 inventoried surfaces** each
+One token set, two themes, two densities, fifteen components, and **149 inventoried surfaces** each
 marked covered, partial or excluded. Every value traces to a measurement, and the repository carries
 the tools that prove it.
 
