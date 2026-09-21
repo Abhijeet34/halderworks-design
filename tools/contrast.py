@@ -484,13 +484,22 @@ def extension(themes, seed_path, css_path):
                                f"{bar}, {hexof(*fg)} on {hexof(*themes[theme][bg])}")
                 if worst is None or got < worst[0]:
                     worst = (got, got8, bg)
-            seps = sorted((separation(fg, themes[theme][a], lightness=False), a) for a in apart)
+            bad += [f"{theme} {name} is held apart from {a}, which the house does not declare"
+                    for a in apart if a not in themes[theme]]
+            valid_apart = [a for a in apart if a in themes[theme]]
+            seps = sorted((separation(fg, themes[theme][a], lightness=False), a)
+                          for a in valid_apart)
             bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below "
                     f"{SEPARATION}: a product colour that reads as a house state"
                     for d, a in seps if d < SEPARATION]
-            report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
-                          f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to "
-                          f"{seps[0][1]}")
+            if seps:
+                report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
+                              f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to "
+                              f"{seps[0][1]}")
+            else:
+                report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
+                              f"{worst[1]:.3f}) on {worst[2]}; no house colour to measure "
+                              f"separation against")
     for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
         if prod[copy] != prod[block]:
             bad.append(f"the {copy} block of {Path(css_path).name} differs from {block}")
@@ -583,14 +592,22 @@ def main(argv):
 
     if opts.extend:
         seed = Path(opts.extend)
-        css = opts.extend_css or seed.parent / (json.loads(seed.read_text(encoding="utf-8"))
-                                              ["namespace"] + ".tokens.css")
-        bad, report = extension(themes, seed, css)
-        failures += bad
-        print(f"pass 5: {Path(css).name} against the house set, every token 3:1 or its claimed "
-              f"bar on all six surfaces and {SEPARATION} in hue and chroma from the states and "
-              f"the accent; {len(bad)} failed")
-        print("\n".join(report))
+        css = opts.extend_css
+        if not css:
+            ext_ns = json.loads(seed.read_text(encoding="utf-8")).get("namespace")
+            css = seed.parent / (ext_ns + ".tokens.css") if isinstance(ext_ns, str) and ext_ns \
+                else None
+        if css is None:
+            failures.append(f"{seed} has no usable namespace to derive its built CSS filename "
+                            f"from; pass --extend-css explicitly")
+            print(f"pass 5: {seed} has no derivable css path; 1 failed")
+        else:
+            bad, report = extension(themes, seed, css)
+            failures += bad
+            print(f"pass 5: {Path(css).name} against the house set, every token 3:1 or its "
+                  f"claimed bar on all six surfaces and {SEPARATION} in hue and chroma from the "
+                  f"states and the accent; {len(bad)} failed")
+            print("\n".join(report))
 
     for f in failures:
         print("FAIL  " + f, file=sys.stderr)
