@@ -11,7 +11,7 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 | `tokens/tokens.seed.json` | the source of every token value |
 | `tokens/tokens.css`, `tokens/tokens.json` | generated from the seed by `tools/build.py`; never edited by hand |
 | `exports/` | generated from `tokens/tokens.json` by `tools/export.py`; never edited by hand |
-| `tools/` | four standard-library Python 3 scripts, no dependencies and no network |
+| `tools/` | six standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
 | `.github/rulesets/`, `.github/settings/` | what this repository enforces on the forge, as files. Nothing applies them on its own; see "The settings that are not files" below |
 | `scripts/apply-repo-settings.sh` | the one command that sends those files to GitHub |
 | `docs/publication-record.md` | the one-off record of the first publication; not maintained |
@@ -26,7 +26,16 @@ python3 tools/build.py --check    # emit nothing; fail if the committed files ar
 python3 tools/contrast.py         # re-derive every published ratio from the CSS, independently
 python3 tools/export.py           # regenerate exports/ and refuse if it diverges from the CSS
 python3 tools/check-coverage.py   # the inventory, its refusals, its manifest, and every link
+python3 tools/test-check-sources.py  # the source classifier, against a local server
+python3 tools/check-sources.py    # every cited source still resolves. THE ONE THAT LEAVES THE MACHINE
 ```
+
+`check-sources.py` is the weekly job's and is not run per change; everything above it is. It
+answers in three classes rather than two, and the middle one is the point: `ok` for 2xx/3xx,
+`refusing` for 401/403/429 - a server answered, so the source exists and only access from a
+data-centre address is gated - and `dead` for 404, 410, any other error status, or no response
+at all. Only `dead` fails. `test-check-sources.py` holds that line against a local
+`http.server` and a closed port, so a merge cannot quietly widen or narrow it.
 
 `build.py` and `contrast.py` are deliberately two instruments rather than one. The build solves
 against the floors recorded in the seed; `contrast.py` knows nothing about the seed and re-derives
@@ -57,8 +66,8 @@ Read [design/95-extending.md](design/95-extending.md) first. In short:
 - **A gap is a finding, not a blocker.** Ship the screen with the nearest house value and say in
   the same breath what you needed.
 
-Run all four tools before opening a pull request; CI runs the same ones and a merge depends on
-them. [`.github/workflows/consistency.yml`](.github/workflows/consistency.yml) is their single
+Run the per-change tools before opening a pull request; CI runs the same ones and a merge
+depends on them. [`.github/workflows/consistency.yml`](.github/workflows/consistency.yml) is their single
 definition, and both [`ci.yml`](.github/workflows/ci.yml) and
 [`maintenance.yml`](.github/workflows/maintenance.yml) call that one file rather than carrying a
 copy each.
@@ -131,17 +140,19 @@ something has actually moved**, so a quiet week is silent rather than noisy.
 
 **What it checks.** The first six rows are the `consistency` call, which `ci.yml` makes on every
 pull request as well; only the last row is the weekly job's own, because only a schedule can catch
-a source that went away without anyone touching this repository.
+a source that went away without anyone touching this repository. That is also why this workflow
+has no `push` trigger: `ci.yml` already runs the consistency call on every push to `main`, and a
+per-push network sweep is 26 outbound requests against a field that moves in months.
 
 | check | how it fails |
 |---|---|
 | the token files still build from the seed | `build.py --check` finds a committed file the seed does not produce |
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
 | every published contrast ratio still holds | `contrast.py` re-derives the matrix and finds a pair below bar or a token outside sRGB |
-| every export still matches its source | `export.py` regenerates `exports/` and the working tree is no longer clean |
+| every export still matches its source | `export.py` exits non-zero, or regenerates `exports/` and `git status --porcelain -- exports/` is no longer empty |
 | the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal resolving to no row, a manifest with no lists or no date |
 | every internal link and anchor | the same script, across every Markdown file in the repository |
-| every cited external source still resolves | an HTTP request per distinct URL in the book, failing on a status that is neither a success nor a redirect |
+| every cited external source still resolves | an HTTP request per distinct URL in the book, failing on 404, 410, any other error status, or no response. A 401, 403 or 429 is reported as alive-but-refusing and does not fail |
 
 **What it does not check, stated plainly so nobody reads its green as more than it is:**
 

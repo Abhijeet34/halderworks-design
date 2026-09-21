@@ -116,7 +116,7 @@ Other forms of the same values, for a tool that wants one:
 ## Changing the system
 
 [CONTRIBUTING.md](CONTRIBUTING.md) says how a change is proposed. [AGENTS.md](AGENTS.md) holds the
-four tools, the rules a change to a token or a rule is held to, what CI requires before a merge,
+tools, the rules a change to a token or a rule is held to, what CI requires before a merge,
 and what the weekly maintenance job does and does not check. [docs/publication-record.md](docs/publication-record.md) records how the
 first publication was scrubbed and verified.
 
