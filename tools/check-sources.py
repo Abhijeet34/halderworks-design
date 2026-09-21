@@ -3,7 +3,7 @@
 
 The other four tools in this directory are offline and internally consistent; this one is the
 only one that leaves the machine, which is why it runs on the weekly schedule rather than on
-every change. A source rots in months, so 26 outbound requests per push buy no information.
+every change. A source rots in months, so 22 outbound requests per push buy no information.
 
 What "exists" means is the whole substance of this check, and it is a three-way answer rather
 than a two-way one:
@@ -20,6 +20,15 @@ answers 403 to an unauthenticated request, the check called it DEAD, and a maint
 sits red is one people stop reading. A blanket 4xx skip would have bought the same green by
 giving up the check, so the split is by what the code actually proves: a status line is
 evidence the host is alive, 404 and 410 are that same host stating the source is gone.
+
+What counts as a citation at all is settled before any of that, and it is the narrower
+question: a URL inside a fenced code block is part of an example the book prints, not a source
+the book stands behind. `<link rel="preconnect" href="https://fonts.gstatic.com">` is a
+connection hint to a host that serves font files at paths and answers 404 on its root by
+design, and `http://www.w3.org/2000/svg` is an XML namespace identifier that was never meant to
+be fetched. Both were reported dead every week. The fence is the line because it is the line
+the book already draws between what it says and what it shows, and because it holds for the
+next CDN base, example endpoint or namespace without anyone adding a name to a list.
 
     python3 tools/check-sources.py [repo-root] [--report PATH] [--summary PATH]
 
@@ -42,6 +51,7 @@ URL = re.compile(r"https?://[A-Za-z0-9._~:/?#@!$&*+,;=%()-]+")
 DOM = re.compile(r"`([a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+"
                  r"(?:/[A-Za-z0-9._~/?#@!$&*+,;=%()-]*)?)`")
 NPM = re.compile(r"`(@?[a-z0-9][a-z0-9._/-]*)@(\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?)`")
+FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
 
 # Sources the book itself records as unreachable, each with the entry that says so, and account
 # handles that only look like hosts. Checking them would report the finding the book already
@@ -49,6 +59,9 @@ NPM = re.compile(r"`(@?[a-z0-9][a-z0-9._/-]*)@(\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?)
 SKIP = {
     "https://eightshapes.com",
     "https://figma.expert",
+    # design/00-brand-book.md, "The mark": the domain is registered and its mail resolves,
+    # and no web host answers the apex yet. The book says so where it names it.
+    "https://halderworks.com",
     "https://height.app",
     "https://refero.design/web",
     "https://ui.ux.jam",
@@ -61,14 +74,36 @@ TIMEOUT = 25
 ATTEMPTS = 3
 
 
+def prose(text: str) -> str:
+    """The file with its fenced code blocks removed, so an example is not read as a citation."""
+    out: list[str] = []
+    fence: tuple[str, int] | None = None
+    for line in text.splitlines():
+        m = FENCE.match(line)
+        run = m.group(1) if m else None
+        if fence is None:
+            if run:
+                fence = (run[0], len(run))
+            else:
+                out.append(line)
+        elif run and run[0] == fence[0] and len(run) >= fence[1] and not line.strip(f" \t{run[0]}"):
+            # CommonMark: a closing fence is the same character, at least as long, and alone
+            # on its line. Anything else inside the block is content, including ```js.
+            fence = None
+    return "\n".join(out)
+
+
 def extract(root: Path) -> list[str]:
-    """Every distinct source cited anywhere in the book, as a URL."""
+    """Every distinct source cited anywhere in the book, as a URL.
+
+    Fenced code is dropped first: what the book shows is not what the book cites.
+    """
     files: list[Path] = []
     for pattern in SOURCES:
         files.extend(sorted(root.glob(pattern)))
     out: set[str] = set()
     for f in files:
-        text = f.read_text(encoding="utf-8")
+        text = prose(f.read_text(encoding="utf-8"))
         for m in URL.findall(text):
             out.add(m.rstrip(".,;:)]"))
         for m in DOM.findall(text):
