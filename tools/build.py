@@ -85,7 +85,7 @@ EPS = 1e-9
 # How far above its bar a re-solved pair is placed. Every term it has to cover is measured
 # rather than guessed, against the shipped set on 2026-09-21: rounding the emitted lightness to
 # four decimals moves a ratio by at most 0.00265, and the largest disagreement between this
-# file's converter and tools/contrast.py's reference path over the 158 certified pairs is
+# file's converter and tools/contrast.py's reference path over the 198 certified pairs is
 # 0.00154. 0.03 is eleven times the first and nineteen times the second. Quantization to 8-bit
 # is not in this budget because it is measured directly instead, in meets().
 MARGIN = 0.03

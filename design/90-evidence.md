@@ -79,7 +79,7 @@ The final run: **108 text pairs across both themes, 0 below AA; 90 non-text pair
 `tools/build.py` emits `tokens/tokens.json` and `tokens/tokens.css` from `tokens/tokens.seed.json`, re-measures every floor against the formatted strings before it writes them, and refuses to write either unless that holds.
 Rebuilt at the shipped hue it re-solves three tokens, because the solver now targets the bar plus a margin rather than the bar: a value solved to land exactly on its floor is a value that rounding, a second converter or an 8-bit display can each take below it.
 `tools/build.py --check` reproducing the two committed files byte for byte is the regression that proves the shipped set satisfies its own spec.
-Rebuilt at hue 318 it re-solves five tokens and the matrix still holds, and a sweep of all 360 accent hues finds 147 buildable, all 147 accepted by `tools/contrast.py` and none carrying a pair below its bar on an exact reading.
+Rebuilt at hue 318 it re-solves five tokens and the matrix still holds, and a sweep of all 360 accent hues finds 145 buildable, all 145 accepted by `tools/contrast.py` and none carrying a pair below its bar on an exact reading.
 
 ## Measurements taken directly
 

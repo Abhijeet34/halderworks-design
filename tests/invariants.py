@@ -31,7 +31,7 @@ import build          # noqa: E402
 import contrast       # noqa: E402
 
 # The largest disagreement the two converters are allowed on a certified pair. Measured at
-# 0.00154 over the 158 pairs of the shipped set on 2026-09-21; 0.01 leaves room for a re-solve
+# 0.00154 over the 198 pairs of the shipped set on 2026-09-21; 0.01 leaves room for a re-solve
 # to move a value without anyone having to re-tune this file, and is still an order below the
 # 0.011 that would let a published two-decimal ratio round to the wrong cell.
 CONVERTER_BOUND = 0.01
