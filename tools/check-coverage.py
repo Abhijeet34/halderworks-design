@@ -300,8 +300,8 @@ def check_manifest(inventory: Path, failures: list):
                len(lines))
     section = lines[start:end]
     body = [l for l in section if ROW.match(l) and not set(l.replace("|", "").replace(" ", "")) <= {"-", ":"}]
-    if len(body) < 6:
-        failures.append(f"{inventory.name}  the cross-check manifest names fewer than five "
+    if len(body) < 7:
+        failures.append(f"{inventory.name}  the cross-check manifest names fewer than six "
                         f"external lists; it holds {max(len(body) - 1, 0)}")
     if not any(ISO_DATE.search(l) for l in section):
         failures.append(f"{inventory.name}  the cross-check manifest carries no date, so a "
