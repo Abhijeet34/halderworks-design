@@ -38,8 +38,13 @@ from pathlib import Path
 SRC = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
 RESULTS = []
 
-CHECKS = [("tools/build.py",), ("tools/build.py", "--check"), ("tools/contrast.py",),
-          ("tools/export.py",), ("tools/check-coverage.py",), ("tests/invariants.py",)]
+# The worked product seed, which CI solves and verifies beside the house set.
+EXAMPLE = "examples/quoth.seed.json"
+CHECKS = [("build", ("tools/build.py",)), ("--check", ("tools/build.py", "--check")),
+          ("contrast", ("tools/contrast.py",)), ("export", ("tools/export.py",)),
+          ("check-coverage", ("tools/check-coverage.py",)), ("invariants", ("tests/invariants.py",)),
+          ("extend", ("tools/build.py", "--check", "--extend", EXAMPLE)),
+          ("contrast-extend", ("tools/contrast.py", "--extend", EXAMPLE))]
 
 
 def clone():
@@ -81,9 +86,9 @@ def case(name, expect, mutate, after=None, note=""):
     repo = clone()
     mutate(repo)
     codes, out = {}, ""
-    for cmd in CHECKS:
+    for key, cmd in CHECKS:
         rc, o = run(repo, *cmd)
-        codes[cmd[-1] if cmd[-1].startswith("--") else Path(cmd[0]).stem] = rc
+        codes[key] = rc
         out += o
     green = all(rc == 0 for rc in codes.values())
     verdict = "green" if green else "caught"
@@ -292,6 +297,76 @@ def w4(repo):
 
 case("W4 hw-text-secondary loses its prefers-contrast target, so the raise solves it onto muted",
      "caught", w4, note="75-spec-sheet.md: the text roles keep a 0.06 step in every block")
+
+
+# ---------------------------------------------------------------- a product's own colour
+def product_edit(repo, fn):
+    p = repo / EXAMPLE
+    seed = json.loads(p.read_text(encoding="utf-8"))
+    fn(seed["color"]["tokens"][0])
+    p.write_text(json.dumps(seed, indent=2) + "\n", encoding="utf-8")
+
+
+def product_css_edit(repo, old, new):
+    p = repo / "examples" / "quoth.tokens.css"
+    t = p.read_text(encoding="utf-8")
+    assert old in t
+    p.write_text(t.replace(old, new, 1), encoding="utf-8")
+
+
+def x1(repo):
+    def f(e):
+        e["hue"] = 27
+        e["light"]["L"], e["dark"]["L"] = "0.30", "0.85"
+    product_edit(repo, f)
+
+
+case("X1 quoth-live becomes recording red: hue 27, a maroon in light and a pink in dark", "caught",
+     x1, note="both sit 9.8 or more from hw-danger in full oklab distance and 0.9 and 3.1 in hue "
+              "and chroma: lightness alone must not clear a colour of reading as a state")
+
+
+case("X2 quoth-live collides with a semantic: hue 150, beside hw-success", "caught",
+     lambda r: product_edit(r, lambda e: e.__setitem__("hue", 150)),
+     note="95-extending.md: a product colour sits 8.0 from each state colour")
+
+
+case("X3 the product seed names its token hw-accent", "caught",
+     lambda r: product_edit(r, lambda e: e.__setitem__("name", "hw-accent")),
+     note="95-extending.md: never redefine an hw- token, and the tool refuses it")
+
+
+case("X4 quoth.tokens.css is hand-edited to redefine --hw-accent", "caught",
+     lambda r: product_css_edit(r, "  --quoth-live:", "  --hw-accent: oklch(0.9 0.02 297);\n"
+                                                      "  --quoth-live:"),
+     note="the second instrument refuses an hw- declaration in a product file on its own")
+
+
+def x5(repo):
+    def f(e):
+        e["floors"] = [{"bar": 3.0, "on": ["ground"]}]
+        e["light"]["L"] = "0.80"
+    product_edit(repo, f)
+
+
+case("X5 quoth-live's floors narrow to the ground at 3:1, and its light anchor moves to L 0.80",
+     "caught", x5, note="a product colour holds 3:1 on all six surfaces, whatever its seed says")
+
+
+case("X6 quoth.tokens.css is hand-edited to light L 0.80, under its floor", "caught",
+     lambda r: product_css_edit(r, "--quoth-live: oklch(0.515 ", "--quoth-live: oklch(0.80 "),
+     note="the second instrument measures the file, not the seed")
+
+
+def x7(repo):
+    def f(e):
+        e["apart"].remove("hw-danger")
+        e["hue"] = 20
+    product_edit(repo, f)
+
+
+case("X7 quoth-live stops being held apart from hw-danger and moves to hue 20", "caught", x7,
+     note="a seed can name more colours to stay clear of, never fewer")
 
 
 # ---------------------------------------------------------------- check-coverage.py

@@ -42,8 +42,14 @@ It runs four passes and exits non-zero if any fails:
   pass 1 reports itself skipped and names the hue rather than failing rows that were never
   claimed about it. Passes 2 to 4 are hue-independent and always run; they are the certificate.
 
-    python3 tools/contrast.py [tokens.css]
+  Pass 5 runs only with --extend: a product's own colour tokens, from the file tools/build.py
+  --extend wrote beside the product's seed, held to what this file requires of any product
+  colour and to any higher bar the seed claims.
+
+    python3 tools/contrast.py [tokens.css] [--extend product.seed.json [--extend-css file]]
 """
+import argparse
+import json
 import math
 import re
 import sys
@@ -129,7 +135,7 @@ def hexof(L, C, h):
     return "#" + "".join("%02X" % round(min(max(v, 0), 1) * 255) for v in oklch_to_rgb(L, C, h))
 
 
-TOKEN_RE = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
+TOKEN_RE = re.compile(r"^\s*(--[a-z][a-z0-9]*-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
 
 
 # (media query, selector) -> block. A selector means nothing without the query it sits in: the
@@ -249,12 +255,13 @@ SEPARATION, NEIGHBOUR_DL = 8.0, 0.12
 CHARTS = [f"--hw-chart-{n}" for n in range(1, 7)]
 
 
-def separation(a, b):
-    """Oklab distance times 100 between two oklch triples."""
+def separation(a, b, lightness=True):
+    """Oklab distance times 100 between two oklch triples. Without lightness it is the distance
+    in hue and chroma alone, which pass 5 holds a product colour to."""
     (L1, C1, h1), (L2, C2, h2) = a, b
     da = C1 * math.cos(math.radians(h1)) - C2 * math.cos(math.radians(h2))
     db = C1 * math.sin(math.radians(h1)) - C2 * math.sin(math.radians(h2))
-    return 100 * math.hypot(L1 - L2, da, db)
+    return 100 * math.hypot(L1 - L2 if lightness else 0.0, da, db)
 
 
 def separations(tokens):
@@ -396,8 +403,79 @@ def published_ratios(root):
     return out
 
 
+# --- pass 5: a product's own colour ---------------------------------------------------------
+# What every product colour is held to, declared here rather than read from the product's seed,
+# so a product cannot weaken it in the same edit as the value it guards: at least 3:1 on each of
+# the six surfaces, and SEPARATION in hue and chroma from the three states and the accent. The
+# seed is read only for what it adds - a pair at a text bar, or a further colour to stay clear of.
+PRODUCT_APART = [f"--hw-{s}" for s in SEMANTICS]
+
+
+def raised(bar):
+    return max(bar, MORE_BAR[AA]) if bar >= AA else MORE_BAR[NON_TEXT]
+
+
+def extension(themes, seed_path, css_path):
+    """(failures, report lines) for one product's seed and the CSS built from it."""
+    ext = json.loads(Path(seed_path).read_text(encoding="utf-8"))
+    ns, prod = ext["namespace"], parse_tokens(css_path)
+    bad, report = [], []
+    for block, tokens in prod.items():
+        for token in tokens:
+            if token.startswith("--hw-"):
+                bad.append(f"{block} {token} is redefined by {Path(css_path).name}, and a product "
+                           f"can never redefine an hw- token")
+            elif not token.startswith(f"--{ns}-"):
+                bad.append(f"{block} {token} is outside the --{ns}- namespace")
+    for e in ext["color"]["tokens"]:
+        name = "--" + e["name"]
+        pairs = {s: NON_TEXT for s in SURFACES}
+        for floor in e.get("floors", []):
+            if floor["bar"] != NON_TEXT and floor["bar"] < AA:
+                bad.append(f"{name} claims {floor['bar']}:1, which certifies nothing this file holds")
+                continue
+            for g in floor["on"]:
+                pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), floor["bar"])
+        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in e.get("apart", [])})
+        for theme in BLOCKS_CERTIFIED:
+            fg = prod[theme].get(name)
+            if fg is None:
+                bad.append(f"{theme} {name} is declared in {Path(seed_path).name} and not in "
+                           f"{Path(css_path).name}")
+                continue
+            if not in_gamut(*fg):
+                bad.append(f"{theme} {name} oklch{fg} falls outside sRGB")
+            worst = None
+            for bg, base in pairs.items():
+                bar = raised(base) if theme.endswith("-more") else base
+                if bg not in themes[theme]:
+                    bad.append(f"{theme} {name} is claimed on {bg}, which the house does not declare")
+                    continue
+                got, got8 = ratio(fg, themes[theme][bg])
+                if got < bar or got8 < bar:
+                    bad.append(f"{theme} {name} on {bg}: {got:.3f} ({got8:.3f} at 8-bit), below "
+                               f"{bar}, {hexof(*fg)} on {hexof(*themes[theme][bg])}")
+                if worst is None or got < worst[0]:
+                    worst = (got, got8, bg)
+            seps = sorted((separation(fg, themes[theme][a], lightness=False), a) for a in apart)
+            bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below {SEPARATION}: "
+                    f"a product colour that reads as a house state" for d, a in seps if d < SEPARATION]
+            report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
+                          f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to {seps[0][1]}")
+    for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
+        if prod[copy] != prod[block]:
+            bad.append(f"the {copy} block of {Path(css_path).name} differs from {block}")
+    return bad, report
+
+
 def main(argv):
-    path = argv[1] if len(argv) > 1 else str(ROOT / "tokens" / "tokens.css")
+    ap = argparse.ArgumentParser(prog="contrast.py", description=__doc__.split("\n")[0])
+    ap.add_argument("css", nargs="?", default=str(ROOT / "tokens" / "tokens.css"))
+    ap.add_argument("--extend", metavar="SEED", help="also verify this product seed's tokens")
+    ap.add_argument("--extend-css", metavar="FILE",
+                    help="the product's built CSS, if not <namespace>.tokens.css beside the seed")
+    opts = ap.parse_args(argv[1:])
+    path = opts.css
     themes = parse_tokens(path)
     failures = []
 
@@ -473,6 +551,17 @@ def main(argv):
     print(f"pass 4: {sum(len(themes[t]) for t in BLOCKS_CERTIFIED)} tokens inside sRGB; "
           f"media-dark agrees with dark on {len(themes['media-dark'])} declarations and "
           f"media-dark-more with dark-more on {len(themes['media-dark-more'])}")
+
+    if opts.extend:
+        seed = Path(opts.extend)
+        css = opts.extend_css or seed.parent / (json.loads(seed.read_text(encoding="utf-8"))
+                                              ["namespace"] + ".tokens.css")
+        bad, report = extension(themes, seed, css)
+        failures += bad
+        print(f"pass 5: {Path(css).name} against the house set, every token 3:1 or its claimed "
+              f"bar on all six surfaces and {SEPARATION} in hue and chroma from the states and "
+              f"the accent; {len(bad)} failed")
+        print("\n".join(report))
 
     for f in failures:
         print("FAIL  " + f, file=sys.stderr)

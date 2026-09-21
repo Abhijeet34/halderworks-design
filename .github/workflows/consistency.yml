@@ -71,6 +71,12 @@ jobs:
             python3 tools/build.py --check
           run "A published contrast ratio no longer holds" \
             python3 tools/contrast.py
+          # The worked product seed: solved against this set, and verified by the second
+          # instrument, so a house change that breaks a product's own colour is caught here.
+          run "The worked product colour no longer builds from its seed" \
+            python3 tools/build.py --check --extend examples/quoth.seed.json
+          run "The worked product colour no longer holds against the house set" \
+            python3 tools/contrast.py --extend examples/quoth.seed.json
           run "The coverage inventory, its refusals, its manifest or a link" \
             python3 tools/check-coverage.py
           run "The source classifier no longer agrees with its fixtures" \
