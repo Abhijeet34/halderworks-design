@@ -431,13 +431,22 @@ def extension(themes, seed_path, css_path):
         name = "--" + e["name"]
         pairs = {s: NON_TEXT for s in SURFACES}
         for floor in e.get("floors", []):
-            bar = floor.get("bar")
-            if not isinstance(bar, (int, float)) or bar != NON_TEXT and bar < AA:
+            if not (isinstance(floor, dict) and isinstance(floor.get("bar"), (int, float))
+                    and isinstance(floor.get("on"), list)):
+                bad.append(f"{name} carries a floor {floor!r} that is not a numeric bar and a "
+                           f"list of grounds")
+                continue
+            bar = floor["bar"]
+            if bar != NON_TEXT and bar < AA:
                 bad.append(f"{name} claims {bar}:1, which certifies nothing this file holds")
                 continue
             for g in floor["on"]:
-                pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), floor["bar"])
-        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in e.get("apart", [])})
+                pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), bar)
+        raw_apart = e.get("apart", [])
+        if not isinstance(raw_apart, list):
+            bad.append(f"{name} has apart {raw_apart!r}, which is not a list of house colours")
+            raw_apart = []
+        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in raw_apart})
         for theme in BLOCKS_CERTIFIED:
             fg = prod[theme].get(name)
             if fg is None:
