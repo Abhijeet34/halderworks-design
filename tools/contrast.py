@@ -431,8 +431,9 @@ def extension(themes, seed_path, css_path):
         name = "--" + e["name"]
         pairs = {s: NON_TEXT for s in SURFACES}
         for floor in e.get("floors", []):
-            if floor["bar"] != NON_TEXT and floor["bar"] < AA:
-                bad.append(f"{name} claims {floor['bar']}:1, which certifies nothing this file holds")
+            bar = floor.get("bar")
+            if not isinstance(bar, (int, float)) or bar != NON_TEXT and bar < AA:
+                bad.append(f"{name} claims {bar}:1, which certifies nothing this file holds")
                 continue
             for g in floor["on"]:
                 pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), floor["bar"])
@@ -449,7 +450,8 @@ def extension(themes, seed_path, css_path):
             for bg, base in pairs.items():
                 bar = raised(base) if theme.endswith("-more") else base
                 if bg not in themes[theme]:
-                    bad.append(f"{theme} {name} is claimed on {bg}, which the house does not declare")
+                    bad.append(f"{theme} {name} is claimed on {bg}, which the house does not "
+                               f"declare")
                     continue
                 got, got8 = ratio(fg, themes[theme][bg])
                 if got < bar or got8 < bar:
@@ -458,10 +460,12 @@ def extension(themes, seed_path, css_path):
                 if worst is None or got < worst[0]:
                     worst = (got, got8, bg)
             seps = sorted((separation(fg, themes[theme][a], lightness=False), a) for a in apart)
-            bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below {SEPARATION}: "
-                    f"a product colour that reads as a house state" for d, a in seps if d < SEPARATION]
+            bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below "
+                    f"{SEPARATION}: a product colour that reads as a house state"
+                    for d, a in seps if d < SEPARATION]
             report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
-                          f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to {seps[0][1]}")
+                          f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to "
+                          f"{seps[0][1]}")
     for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
         if prod[copy] != prod[block]:
             bad.append(f"the {copy} block of {Path(css_path).name} differs from {block}")

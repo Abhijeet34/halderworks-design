@@ -989,6 +989,11 @@ def check_extension(seed, ext):
                 bad.append(f"{name} has no {t} anchor with an L and a C")
         grounds = set()
         for floor in e.get("floors", []):
+            if not (isinstance(floor, dict) and isinstance(floor.get("bar"), (int, float))
+                    and isinstance(floor.get("on"), list)):
+                bad.append(f"{name} carries a floor {floor!r} that is not a numeric bar and a "
+                           f"list of grounds")
+                continue
             if floor["bar"] != NON_TEXT_BAR and floor["bar"] < AA_BAR:
                 bad.append(f"{name} carries a floor at {floor['bar']}:1, which is neither the "
                            f"{NON_TEXT_BAR}:1 of WCAG SC 1.4.11 nor at least the {AA_BAR}:1 of "
@@ -1005,6 +1010,9 @@ def check_extension(seed, ext):
                        f"colour can land on any of the six surfaces, so it holds at least "
                        f"{NON_TEXT_BAR}:1 on every one")
         apart = e.get("apart", [])
+        if not isinstance(apart, list):
+            bad.append(f"{name} has apart {apart!r}, which is not a list of house colours")
+            continue
         bad += [f"{name} is held apart from {a}, which is not a solved house colour"
                 for a in apart if a not in solved]
         bad += [f"{name} is not held apart from {a}. Every product colour stays clear of the "

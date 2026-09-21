@@ -42,7 +42,8 @@ RESULTS = []
 EXAMPLE = "examples/quoth.seed.json"
 CHECKS = [("build", ("tools/build.py",)), ("--check", ("tools/build.py", "--check")),
           ("contrast", ("tools/contrast.py",)), ("export", ("tools/export.py",)),
-          ("check-coverage", ("tools/check-coverage.py",)), ("invariants", ("tests/invariants.py",)),
+          ("check-coverage", ("tools/check-coverage.py",)),
+          ("invariants", ("tests/invariants.py",)),
           ("extend", ("tools/build.py", "--check", "--extend", EXAMPLE)),
           ("contrast-extend", ("tools/contrast.py", "--extend", EXAMPLE))]
 
