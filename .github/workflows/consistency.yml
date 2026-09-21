@@ -8,7 +8,11 @@ name: consistency
 #
 # A reusable workflow rather than a shell script because the body is already shell: a script
 # would add a file that only CI ever calls, and AGENTS.md documents `python3 tools/*.py` as the
-# command a person runs. This file is the CI wrapper around those four commands, nothing more.
+# command a person runs. This file is the CI wrapper around those commands, nothing more.
+#
+# The network liveness check is NOT here: it runs weekly, from maintenance.yml, because a cited
+# source rots in months and a per-change network sweep buys no information. Its classifier's
+# fixture test is here, because that one is offline and a merge should not be able to break it.
 
 on:
   workflow_call:
@@ -47,8 +51,12 @@ jobs:
 
           run() {
             local title="$1"; shift
-            local out rc
-            out=$("$@" 2>&1); rc=$?
+            local out rc=0
+            # `|| rc=$?` rather than a bare assignment: the runner's default shell is
+            # `bash -e`, and there errexit kills the whole step on the first failing check -
+            # before the report, the outputs or the summary are written, so the issue job
+            # downstream would be handed an empty report. An OR list suspends errexit.
+            out=$("$@" 2>&1) || rc=$?
             if [ "$rc" -ne 0 ]; then
               failed=1
               # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
@@ -65,18 +73,25 @@ jobs:
             python3 tools/contrast.py
           run "The coverage inventory, its refusals, its manifest or a link" \
             python3 tools/check-coverage.py
+          run "The source classifier no longer agrees with its fixtures" \
+            python3 tools/test-check-sources.py
 
-          # The exporter writes before it reports, so the diff is the check.
-          python3 tools/export.py || true
-          if ! git diff --quiet -- exports/; then
+          # The exporter writes before it reports, so BOTH halves are the check: its own exit
+          # status, and the state of the working tree afterwards. `python3 tools/export.py ||
+          # true` used to swallow the first half, and the two ways it can refuse both left a
+          # clean diff - a traceback writes nothing, and 'not equivalent to tokens.css' on an
+          # output already committed changes nothing - so a refusal AGENTS.md promises reached
+          # nobody. `git diff --quiet` is also blind to an untracked file, so a new export that
+          # was never committed was invisible; `git status --porcelain` sees it.
+          run "The exporter refused to emit" python3 tools/export.py
+          drift=$(git status --porcelain -- exports/)
+          if [ -n "$drift" ]; then
             failed=1
             # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
             {
               printf '### An export no longer matches its source\n\n'
               printf 'Regenerating `exports/` changed the working tree. Run '
-              printf '`python3 tools/export.py` and commit the result.\n\n```diff\n'
-              git --no-pager diff --stat -- exports/
-              printf '\n```\n\n'
+              printf '`python3 tools/export.py` and commit the result.\n\n```text\n%s\n```\n\n' "$drift"
             } >> "$report"
             printf '::error title=export drift::exports/ is stale\n'
           fi

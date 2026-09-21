@@ -11,15 +11,18 @@ name: maintenance
 # The consistency job is a call into .github/workflows/consistency.yml, which ci.yml also calls
 # and which the `checks` context there gates a merge on. This workflow used to carry that job's
 # body and its own path-filtered `pull_request` trigger; both are gone, because ci.yml now runs
-# the same four tools on every pull request with no path filter. What is left here is the part
+# the same five tools on every pull request with no path filter. What is left here is the part
 # only a schedule can do: the network liveness check, and the issue.
+#
+# No `push` trigger, deliberately. ci.yml already runs the consistency call on every push to
+# main, so a push here added nothing but 26 outbound requests per commit against a field that
+# moves in months - and it is how the network check first went red on a commit page, on an
+# event whose failure the issue job below was never wired to report.
 
 on:
   schedule:
     - cron: '17 6 * * 1'
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -31,9 +34,19 @@ jobs:
   sources:
     name: every cited source still resolves
     runs-on: ubuntu-24.04
-    # Network liveness is flakier than the rest by nature, so it is its own job: a timed-out CDN
-    # must not be able to mask a real contrast failure.
-    continue-on-error: true
+    # 40, not a round guess: check-sources.py budgets ATTEMPTS=3 x TIMEOUT=25s per source, so
+    # 26 sources cost at most 26 * 75s ~= 32.5 minutes before the step's own output block runs.
+    # The job timeout must sit above that arithmetic, not below it - a timeout that could fire
+    # first would cancel the job before it writes GITHUB_OUTPUT, and a cancelled job's `failed`
+    # output is empty rather than '1', which the `report` job below cannot tell apart from a
+    # clean run.
+    timeout-minutes: 40
+    # Its own job, not its own exemption: a timed-out CDN must not be able to mask a real
+    # contrast failure, which is why this is separate from `consistency`. It used to carry
+    # `continue-on-error: true` as well, and that made the job's red X and the run's green
+    # tick disagree - the run list recorded 35547340589 as success with this job failed
+    # inside it. A failure here now fails the run and opens the issue, which is the only
+    # reading under which the check is worth running at all.
     outputs:
       report: ${{ steps.check.outputs.report }}
       failed: ${{ steps.check.outputs.failed }}
@@ -44,80 +57,16 @@ jobs:
         id: check
         run: |
           set -uo pipefail
-
-          # Three kinds of citation, because the book cites more by name than by link: a full
-          # URL, a bare host or path in backticks, and an npm package at a pinned version.
-          python3 - <<'EXTRACT' > sources.txt
-          import re, pathlib
-          FILES = sorted(pathlib.Path("design").glob("*.md")) + [
-              pathlib.Path("README.md"), pathlib.Path("SKILL.md")]
-          # A backticked dotted token is a host only if its last label is not a file extension.
-          NOT_TLD = {"md", "py", "css", "json", "js", "yml", "yaml", "txt", "html", "svg",
-                     "png", "jpg", "sh", "toml", "lock", "xml"}
-          URL = re.compile(r"https?://[A-Za-z0-9._~:/?#@!$&*+,;=%()-]+")
-          DOM = re.compile(r"`([a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+"
-                           r"(?:/[A-Za-z0-9._~/?#@!$&*+,;=%()-]*)?)`")
-          NPM = re.compile(r"`(@?[a-z0-9][a-z0-9._/-]*)@(\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?)`")
-          out = set()
-          for f in FILES:
-              text = f.read_text(encoding="utf-8")
-              for m in URL.findall(text):
-                  out.add(m.rstrip(".,;:)]"))
-              for m in DOM.findall(text):
-                  tld = m.split("/")[0].rsplit(".", 1)[-1]
-                  if tld not in NOT_TLD and len(tld) >= 2 and not tld.isdigit():
-                      out.add("https://" + m)
-              for name, version in NPM.findall(text):
-                  out.add(f"https://registry.npmjs.org/{name}/{version}")
-          print("\n".join(sorted(out)))
-          EXTRACT
-
-          # Sources the book itself records as unreachable, each with the entry that says so, and
-          # account handles that only look like hosts. Checking them would report the finding the
-          # book already carries, or a host that was never cited, every week.
-          cat > skip.txt <<'SKIP'
-          https://eightshapes.com
-          https://figma.expert
-          https://height.app
-          https://refero.design/web
-          https://ui.ux.jam
-          SKIP
-
-          report=$(mktemp); failed=0; n=0
-          while read -r u; do
-            [ -z "$u" ] && continue
-            if grep -qxF "$u" skip.txt; then
-              printf 'skip      %s  (recorded unreachable, or an account handle)\n' "$u"
-              continue
-            fi
-            n=$((n + 1))
-            # curl writes 000 itself when it never got a response, so appending a fallback
-            # here produces '000000' and the comparison below then reads a nonsense number.
-            code=$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 25 --retry 2 \
-                     --retry-delay 3 -A 'halderworks-design maintenance (+github actions)' \
-                     "$u" 2>/dev/null) || true
-            code=${code:-000}
-            if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
-              printf 'ok   %s  %s\n' "$code" "$u"
-            else
-              failed=1
-              printf 'DEAD %s  %s\n' "$code" "$u"
-              # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
-              printf -- '- `%s` returned `%s`\n' "$u" "$code" >> "$report"
-            fi
-          done < sources.txt
-          printf '%s sources checked\n' "$n"
-
+          report="$RUNNER_TEMP/sources.md"
+          failed=0
+          # `|| failed=$?` rather than reading `$?` on the next line: the runner's shell is
+          # `bash -e`, and there a bare failing command ends the step before the report, the
+          # outputs and the summary are written - which would fail the run while handing the
+          # issue job below an empty report.
+          python3 tools/check-sources.py --report "$report" \
+            --summary "$GITHUB_STEP_SUMMARY" || failed=$?
           if [ "$failed" -ne 0 ]; then
-            { printf '### A cited source no longer resolves\n\n'
-              cat "$report"
-              printf '\nA dead link is not automatically a wrong claim: the source may have\n'
-              printf 'moved, and a package version may simply have been unpublished. Find where\n'
-              printf 'it went and update the citation, or record in\n'
-              # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
-              printf '`design/85-considered-and-declined.md` that it is now unreachable.\n\n'
-            } > "$report.full"
-            mv "$report.full" "$report"
+            printf '::error title=a cited source no longer resolves::see the job summary\n'
           fi
           {
             echo "report<<REPORT_EOF"
@@ -125,16 +74,24 @@ jobs:
             echo "REPORT_EOF"
             echo "failed=$failed"
           } >> "$GITHUB_OUTPUT"
-          cat "$report" >> "$GITHUB_STEP_SUMMARY" || true
-          rm -f sources.txt skip.txt
           exit "$failed"
 
   report:
     name: open an issue, but only if something moved
     needs: [consistency, sources]
+    # Every event this workflow runs on, not just the schedule. The old `schedule` gate meant a
+    # failure on any other event reached nobody: it surfaced on the commit page and nowhere
+    # else, which is where it was found rather than reported.
+    #
+    # `result != 'success'` alongside `failed == '1'`, for both jobs: the `failed` output is
+    # only ever written by the step that produces it, so a job that was cancelled, timed out,
+    # or failed before reaching that step leaves `failed` empty rather than '1' - which the
+    # equality check alone reads as a clean run. A failure that reaches nobody is exactly what
+    # this workflow exists to rule out, including the one that never finished.
     if: >-
-      always() && github.event_name == 'schedule' &&
-      (needs.consistency.outputs.failed == '1' || needs.sources.outputs.failed == '1')
+      always() &&
+      (needs.consistency.outputs.failed == '1' || needs.consistency.result != 'success' ||
+       needs.sources.outputs.failed == '1' || needs.sources.result != 'success')
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -146,7 +103,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CONSISTENCY: ${{ needs.consistency.outputs.report }}
+          CONSISTENCY_RESULT: ${{ needs.consistency.result }}
           SOURCES: ${{ needs.sources.outputs.report }}
+          SOURCES_RESULT: ${{ needs.sources.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -155,7 +114,21 @@ jobs:
           {
             printf 'The weekly run found at least one check that no longer passes.\n\n'
             printf 'Run: %s\n\n' "$RUN_URL"
-            printf '%s\n%s\n' "$CONSISTENCY" "$SOURCES"
+            # A job that did not finish (cancelled, timed out, failed before its own report step
+            # ran) has no report to print, so say that plainly rather than leaving a blank
+            # section that reads as "nothing to report".
+            if [ "$CONSISTENCY_RESULT" != 'success' ] && [ -z "$CONSISTENCY" ]; then
+              printf '### consistency did not complete (%s)\n\nNo report was produced; see the run.\n\n' \
+                "$CONSISTENCY_RESULT"
+            else
+              printf '%s\n' "$CONSISTENCY"
+            fi
+            if [ "$SOURCES_RESULT" != 'success' ] && [ -z "$SOURCES" ]; then
+              printf '### sources did not complete (%s)\n\nNo report was produced; see the run.\n\n' \
+                "$SOURCES_RESULT"
+            else
+              printf '%s\n' "$SOURCES"
+            fi
             printf -- '---\n\n'
             printf 'What this run did **not** check: it did not re-screen the field, judge\n'
             printf 'whether a value is still correct, render a single screen, or re-run the\n'
