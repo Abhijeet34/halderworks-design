@@ -76,6 +76,11 @@ jobs:
           run "The source classifier no longer agrees with its fixtures" \
             python3 tools/test-check-sources.py
 
+          # The tools above check the token set; this one checks the tools. It clones the
+          # repository per mutation case, so it needs the git history the checkout provides.
+          run "A refusal the system depends on is not actually refusing" \
+            python3 tests/run.py
+
           # The exporter writes before it reports, so BOTH halves are the check: its own exit
           # status, and the state of the working tree afterwards. `python3 tools/export.py ||
           # true` used to swallow the first half, and the two ways it can refuse both left a
