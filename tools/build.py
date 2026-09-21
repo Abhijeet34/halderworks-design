@@ -41,10 +41,14 @@ What the build does, in order:
   5. Refuse an off-unit space or size value that is not a declared grid exception, and
      refuse a declared exception whose value has since moved back onto the unit. 32-rhythm.md
      is what that check makes checkable.
-  6. Re-measure every floor against the formatted strings, immediately before writing them,
+  6. Solve the whole set again with every 4.5:1 floor raised to 7:1 and every 3:1 floor to
+     4.5:1, for @media (prefers-contrast: more), from the per-role targets the seed carries
+     where a plain raise would push two roles onto one value.
+  7. Re-measure every floor against the formatted strings, immediately before writing them,
      by reading the generated CSS back. A build that cannot re-derive its own output does not
      write it.
-  7. Refuse to write anything if a floor, the grid or that re-measurement still fails.
+  8. Refuse to write anything if a floor, the grid, a separation, a role step or that
+     re-measurement still fails.
 
 The principle the whole file is built to: MEASURE THE ARTIFACT, NEVER THE INTENT. Until
 2026-09-21 it did the opposite - the solver kept the acceptable lightness nearest the anchor,
@@ -68,6 +72,7 @@ would have passed both, and the floors lived beside the values, so one seed edit
 chart fill to 1.2:1 and delete the floor that would have caught it with every tool still green.
 """
 import argparse
+import itertools
 import json
 import math
 import re
@@ -166,15 +171,35 @@ def luminance(L, C, h):
     return luminance_rgb(oklch_to_rgb(L, C, h))
 
 
+# How far this file's converter and tools/contrast.py's may put one channel apart. Measured at
+# 0.00070 over the 18,560 values the hue sweep emitted on 2026-09-21; 1e-3 is in_gamut's quarter
+# step. A channel that close to a rounding boundary is one the other converter may round the
+# other way, and at hue 243 that turned 4.504:1 here into 4.497:1 there.
+CHANNEL_DISAGREEMENT = 1e-3
+
+
 def luminance8(L, C, h):
-    """Luminance of the 8-bit sRGB value a display receives, which is what a hex-based checker
-    is handed. A pair that clears its bar on floats and reads 2.999 in hex is not certified."""
-    return luminance_rgb([round(min(max(v, 0.0), 1.0) * 255) / 255 for v in oklch_to_rgb(L, C, h)])
+    """(lowest, highest) luminance of the 8-bit sRGB value a display receives, which is what a
+    hex-based checker is handed. A channel within CHANNEL_DISAGREEMENT of a rounding boundary is
+    taken both ways, because the second instrument may land on either side of it."""
+    options = []
+    for v in oklch_to_rgb(L, C, h):
+        x = min(max(v, 0.0), 1.0) * 255
+        near = abs(x - math.floor(x) - 0.5) < CHANNEL_DISAGREEMENT * 255
+        options.append({math.floor(x), math.ceil(x)} if near else {round(x)})
+    lums = [luminance_rgb([c / 255 for c in rgb]) for rgb in itertools.product(*options)]
+    return min(lums), max(lums)
 
 
 def ratio_lum(l1, l2):
     hi, lo = max(l1, l2), min(l1, l2)
     return (hi + 0.05) / (lo + 0.05)
+
+
+def ratio8(a, b):
+    """The worst 8-bit ratio between two luminance8() ranges. A pair that clears its bar on
+    floats and reads 2.999 in hex, on either converter, is not certified."""
+    return min(ratio_lum(x, y) for x in a for y in b)
 
 
 # --- colour helpers ------------------------------------------------------------------------
@@ -329,7 +354,7 @@ class Solver:
                 r = ratio_lum(lum, gl)
                 if worst is None or r < worst:
                     worst, where = r, g
-                if r < bar + margin or ratio_lum(lum8, gl8) < bar:
+                if r < bar + margin or ratio8(lum8, gl8) < bar:
                     ok = False
         return ok, worst, where
 
@@ -555,8 +580,8 @@ def check_separation(seed, blocks):
             for sem in ("success", "warning", "danger"):
                 d = separation(t[name], t[f"hw-{sem}"])
                 if d < bar:
-                    bad.append(f"{name} at hue {t[name][2]:g} sits {d:.1f} from hw-{sem} in {theme} "
-                               f"theme, below the {bar} this system requires "
+                    bad.append(f"{name} at hue {t[name][2]:g} sits {d:.1f} from hw-{sem} in "
+                               f"{theme} theme, below the {bar} this system requires "
                                f"(10-color.md#why-hue-198)")
         for i, a in enumerate(CHARTS):
             for b in CHARTS[i + 1:]:
@@ -755,9 +780,9 @@ def build_tokens_css(seed, resolved, accent, stats):
     o.append("  }")
     o.append("}")
     o.append("")
-    o.append("/* More contrast, for a reader who has asked for it: every oklch colour re-solved with")
-    o.append("   each 4.5:1 floor raised to 7:1 and each 3:1 floor to 4.5:1. Literal colours and")
-    o.append("   shadows do not move, so they are not repeated here. */")
+    o.append("/* More contrast, for a reader who has asked for it: every oklch colour re-solved")
+    o.append("   with each 4.5:1 floor raised to 7:1 and each 3:1 floor to 4.5:1. Literal colours")
+    o.append("   and shadows do not move, so they are not repeated here. */")
 
     def more_block(theme, indent):
         return [f"{indent}--{e['name']}: "
@@ -884,7 +909,7 @@ def verify_emitted(css, seed):
                                    f"not declare both tokens in that block")
                         continue
                     r = ratio_lum(luminance(*fg), luminance(*bg))
-                    r8 = ratio_lum(luminance8(*fg), luminance8(*bg))
+                    r8 = ratio8(luminance8(*fg), luminance8(*bg))
                     if r < bar or r8 < bar:
                         bad.append(f"{e['name']} on --hw-{g} ({block}): the value about to be "
                                    f"written measures {r:.3f} ({r8:.3f} at 8-bit), below its "

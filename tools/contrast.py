@@ -13,7 +13,7 @@ floors, so deleting a floor and moving its value was one edit that no tool refus
 The principle both instruments are built to: MEASURE THE ARTIFACT, NEVER THE INTENT. A number
 that was not re-measured in the exact form it will ship has not been certified.
 
-It runs three passes and exits non-zero if any fails:
+It runs four passes and exits non-zero if any fails:
 
   1. Every ratio the book publishes, re-derived. The tables in 15-color-combinations.md are
      parsed cell by cell rather than transcribed, so a published number that stops being true
@@ -25,15 +25,17 @@ It runs three passes and exits non-zero if any fails:
      3:1 for a control boundary. No tolerance, three decimals, and each pair is measured twice:
      on the unquantized value and on the 8-bit sRGB value a display receives, because a pair
      that clears 3:1 on floats and reads 2.999 in hex is not a pair any third-party checker
-     will agree about.
+     will agree about. The @media (prefers-contrast: more) blocks are held to the same pairs at
+     7:1 and 4.5:1.
   3. The six chart colours are told apart from the three semantics and from each other, and
      neighbours alternate in lightness. A chart hue is the accent plus a fixed rotation while
      the semantics stay put, so a collision moves around the wheel with every accent rebuild;
      until 2026-09-21 nothing measured it and three series sat within 1.6 to 4.4 of a semantic.
-  4. Every colour token is inside sRGB, and the @media (prefers-color-scheme: dark) block a
-     user with no explicit choice actually gets is identical to [data-theme="dark"]. That block
-     used to be discarded as a duplicate, which is a guess about a file this tool is here to
-     stop guessing about.
+     The text roles keep a visible lightness step, which raising the floors once erased.
+  4. Every colour token is inside sRGB, and each dark block a user with no explicit choice
+     actually gets, through a prefers-color-scheme query, is identical to the explicit one. That
+     copy used to be discarded as a duplicate, which is a guess about a file this tool is here
+     to stop guessing about.
 
   Pass 1 is measured at the shipped accent hue. Run against a set rebuilt at a different hue -
   `tools/build.py --accent-hue N` - the published ratios no longer describe that palette, so
@@ -331,7 +333,7 @@ PROSE = [
                         ("dark", "ground", [8.54, 13.62, 7.84, 13.37, 8.18, 14.14]),
                         ("dark", "surface-raised", [7.31, 11.65, 6.71, 11.44, 7.00, 12.10]))
       for i, v in enumerate(row, 1)],
-    # 75-spec-sheet.md:140-142, ink on the ruled ground, certified against its rule
+    # 75-spec-sheet.md#ruled, ink on the ruled ground, certified against its rule
     *[(t, f"--hw-{fg}", "--hw-border", v)
       for fg, row in (("text", (12.17, 11.84)), ("text-secondary", (5.23, 5.06)),
                       ("text-muted", (4.01, 3.89)))
