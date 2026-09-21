@@ -50,10 +50,11 @@ which put a re-solved token at bar - 0.005 by construction, fmt() then rounded i
 decimals, and the rounded value went to disk without being measured again. 81 of the 147 hues
 this script agreed to build emitted a palette tools/contrast.py refused.
 
-Why the output is byte-identical to the committed files at the shipped hue: at hue 198 steps
-3 and 4 are no-ops, because the committed set already satisfies its own spec. That is not a
-replay - it runs the same code path - and it is the regression that proves the seed and the
-shipped files agree.
+Why the output is byte-identical to the committed files at the shipped hue: the committed
+files are what this script emits from the seed, including the three tokens it re-solves there
+because the target is the bar plus MARGIN. That is not a replay - it runs the same code path -
+and `--check` reproducing both files byte for byte is the regression that proves the seed and
+the shipped files agree.
 
 The seed's contrast floors and this script are one instrument. tools/contrast.py is a second,
 and two things make it independent rather than a second reading of this one. It shares no line
@@ -96,7 +97,7 @@ GAMUT_MARGIN = 0.005
 # so the "second instrument" ran the same code on a different input and a conversion error
 # would have passed both. This path inverts the original Oklab matrices; contrast.py uses the
 # CSS Color 4 reference path. Two implementations that agree are evidence, one called twice is
-# not, and tests/converter_independence.py measures how far apart they are allowed to be.
+# not, and tests/invariants.py measures how far apart they are allowed to be.
 
 M1 = ((0.8189330101, 0.3618667424, -0.1288597137),
       (0.0329845436, 0.9293118715, 0.0361456387),

@@ -17,10 +17,13 @@ A case declares "caught" or "green", and the exit code is the point:
   - expected "caught" and the tools stayed green  -> FAIL. Something the book claims is not
     checked by anything.
   - expected "green" and the tools caught it      -> reported as IMPROVED, not as a failure.
-    Several cases here are green because a finding this branch does not own still stands
-    (finding 5, the grid check's spelling; finding 8, the refusal sweep's phrasings). Each one
-    names its finding. When the task that owns it lands, its case flips and this file's
-    expectation should be flipped with it, rather than this file going red at that task.
+    A case expects green only where the gap is real, named and accepted: C1's four refusal
+    phrasings, which #7 chose not to chase because rule 4 now asks for a `covered-by`
+    declaration rather than guessing a row, so a phrasing it misses costs a missing demand
+    rather than a wrong answer; and C4, a limit check-coverage.py's own docstring discloses. When a change closes one, its case reports IMPROVED and its
+    expectation must be flipped to "caught" in the same change, because a green expectation
+    passes whether or not the tools catch it - which is how B5, B6, C2 and C3 sat at "green"
+    for a while after #7 had closed them.
   - B7 and B9 also assert a number, because "the tools caught it" is not the claim being made.
 """
 import json
@@ -167,8 +170,8 @@ case("B4 control: hw-text loses its quiet-fill floor and the light quiet fills g
 for spelling in ("13PX", "calc(13px)", "0.8125rem", "+13px"):
     def b5(repo, v=spelling):
         seed_edit(repo, lambda s: tok(s, "hw-space-12", "spacing").__setitem__("value", v))
-    case(f"B5 hw-space-12 = {spelling!r}, valid CSS for the same off-unit 13px", "green", b5,
-         note="audit finding 5, owned by another task: the grid check only reads lowercase Npx")
+    case(f"B5 hw-space-12 = {spelling!r}, valid CSS for the same off-unit 13px", "caught", b5,
+         note="audit finding 5, closed by #7: every spelling of an off-unit length is refused")
 
 
 def b6(repo):
@@ -179,8 +182,8 @@ def b6(repo):
     seed_edit(repo, f)
 
 
-case("B6 'spacing' is removed from grid.scope, hw-space-12 = 13px", "green", b6,
-     note="audit finding 5, owned by another task: the scope is read from the seed it checks")
+case("B6 'spacing' is removed from grid.scope, hw-space-12 = 13px", "caught", b6,
+     note="audit finding 5, closed by #7: the grid scope is pinned in the tool, not the seed")
 
 
 def b7(repo):
@@ -251,7 +254,7 @@ for phrase in ("This system does not ship a zoetrope carousel.", "A zoetrope car
         with (repo / "design" / "35-layout.md").open("a") as fh:
             fh.write("\n" + phrase + "\n")
     case(f"C1 a rule file gains the refusal {phrase!r}", "green", c1,
-         note="audit finding 8, owned by another task: rule 4 knows three sentence shapes")
+         note="a residual #7 chose and documents: a phrasing rule 4 misses is a missing demand")
 
 
 def c2(repo):
@@ -261,7 +264,7 @@ def c2(repo):
 
 
 case("C2 a dead link in .github/PULL_REQUEST_TEMPLATE.md and in a new exports/README.md",
-     "green", c2, note="audit finding 8, owned by another task: the link check opens 36 of 39 files")
+     "caught", c2, note="audit finding 8, closed by #7: the link check opens every Markdown file")
 
 
 def c3(repo):
@@ -271,7 +274,7 @@ def c3(repo):
 
 
 case("C3 README.md gains a titled link, a reference-style link and an <a href>, all dead",
-     "green", c3, note="audit finding 8, owned by another task: three link syntaxes are unread")
+     "caught", c3, note="audit finding 8, closed by #7: titled, reference and <a href> links are read")
 
 
 def c4(repo):
