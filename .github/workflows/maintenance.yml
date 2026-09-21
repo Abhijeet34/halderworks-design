@@ -52,8 +52,13 @@ jobs:
         run: |
           set -uo pipefail
           report="$RUNNER_TEMP/sources.md"
-          python3 tools/check-sources.py --report "$report" --summary "$GITHUB_STEP_SUMMARY"
-          failed=$?
+          failed=0
+          # `|| failed=$?` rather than reading `$?` on the next line: the runner's shell is
+          # `bash -e`, and there a bare failing command ends the step before the report, the
+          # outputs and the summary are written - which would fail the run while handing the
+          # issue job below an empty report.
+          python3 tools/check-sources.py --report "$report" \
+            --summary "$GITHUB_STEP_SUMMARY" || failed=$?
           if [ "$failed" -ne 0 ]; then
             printf '::error title=a cited source no longer resolves::see the job summary\n'
           fi
