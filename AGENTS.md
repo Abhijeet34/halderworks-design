@@ -46,7 +46,8 @@ The tools above check the token set. `tests/run.py` checks the tools, because a 
 nobody has watched fail is a refusal nobody has tested: the 2026-09-21 audit ran 21 mutation
 cases against this repository and 17 wrong inputs left every tool green. Its three suites take
 about 21 seconds together - `tests/invariants.py` on the two instruments, `tests/hue_sweep.py`
-over all 360 accent hues, `tests/mutation_tests.py` over 23 deliberately wrong inputs - and two
+over all 360 accent hues, `tests/mutation_tests.py` over a set of deliberately wrong inputs (its
+own run prints "N cases: N as expected, 0 improved, 0 failed" for the current count) - and two
 further diagnostics, `tests/coverage_probe.py` and `tests/ident_sweep.py`, print rather than
 refuse and are run on demand.
 
