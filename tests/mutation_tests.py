@@ -442,6 +442,47 @@ def x9():
 x9()
 
 
+# The top-level JSON a seed file holds, mutated wholesale rather than at one field: each of
+# these is a document json.loads can legitimately hand back from a malformed file, and neither
+# tool may index into it before checking what it got.
+TOP_LEVEL_MUTATIONS = [("a list", [1, 2, 3]), ("a string", "not an object"), ("a number", 42),
+                       ("a bool", True), ("null", None)]
+
+
+def x10():
+    name = ("X10 the product seed's top-level JSON is not an object (a list, a string, a "
+            "number, a bool, null)")
+    checks = dict(CHECKS)
+    problems = []
+    for label, value in TOP_LEVEL_MUTATIONS:
+        repo = clone()
+        (repo / EXAMPLE).write_text(json.dumps(value), encoding="utf-8")
+        for key in ("extend", "contrast-extend"):
+            rc, o = run(repo, *checks[key])
+            if rc == 0:
+                problems.append(f"{label}: {key} did not refuse it")
+            elif "Traceback" in o:
+                problems.append(f"{label}: {key} printed a traceback instead of a clean refusal")
+        shutil.rmtree(repo.parent)
+    ok = not problems
+    RESULTS.append(("PASS" if ok else "FAIL", name, "caught", "caught" if ok else "green", ""))
+    print(f"\n=== {name}")
+    print("    expects caught: a non-object top level is one FAIL line, never a traceback")
+    print("    " + ("every case refused cleanly" if ok else "; ".join(problems)))
+
+
+x10()
+
+
+def x11(repo):
+    (repo / "examples" / "quoth.tokens.css").unlink()
+
+
+case("X11 quoth.tokens.css is deleted before contrast.py --extend runs", "caught", x11,
+     by="contrast-extend", no_traceback=True,
+     note="a well-formed seed with no built CSS is one FAIL line, never a traceback")
+
+
 # ---------------------------------------------------------------- check-coverage.py
 def cov_edit(repo, fn):
     p = repo / "design" / "05-coverage.md"

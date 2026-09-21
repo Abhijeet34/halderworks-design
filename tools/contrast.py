@@ -462,11 +462,30 @@ def extension_shape(ext):
     return bad
 
 
-def extension(themes, ext, seed_path, css_path):
-    """(failures, report lines) for one product's seed and the CSS built from it."""
+def load_extension(seed_path, css_arg):
+    """The one entry point for a product seed: read it, parse it, validate its shape and
+    every leaf, and resolve and check its built CSS exists - all before any other --extend
+    code touches the seed or the path. (failures, ext, css path)."""
+    try:
+        text = seed_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return [f"{seed_path} could not be read: {exc.strerror or exc}"], None, None
+    try:
+        ext = json.loads(text)
+    except json.JSONDecodeError as exc:
+        return [f"{seed_path} is not valid JSON: {exc}"], None, None
     shape = extension_shape(ext)
     if shape:
-        return shape, []
+        return shape, None, None
+    css = Path(css_arg) if css_arg else seed_path.parent / (ext["namespace"] + ".tokens.css")
+    if not css.exists():
+        return [f"{css} does not exist; run tools/build.py --extend {seed_path} first"], None, None
+    return [], ext, css
+
+
+def extension(themes, ext, seed_path, css_path):
+    """(failures, report lines) for one product's seed and the CSS already resolved and
+    confirmed to exist by load_extension."""
     prod = parse_tokens(css_path)
     bad, report = [], []
     ns = ext["namespace"]
@@ -617,25 +636,10 @@ def main(argv):
 
     if opts.extend:
         seed = Path(opts.extend)
-        try:
-            ext = json.loads(seed.read_text(encoding="utf-8"))
-        except OSError as exc:
-            ext, extend_failures = None, [f"{seed} could not be read: {exc.strerror or exc}"]
-        except json.JSONDecodeError as exc:
-            ext, extend_failures = None, [f"{seed} is not valid JSON: {exc}"]
-        else:
-            extend_failures = None
-        css = opts.extend_css
-        if ext is not None and not css:
-            ext_ns = ext.get("namespace")
-            css = seed.parent / (ext_ns + ".tokens.css") if isinstance(ext_ns, str) and ext_ns \
-                else None
-            if css is None:
-                extend_failures = [f"{seed} has no usable namespace to derive its built CSS "
-                                   f"filename from; pass --extend-css explicitly"]
-        if extend_failures is not None:
+        extend_failures, ext, css = load_extension(seed, opts.extend_css)
+        if extend_failures:
             failures += extend_failures
-            print(f"pass 5: {seed} has no derivable css path; {len(extend_failures)} failed")
+            print(f"pass 5: {seed} could not be verified; {len(extend_failures)} failed")
         else:
             bad, report = extension(themes, ext, seed, css)
             failures += bad
