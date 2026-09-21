@@ -12,6 +12,7 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 | `tokens/tokens.css`, `tokens/tokens.json` | generated from the seed by `tools/build.py`; never edited by hand |
 | `exports/` | generated from `tokens/tokens.json` by `tools/export.py`; never edited by hand |
 | `tools/` | six standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
+| `tests/` | the suite that checks the tools rather than the tokens, adopted from the 2026-09-21 audit; `tests/run.py` is the one command |
 | `.github/rulesets/`, `.github/settings/` | what this repository enforces on the forge, as files. Nothing applies them on its own; see "The settings that are not files" below |
 | `scripts/apply-repo-settings.sh` | the one command that sends those files to GitHub |
 | `docs/publication-record.md` | the one-off record of the first publication; not maintained |
@@ -28,6 +29,7 @@ python3 tools/export.py           # regenerate exports/ and refuse if it diverge
 python3 tools/check-coverage.py   # the inventory, its refusals, its claimed entries, its manifest, every link
 python3 tools/test-check-sources.py  # the source classifier, against a local server
 python3 tools/check-sources.py    # every cited source still resolves. THE ONE THAT LEAVES THE MACHINE
+python3 tests/run.py              # the checks on the tools: invariants, hue sweep, mutations
 ```
 
 `check-sources.py` is the weekly job's and is not run per change; everything above it is. It
@@ -40,10 +42,27 @@ source it stands behind, so a `preconnect` hint, a CDN base or an XML namespace 
 probed. `test-check-sources.py` holds both lines against a local `http.server` and a closed
 port, so a merge cannot quietly widen or narrow either.
 
-`build.py` and `contrast.py` are deliberately two instruments rather than one. The build solves
-against the floors recorded in the seed; `contrast.py` knows nothing about the seed and re-derives
-the ratios from the CSS a browser actually loads. A build that passes while a contrast run fails
-means the seed is wrong, and that is a disagreement one instrument checking itself can never report.
+The tools above check the token set. `tests/run.py` checks the tools, because a refusal
+nobody has watched fail is a refusal nobody has tested: the 2026-09-21 audit ran 21 mutation
+cases against this repository and 17 wrong inputs left every tool green. Its three suites take
+about 21 seconds together - `tests/invariants.py` on the two instruments, `tests/hue_sweep.py`
+over all 360 accent hues, `tests/mutation_tests.py` over 23 deliberately wrong inputs - and two
+further diagnostics, `tests/coverage_probe.py` and `tests/ident_sweep.py`, print rather than
+refuse and are run on demand.
+
+`build.py` and `contrast.py` are deliberately two instruments rather than one, and two things make
+them two. They share no arithmetic: `build.py` inverts the original Oklab matrices, `contrast.py`
+uses the CSS Color 4 reference path a browser implements. And they read different declarations of
+what must hold: the build solves against the floors in the seed, `contrast.py` carries its own list
+of every pair the book certifies and never opens the seed, so a floor cannot be weakened in the same
+edit as the value it guards. A build that passes while a contrast run fails means the seed is wrong,
+and that is a disagreement one instrument checking itself can never report.
+
+Both are built to one rule, stated in the code where it is enforced: **measure the artifact, never
+the intent.** A value that was not re-measured in the exact form it will ship has not been
+certified, so `build.py` re-reads the CSS it is about to write and refuses if it cannot re-derive
+its own numbers, and `contrast.py` measures every pair twice - on the float value and on the 8-bit
+value a display receives.
 
 Taking a different accent hue is a rebuild, never a hand-pick:
 
@@ -52,7 +71,7 @@ python3 tools/build.py --accent-hue 318 --out ./my-tokens
 python3 tools/contrast.py ./my-tokens/tokens.css
 ```
 
-At hue 318 three tokens re-solve and all 112 form-layer pairs still clear their bar. At hue 150 the
+At hue 318 five tokens re-solve and all 158 certified pairs still clear their bar. At hue 150 the
 build refuses, because that hue sits 4.4 from `hw-success` against the 8.0 separation
 [design/10-color.md](design/10-color.md) requires - which is what makes "a product cannot take hue
 150" an executable rule rather than a sentence.
@@ -69,8 +88,8 @@ Read [design/95-extending.md](design/95-extending.md) first. In short:
 - **A gap is a finding, not a blocker.** Ship the screen with the nearest house value and say in
   the same breath what you needed.
 
-Run the per-change tools before opening a pull request; CI runs the same ones and a merge
-depends on them. [`.github/workflows/consistency.yml`](.github/workflows/consistency.yml) is their single
+Run the per-change tools and `tests/run.py` before opening a pull request; CI runs the same ones
+and a merge depends on them. [`.github/workflows/consistency.yml`](.github/workflows/consistency.yml) is their single
 definition, and both [`ci.yml`](.github/workflows/ci.yml) and
 [`maintenance.yml`](.github/workflows/maintenance.yml) call that one file rather than carrying a
 copy each.
@@ -180,7 +199,7 @@ Two more things measured rather than assumed, because both look like a broken se
 demand, on Linux, with no secrets beyond the repository's own token. **It opens an issue only when
 something has actually moved**, so a quiet week is silent rather than noisy.
 
-**What it checks.** The first six rows are the `consistency` call, which `ci.yml` makes on every
+**What it checks.** Every row but the last is the `consistency` call, which `ci.yml` makes on every
 pull request as well; only the last row is the weekly job's own, because only a schedule can catch
 a source that went away without anyone touching this repository. That is also why this workflow
 has no `push` trigger: `ci.yml` already runs the consistency call on every push to `main`, and a
@@ -190,8 +209,9 @@ per-push network sweep is 22 outbound requests against a field that moves in mon
 |---|---|
 | the token files still build from the seed | `build.py --check` finds a committed file the seed does not produce |
 | every space and size value is on the 4px unit or declared | `build.py` finds an undeclared off-unit value, or a declared exception that has moved back onto the unit |
-| every published contrast ratio still holds | `contrast.py` re-derives the matrix and finds a pair below bar or a token outside sRGB |
-| every export still matches its source | `export.py` exits non-zero, or regenerates `exports/` and `git status --porcelain -- exports/` is no longer empty |
+| every published contrast ratio still holds | `contrast.py` re-derives all 175 published ratios from the two files that tabulate them, and all 158 certified pairs from the CSS, on the float value and at 8-bit |
+| every export still matches its source | `export.py` exits non-zero, or regenerating `exports/` leaves anything in `git status --porcelain` |
+| every refusal the system depends on still refuses | `tests/run.py`: the two instruments share code or stop agreeing, a buildable accent hue emits a palette `contrast.py` refuses, or a deliberately wrong input leaves every tool green |
 | the coverage inventory's claims | `check-coverage.py`: a row naming a missing file or section, a partial with no statement of what is missing, an exclusion with no reason, a refusal naming no row or a row that does not exist, a declaration left beside no refusal, a claim of an existing entry resolving to no covered or partial row, a manifest with no lists or no date |
 | every internal link and anchor | the same script, across every Markdown file in the repository |
 | every cited external source still resolves | an HTTP request per distinct URL in the book, failing on 404, 410, any other error status, or no response. A 401, 403 or 429 is reported as alive-but-refusing and does not fail |

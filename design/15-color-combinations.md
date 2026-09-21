@@ -117,12 +117,12 @@ It is re-solved against the surface closest to it in lightness.
 
 | `hw-border-strong` on | light | dark |
 |---|---:|---:|
-| `hw-surface` | 3.39 | 3.27 |
-| `hw-ground` | 3.19 | 3.51 |
-| `hw-surface-raised` | 3.39 | **3.01** |
-| `hw-surface-sunken` | **3.01** | 3.64 |
-| `hw-surface-hover` | 3.13 | 3.13 |
-| `hw-surface-active` | **3.01** | 3.01 |
+| `hw-surface` | 3.42 | 3.29 |
+| `hw-ground` | 3.21 | 3.54 |
+| `hw-surface-raised` | 3.42 | **3.03** |
+| `hw-surface-sunken` | **3.03** | 3.67 |
+| `hw-surface-hover` | 3.16 | 3.16 |
+| `hw-surface-active` | **3.03** | 3.03 |
 
 Every control boundary in [66-forms.md](66-forms.md) uses this token: the field outline, the unchecked checkbox and radio, the switch track, the slider rail, the stepper divider, the selected segment of a segmented control, and a floating panel's edge.
 

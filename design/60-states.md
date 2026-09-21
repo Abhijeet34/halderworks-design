@@ -72,7 +72,7 @@ So `--hw-text-disabled` is a solved token, held to the 3:1 non-text bar rather t
 
 | | on `ground` | on `surface` | on `surface-sunken` |
 |---|---:|---:|---:|
-| light | 3.18 | 3.38 | 3.00 |
+| light | 3.21 | 3.42 | 3.03 |
 | dark | 3.51 | 3.26 | 3.64 |
 
 WCAG exempts a disabled control from the contrast requirement.

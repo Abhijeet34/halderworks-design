@@ -60,8 +60,8 @@ the three semantics do not, because a green that means "passed" cannot follow a 
 Chroma is clamped to the in-gamut maximum at each token's lightness and hue. Then any token whose
 contrast floor no longer holds has its lightness re-solved by binary search, as close to its anchor
 as the floor permits - which is not a formality, because rotating a hue at fixed lightness moves
-WCAG luminance. Rebuilt at hue 318, three tokens re-solve and all 112 form-layer pairs still clear
-their bar.
+WCAG luminance. Rebuilt at hue 318, five tokens re-solve and all 158 certified pairs still clear
+their bar, on the float value and at 8-bit: worst 3.030:1 non-text and 4.532:1 text.
 
 **A new hue must clear an oklab separation above 8 from every semantic**, which is the test recorded
 in [10-color.md](10-color.md). A product cannot take hue 150 because it is close to `hw-success`,
