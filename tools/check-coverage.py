@@ -59,6 +59,20 @@ prose, and the book carries hundreds of them. Every Markdown file in the reposit
 in whatever directory it sits, and a link is a link in all four notations Markdown offers:
 inline, inline with a title, reference definition, and a raw <a href>.
 
+  7  every claim that a surface already has an entry must resolve to a covered or partial row
+
+Rule 4 in the other direction. Rule 4 catches a refusal the inventory never heard of; nothing
+caught the opposite, a sentence saying the book ADMITTED a surface it has no entry for. Two
+such sentences shipped in the first public commit - "the same argument that admitted the 404
+page and the link-preview card" and "already have entries here - Pricing as a page" - and
+stood through every run of this script, because a measurement of absence had been retold as a
+claim of presence across three review rounds.
+
+A claim is "admitted X", "already has an entry here - X" or "the book covers X", read across a
+whole paragraph so a claim wrapped over two lines is still one claim. Each object in a list
+must match one covered or partial row whose SURFACE cell carries every content word of it:
+an excluded row is not an entry, and a note mentioning the word is not the surface.
+
 Exits non-zero, and names every failure, when any claim is unbacked.
 
     python3 tools/check-coverage.py [repo-root]
@@ -286,6 +300,75 @@ def check_refusals(book: Path, inventory: Path, claims, failures: list):
     return swept, resolved, waived
 
 
+ADMISSIONS = [
+    re.compile(r"\badmitted\s+(?P<obj>[^.:;,]+)", re.I),
+    re.compile(r"\bha(?:s|ve) (?:an? )?entr(?:y|ies) here\s*[-:]\s*"
+               r"(?P<obj>[^.:;]+?)(?=\s-\s|[.:;]|$)", re.I),
+    re.compile(r"\b(?:the|this) (?:book|system) (?:already )?covers\s+(?P<obj>[^.:;]+)", re.I),
+]
+SPLIT_LIST = re.compile(r"\s*,\s*|\s+and\s+", re.I)
+# Words of three letters or more that name no surface, so "the 404 page" needs a row
+# carrying "404" and "page" and not one carrying "the".
+FILLER = {"the", "its", "their", "this", "that", "our", "own", "one", "two", "both", "all"}
+
+
+def paragraphs(path: Path):
+    """([(offset, line_no)], text) per unfenced paragraph, so a claim wrapped across a line
+    break is read whole."""
+    block, starts = [], []
+    for n, line in [*unfenced(path), (None, "")]:
+        if n is not None and line.strip():
+            starts.append((sum(len(b) + 1 for b in block), n))
+            block.append(plain(line.strip()))
+            continue
+        if block:
+            yield starts, " ".join(block)
+        block, starts = [], []
+
+
+def plain(text: str) -> str:
+    """Markdown down to the words a reader sees, less file names: a link keeps its text, a
+    `.md` path is a place rather than a surface, and emphasis marks are dropped."""
+    text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"\S+\.md(?:#\S*)?", "", text)
+    return re.sub(r"[*`]", "", text)
+
+
+def check_admissions(book: Path, inventory: Path, failures: list):
+    """Rule 7. The inventory is swept too: its open decisions are prose, not rows."""
+    surfaces = [cells[0].lower() for _, cells in rows(inventory.read_text(encoding="utf-8"))
+                if cells[1] in ("covered", "partial")]
+
+    def carries(surface, word):
+        stem = word[:-1] if word.endswith("s") and len(word) > 4 else word
+        return re.search(rf"(?<![a-z0-9]){re.escape(stem)}s?(?![a-z0-9])", surface)
+
+    swept = resolved = 0
+    for path in sorted(book.glob("*.md")):
+        for starts, text in paragraphs(path):
+            for pattern in ADMISSIONS:
+                for m in pattern.finditer(text):
+                    if SUBORDINATOR.search(text[:m.start()]):
+                        continue
+                    line_no = max(n for off, n in starts if off <= m.start())
+                    for item in SPLIT_LIST.split(m.group("obj").strip()):
+                        item = re.sub(r"\s+in$", "", item.strip())  # "X in <file.md>", file gone
+                        words = [w for w in re.findall(r"[a-z0-9][a-z0-9-]*", item.lower())
+                                 if len(w) >= 3 and w not in FILLER]
+                        if not words:
+                            continue
+                        swept += 1
+                        if any(all(carries(s, w) for w in words) for s in surfaces):
+                            resolved += 1
+                            continue
+                        failures.append(
+                            f"{path.name}:{line_no}  claims {item!r} already has an "
+                            f"entry, and no covered or partial row in {inventory.name} names "
+                            f"it: no surface cell carries all of {words}. A claim of presence "
+                            f"is only true if the row exists")
+    return swept, resolved
+
+
 def check_manifest(inventory: Path, failures: list):
     """Rule 5. The manifest is the section whose heading names the cross-check."""
     lines = inventory.read_text(encoding="utf-8").splitlines()
@@ -347,6 +430,7 @@ def main() -> int:
     failures = []
     counts, total, claims = check_inventory(inventory, book, failures)
     swept, resolved, waived = check_refusals(book, inventory, claims, failures)
+    admitted, backed = check_admissions(book, inventory, failures)
     lists = check_manifest(inventory, failures)
     links = check_links(root, failures)
 
@@ -357,6 +441,7 @@ def main() -> int:
     print(f"{swept} refusals swept across the rule files, {resolved} naming a row that "
           f"exists. {waived} sentence{'' if waived == 1 else 's'} declared not to be a "
           f"refusal.")
+    print(f"{admitted} claims of an existing entry swept, {backed} resolved to a row.")
     print(f"{lists} external taxonomies named in the cross-check manifest.")
     print(f"{links} internal links and anchors checked.")
     print(f"{len(failures)} unbacked.")

@@ -119,9 +119,10 @@ A centred two-column signup block is on the anti-pattern list twice over, for th
 
 ### What a marketing page is made of
 
-[75-spec-sheet.md](75-spec-sheet.md#3-formats) names five composition formats and every one of
-them is a **typographic device**. None is a page section, so an agent asked to build a marketing
-page from this system had five devices and no idea what the page is made of.
+[75-spec-sheet.md](75-spec-sheet.md#3-formats) names six composition formats: five
+**typographic devices** and the link-preview card, which is an image. None is a page section, so
+an agent asked to build a marketing page from this system had those formats and no idea what the
+page is made of.
 
 This is a **checklist, not fourteen components**, and that distinction is the whole point: these
 are sections a reader recognises, each built from the grid, the type ramp and the components that
@@ -137,7 +138,8 @@ Footer          About us            Case study
 
 Fourteen names, taken from one published gallery's own closed section taxonomy and recorded in
 [90-evidence.md](90-evidence.md) with that limit stated: **it is one vendor's taxonomy, not a
-census.** Two of the fourteen already have entries here - Pricing as a page, Footer in
+census.** Two of the fourteen have entries here - Pricing as a page in
+[68-page-patterns.md](68-page-patterns.md#the-pricing-page), Footer in
 [37-navigation.md](37-navigation.md) - and `Sign up` from the same gallery's page-type list is
 specified in [68-page-patterns.md](68-page-patterns.md).
 
