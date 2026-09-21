@@ -1,0 +1,92 @@
+name: consistency
+
+# The book's own integrity checks, in one place with two callers: ci.yml runs them on every pull
+# request so a change that breaks them cannot merge, and maintenance.yml runs them weekly so a
+# change in the world can still find them. Before this was factored out the four tools ran only
+# on the weekly schedule, and a coverage row or a token drifting from its seed merged green and
+# surfaced up to a week later.
+#
+# A reusable workflow rather than a shell script because the body is already shell: a script
+# would add a file that only CI ever calls, and AGENTS.md documents `python3 tools/*.py` as the
+# command a person runs. This file is the CI wrapper around those four commands, nothing more.
+
+on:
+  workflow_call:
+    outputs:
+      report:
+        description: Markdown for the checks that failed; empty when everything passed.
+        value: ${{ jobs.consistency.outputs.report }}
+      failed:
+        description: '1 when at least one check failed, 0 otherwise.'
+        value: ${{ jobs.consistency.outputs.failed }}
+
+permissions:
+  contents: read
+
+jobs:
+  consistency:
+    name: the system agrees with itself
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      report: ${{ steps.collect.outputs.report }}
+      failed: ${{ steps.collect.outputs.failed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The tools are standard-library Python 3, so the runner's own python3 is enough and no
+      # setup action has to be pinned and moved.
+      # Each step writes its own section of the report and records its status, rather than
+      # stopping the job, so one failure does not hide the other three.
+      - name: run every check
+        id: collect
+        run: |
+          set -uo pipefail
+          report=$(mktemp)
+          failed=0
+
+          run() {
+            local title="$1"; shift
+            local out rc
+            out=$("$@" 2>&1); rc=$?
+            if [ "$rc" -ne 0 ]; then
+              failed=1
+              # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+              { printf '### %s\n\n```text\n%s\n```\n\n' "$title" "$out"; } >> "$report"
+              printf '::error title=%s::%s\n' "$title" "check failed, see the job summary"
+            fi
+            printf '%s: exit %s\n' "$title" "$rc"
+            printf '%s\n' "$out"
+          }
+
+          run "The token files no longer build from the seed" \
+            python3 tools/build.py --check
+          run "A published contrast ratio no longer holds" \
+            python3 tools/contrast.py
+          run "The coverage inventory, its refusals, its manifest or a link" \
+            python3 tools/check-coverage.py
+
+          # The exporter writes before it reports, so the diff is the check.
+          python3 tools/export.py || true
+          if ! git diff --quiet -- exports/; then
+            failed=1
+            # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+            {
+              printf '### An export no longer matches its source\n\n'
+              printf 'Regenerating `exports/` changed the working tree. Run '
+              printf '`python3 tools/export.py` and commit the result.\n\n```diff\n'
+              git --no-pager diff --stat -- exports/
+              printf '\n```\n\n'
+            } >> "$report"
+            printf '::error title=export drift::exports/ is stale\n'
+          fi
+          git checkout -- exports/ 2>/dev/null || true
+
+          {
+            echo "report<<REPORT_EOF"
+            cat "$report"
+            echo "REPORT_EOF"
+            echo "failed=$failed"
+          } >> "$GITHUB_OUTPUT"
+          cat "$report" >> "$GITHUB_STEP_SUMMARY" || true
+          exit "$failed"

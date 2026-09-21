@@ -7,18 +7,17 @@ name: maintenance
 # It opens an issue ONLY when something moved. A quiet week is silent: no issue, no comment, no
 # commit. Nothing here ever writes to the repository, so this workflow cannot put a bot commit
 # into a public history.
+#
+# The consistency job is a call into .github/workflows/consistency.yml, which ci.yml also calls
+# and which the `checks` context there gates a merge on. This workflow used to carry that job's
+# body and its own path-filtered `pull_request` trigger; both are gone, because ci.yml now runs
+# the same four tools on every pull request with no path filter. What is left here is the part
+# only a schedule can do: the network liveness check, and the issue.
 
 on:
   schedule:
     - cron: '17 6 * * 1'
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'design/**'
-      - 'tokens/**'
-      - 'exports/**'
-      - 'tools/**'
-      - '.github/workflows/maintenance.yml'
   push:
     branches: [main]
 
@@ -27,70 +26,7 @@ permissions:
 
 jobs:
   consistency:
-    name: the system agrees with itself
-    runs-on: ubuntu-24.04
-    outputs:
-      report: ${{ steps.collect.outputs.report }}
-      failed: ${{ steps.collect.outputs.failed }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # The tools are standard-library Python 3, so the runner's own python3 is enough and no
-      # setup action has to be pinned and moved.
-      # Each step writes its own section of the report and records its status, rather than
-      # stopping the job, so one failure does not hide the other four.
-      - name: run every check
-        id: collect
-        run: |
-          set -uo pipefail
-          report=$(mktemp)
-          failed=0
-
-          run() {
-            local title="$1"; shift
-            local out rc
-            out=$("$@" 2>&1); rc=$?
-            if [ "$rc" -ne 0 ]; then
-              failed=1
-              # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
-              { printf '### %s\n\n```text\n%s\n```\n\n' "$title" "$out"; } >> "$report"
-              printf '::error title=%s::%s\n' "$title" "check failed, see the job summary"
-            fi
-            printf '%s: exit %s\n' "$title" "$rc"
-            printf '%s\n' "$out"
-          }
-
-          run "The token files no longer build from the seed" \
-            python3 tools/build.py --check
-          run "A published contrast ratio no longer holds" \
-            python3 tools/contrast.py
-          run "The coverage inventory, its refusals, its manifest or a link" \
-            python3 tools/check-coverage.py
-
-          # The exporter writes before it reports, so the diff is the check.
-          python3 tools/export.py || true
-          if ! git diff --quiet -- exports/; then
-            failed=1
-            # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
-            {
-              printf '### An export no longer matches its source\n\n'
-              printf 'Regenerating `exports/` changed the working tree. Run '
-              printf '`python3 tools/export.py` and commit the result.\n\n```diff\n'
-              git --no-pager diff --stat -- exports/
-              printf '\n```\n\n'
-            } >> "$report"
-            printf '::error title=export drift::exports/ is stale\n'
-          fi
-          git checkout -- exports/ 2>/dev/null || true
-
-          {
-            echo "report<<REPORT_EOF"
-            cat "$report"
-            echo "REPORT_EOF"
-            echo "failed=$failed"
-          } >> "$GITHUB_OUTPUT"
-          cat "$report" >> "$GITHUB_STEP_SUMMARY" || true
-          exit "$failed"
+    uses: ./.github/workflows/consistency.yml
 
   sources:
     name: every cited source still resolves
