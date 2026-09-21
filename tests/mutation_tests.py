@@ -286,6 +286,14 @@ case("W3 hw-text-muted gains a 4.5 floor on hw-border, so the solver lifts the r
                         "being refusable makes the published refusal stale")
 
 
+def w4(repo):
+    seed_edit(repo, lambda s: tok(s, "hw-text-secondary").pop("contrastMore"))
+
+
+case("W4 hw-text-secondary loses its prefers-contrast target, so the raise solves it onto muted",
+     "caught", w4, note="75-spec-sheet.md: the text roles keep a 0.06 step in every block")
+
+
 # ---------------------------------------------------------------- check-coverage.py
 def cov_edit(repo, fn):
     p = repo / "design" / "05-coverage.md"
