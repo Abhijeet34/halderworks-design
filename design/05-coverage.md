@@ -26,9 +26,9 @@ that one escaped, into exactly the class of gap this file exists to report.
 
 `tools/check-coverage.py` is what stops that recurring. It reads this file and fails when a
 `covered` row names a file or a section that does not exist, when a `partial` row does not say what
-is missing, when an `excluded` row gives no reason, **when a refusal stated in a rule file resolves
-to no row here**, when the manifest below names no lists or carries no date, and when any internal
-link or anchor in the book does not resolve.
+is missing, when an `excluded` row gives no reason, **when a refusal stated in a rule file does not
+name the inventory row that carries it**, when the manifest below names no lists or carries no date,
+and when any internal link or anchor in the book does not resolve.
 A row is a claim, and the script is what makes it a checkable one.
 
 Counts, which are what a reader should look at first, and which the script verifies against the
