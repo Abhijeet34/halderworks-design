@@ -241,7 +241,7 @@ Fluent's product-axis row is the control that makes the rest readable: changing 
 the same contrast level moves 10.9% of tokens, and changing the contrast level moves 78%.
 Contrast is roughly seven times the move that identity is.
 
-### The two high-contrast strategies are opposite, and the open decision has to say which it answers
+### The two high-contrast strategies are opposite, and each media query gets its own answer
 
 | vendor | distinct values before | after | direction |
 |---|---:|---:|---|
@@ -260,6 +260,9 @@ The first asks for a stronger palette and a per-role re-solve answers it. The se
 thrown away, and the one-line `outline: <width> solid transparent` rule answers it.
 One theme cannot answer both, and this is the first time the distinction has been measured inside a
 token file rather than inferred from a media query.
+Both now ship: the per-role re-solve in `tokens/tokens.css`, specified in
+[75-spec-sheet.md](75-spec-sheet.md#high-contrast-which-answers-prefers-contrast-more-and-nothing-else),
+and the transparent border in [50-surface-texture.md](50-surface-texture.md#under-forced-colours).
 
 ### Two independent sources ship the exact reduced-motion error this system's rule was written against
 
