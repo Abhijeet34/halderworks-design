@@ -134,7 +134,8 @@ def named_claims_are_certified(seed, fails):
 
 
 COUNTS = {"design/10-color.md": None, "design/90-evidence.md": None,
-          "design/00-brand-book.md": None, "tokens/tokens.css": None}
+          "design/00-brand-book.md": None, "tokens/tokens.css": None,
+          "tokens/tokens.json": None}
 
 
 def headline_counts_hold(seed, fails):

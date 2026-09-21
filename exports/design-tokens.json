@@ -96,7 +96,7 @@
     "border-strong": {
       "$value": "oklch(0.6350 0.0060 198)",
       "$type": "color",
-      "$description": "Control outlines that must be seen: inputs, selects, textareas, checkboxes, switches, slider rails, secondary buttons, the selected segment of a segmented control, and a floating panel's edge. Held to WCAG 1.4.11's 3:1 as a control boundary: 3.01:1 at worst in both themes. The first two passes shipped it at 1.64:1 light and 1.92:1 dark on hw-surface.",
+      "$description": "Control outlines that must be seen: inputs, selects, textareas, checkboxes, switches, slider rails, secondary buttons, the selected segment of a segmented control, and a floating panel's edge. Held to WCAG 1.4.11's 3:1 as a control boundary: 3.03:1 at worst in both themes. The first two passes shipped it at 1.64:1 light and 1.92:1 dark on hw-surface.",
       "$extensions": {
         "halderworks": {
           "themes": {
