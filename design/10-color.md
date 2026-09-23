@@ -179,6 +179,7 @@ Where a whole page is one accent, the accent stops meaning anything.
 
 Semantic colour is separate from the accent and always will be.
 A green that also means "this is our brand" cannot also mean "this passed".
+Nor can it mean "this step is finished": progress is neutral, and `hw-warning` appears only on a real problem, named in words. [68-page-patterns.md](68-page-patterns.md#first-run-and-setup) states it for the screen where both are most tempting.
 
 ## Two things you would otherwise rediscover
 

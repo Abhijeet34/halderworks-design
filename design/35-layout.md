@@ -107,6 +107,18 @@ The loose end is a genuine defect: Ant Design at 112ch and Dinamo at 88ch are pa
 **A container width and a measure are not the same constraint and a page needs both.**
 A 1200px container with no measure produces 140-character lines on a wide monitor; a 68ch measure with no container produces a 680px page on a 2560px screen with everything jammed left.
 
+## One primary focus per screen
+
+Every screen has one primary focus: the thing the reader came to it to do, nameable in one sentence before the screen is built.
+It carries the largest visual weight, and everything else on the screen is subordinate to it.
+
+This is the brand book's "weight, size and position carry hierarchy" ([00-brand-book.md](00-brand-book.md#what-these-products-are-and-why-the-system-looks-like-this)) applied to a whole screen, and the book already states it for the parts: one primary action (question 2 of [the checklist](80-anti-patterns.md#the-checklist)), one subject per [menu-bar panel](36-form-factors.md#what-goes-in-it), one `h1` on [the 404 page](68-page-patterns.md#404-rules), one page-defining headline in [the type scale](20-type.md#the-scale).
+Nothing held the screen those parts add up to, so a screen could keep every one of them and still put a disabled control in the largest slot.
+
+- **Checked on the render, not on intent.** The element with the largest rendered area, the heading and the primary action all belong to the focus, and none of them is disabled ([60-states.md](60-states.md#disabled-is-a-solved-colour-not-an-opacity)).
+- **A second block competing for first look** - a promotion, a tip, a progress widget in the rail - moves below the focus, onto its own screen, or out.
+- **Where the focus is one column that is the whole screen, the column is centred**: [sign-in](68-page-patterns.md#the-way-in-sign-in-sign-up-reset-password) and [first run](68-page-patterns.md#first-run-and-setup). Everywhere else the focus is left-aligned like the rest of the page.
+
 ## The two shapes we build
 
 ### The app shell

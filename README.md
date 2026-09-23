@@ -3,7 +3,7 @@
 A design system for instruments of record: software whose job is to be trusted about a number, a
 state or a record rather than to be admired.
 
-One token set, two themes, two densities, fifteen components, and **154 inventoried surfaces** each
+One token set, two themes, two densities, fifteen components, and **157 inventoried surfaces** each
 marked covered, partial or excluded. Every value traces to a measurement, and the repository carries
 the tools that prove it.
 
@@ -61,7 +61,7 @@ that owns it.
    project takes [exports/theme.css](exports/theme.css) instead. Dark theme is
    `data-theme="dark"` on the root, compact density is `data-density="compact"` on any ancestor, and
    with neither set the page follows `prefers-color-scheme`.
-2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 154 surfaces, each
+2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 157 surfaces, each
    `covered` with the section to read, `partial` with what is missing, or `excluded` with the
    reason. No row at all is a gap to report, not permission to invent.
 3. **Build from the component card**, not from a screenshot:
@@ -73,7 +73,7 @@ that owns it.
    pair with its measured ratio. Two tokens both existing does not make them a pair.
 5. **Give every control its states and keys** from [design/60-states.md](design/60-states.md) and
    [design/72-keyboard.md](design/72-keyboard.md).
-6. **Answer the thirty questions** at the end of
+6. **Answer the thirty-five questions** at the end of
    [design/80-anti-patterns.md](design/80-anti-patterns.md) against the finished screen.
 7. **Where a value is missing, use the nearest house value and say so** in the pull request, in the
    form [design/95-extending.md](design/95-extending.md#reporting-a-gap) shows. Product-specific

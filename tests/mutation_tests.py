@@ -713,6 +713,21 @@ case("C6 a partial row becomes covered, and prose declared against it still call
      "caught", c6, note="#11 rebased green while the book still called the high-contrast theme a gap")
 
 
+def c7(repo):
+    """The checklist gains a question, numbered in turn, and SKILL.md keeps the old count."""
+    p = repo / "design" / "80-anti-patterns.md"
+    text = p.read_text(encoding="utf-8")
+    last = max(int(n) for n in re.findall(r"^(\d+)\. ", text, re.M))
+    line = next(l for l in text.splitlines() if l.startswith(f"{last}. "))
+    p.write_text(text.replace(line, line + f"\n{last + 1}. Is this a zoetrope carousel?", 1),
+                 encoding="utf-8")
+
+
+case("C7 the ship checklist gains a question, and SKILL.md keeps the old count", "caught", c7,
+     by="check-coverage", says="Every copy of its size moves with it",
+     note="rule 9: five questions added at once left seven copies of the old count unread")
+
+
 # ---------------------------------------------------------------- the CI workflow's own body
 def workflow_block(repo):
     """The `run every check` step body of consistency.yml, extracted verbatim and dedented.

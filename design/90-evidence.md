@@ -624,7 +624,7 @@ carries the refusal. **Take the frame; take no colour.**
 ## Sources the owner supplied, one by one
 
 The sources above were chosen by screening the field.
-These were handed over directly by the system's owner, across four rounds: followed accounts, reels, a profile, an image and two reference libraries.
+These were handed over directly by the system's owner, across five rounds: followed accounts, reels, a profile, an image, two reference libraries and a review of a first-run screen.
 This is the ledger for them, so a reader can see what each one gave the system and what it did not.
 A source that produced nothing says so here, because silence reads as never having looked.
 
@@ -636,6 +636,7 @@ A source that produced nothing says so here, because silence reads as never havi
 | `figma.expert` | ten posts, 2026-09-14 to 2026-09-20 | the four-corner frame as its third independent instance, in the [slide sequence](75-spec-sheet.md#slide-sequence) | every colour: its `Most Expensive Colour Pallet` is refused, [85-considered-and-declined.md](85-considered-and-declined.md#an-unsourced-superlative-as-a-palette-source). All ten advertised files are behind a direct message and none was obtained. Instagram labels the profile `AI-generated profile` |
 | An illustration reference image, 430x334 | every pixel, [above](#illustration-measured-rather-than-argued) | the five-value flat construction, measured at 97.59% of the image; its ground hue of 87.36 lands within one degree of the corpus's warm-ground median of 86.5, and its chroma ceiling of 0.0929 sits inside this system's restraint | its values as house colours: garment and ink at hues 257 and 264 sit 60 degrees from `--hw-accent`, and five baked values have no dark-theme answer. The pictogram set is named in [55-iconography.md](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing); figurative illustration stays excluded |
 | Mobbin and Refero | the libraries themselves, [below](#what-still-cannot-be-reached) | two taxonomies, as coverage cross-checks only | every screen: one is capped at four apps on a free account, the other was read logged out |
+| A review of a product's first-run screen, a setup checklist | one screen, 2026-09-21 | five rules: [first run and setup](68-page-patterns.md#first-run-and-setup) as a page pattern, [one primary focus per screen](35-layout.md#one-primary-focus-per-screen), [a disabled control's weight](60-states.md#disabled-is-a-solved-colour-not-an-opacity), [one mark per screen](00-brand-book.md#the-mark) and [neutral progress](10-color.md#how-colour-is-spent), with their five checklist questions | the screen's own values and copy: it was evidence of what the book failed to say, not a reference to copy |
 
 ### The ten tools named on the reels
 

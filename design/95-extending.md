@@ -232,7 +232,7 @@ If you are a model that has never seen the conversation this system came out of,
 1. Read [SKILL.md](../SKILL.md). Its table says which file answers the task in front of you.
 2. Load `tokens/tokens.css` and use `var(--hw-*)` for every colour, size, radius, duration, breakpoint and z-index.
 3. Check every ink-on-ground pair against [15-color-combinations.md](15-color-combinations.md) before you write it, and every control boundary against the 3:1 table in the same file.
-4. Run the thirty-question checklist at the end of [80-anti-patterns.md](80-anti-patterns.md) against the screen before you call it done.
+4. Run the thirty-five-question checklist at the end of [80-anti-patterns.md](80-anti-patterns.md) against the screen before you call it done.
 5. Where the system lacks a value, use the nearest one and say so. Do not invent one.
 
 That is the difference between extending this system and forking it.

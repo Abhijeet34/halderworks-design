@@ -3,9 +3,9 @@ name: halderworks-design
 description: >-
   The house design system for Halderworks products. Load it BEFORE writing or restyling any user
   interface - a screen, a route, a component, a form, a table, a landing page, an email sign-in,
-  a settings page, a chart, an icon row, a piece of UI copy - and before proposing a colour, a
-  size, a radius, a duration, a breakpoint or a z-index. It carries one token set, two themes, two
-  densities, 154 inventoried surfaces, and a rule that no value is invented: a value the system
+  a first-run setup screen, a settings page, a chart, an icon row, a piece of UI copy - and before
+  proposing a colour, a size, a radius, a duration, a breakpoint or a z-index. It carries one token
+  set, two themes, two densities, 157 inventoried surfaces, and a rule that no value is invented: a value the system
   lacks is a gap to report, not a number to guess. Also load it when asked whether this system
   covers a surface at all, when a contrast ratio or an accessibility keyboard behaviour is in
   question, or when extending the system.
@@ -30,13 +30,13 @@ component library, and no dependency on which model or tool is reading it. Read 
 3. **Start from the component rule, not from a screenshot.**
    A button with the right colours and the wrong padding is still off-system.
 4. **Run the closing checklist in `design/80-anti-patterns.md` before you call the screen done.**
-   Thirty yes-or-no questions. It is the last gate.
+   Thirty-five yes-or-no questions. It is the last gate.
 
 ## Step 0, and skipping it is the most expensive mistake available
 
 **Before you build a surface, check whether this system already answers it.**
 
-`design/05-coverage.md` lists **154 surfaces**, each marked `covered`, `partial` or `excluded`, and
+`design/05-coverage.md` lists **157 surfaces**, each marked `covered`, `partial` or `excluded`, and
 it was audited against six external component and accessibility taxonomies so that it can report
 what it does not have. Searching it takes one read and returns one of four answers:
 
@@ -74,7 +74,7 @@ invent. That is why the inventory exists and why it is checked by a script.
 | give a control its hover, focus, disabled or loading behaviour | `design/60-states.md` |
 | build any of fifteen components | `design/65-components.md` |
 | build a form, or any single control in one | `design/66-forms.md`, then `design/67-validation.md` |
-| build a sign-in page or a settings page | `design/68-page-patterns.md` |
+| build a sign-in, first-run or settings page | `design/68-page-patterns.md` |
 | make anything reachable by keyboard | `design/72-keyboard.md` |
 | build a table, a list, an empty state or a chart | `design/70-data-display.md` |
 | pick a theme overlay, a surface style, a format, a type treatment or a colour scheme | `design/75-spec-sheet.md` |

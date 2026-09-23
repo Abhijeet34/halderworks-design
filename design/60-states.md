@@ -78,8 +78,12 @@ So `--hw-text-disabled` is a solved token, held to the 3:1 non-text bar rather t
 WCAG exempts a disabled control from the contrast requirement.
 The exemption is why the number is stated here anyway: it is the only thing standing between "disabled" and "invisible".
 
-Three further rules:
+Five further rules:
 
+- **A disabled control never carries the largest visual weight on the screen.**
+  Size, position and contrast are how this system carries hierarchy, so the largest control is read as the thing to do, and if it cannot be pressed the screen's first instruction is one the reader cannot follow.
+  A control that cannot work until something else is done is either not shown yet or shown at its ordinary size beside the reason; [68-page-patterns.md](68-page-patterns.md#first-run-and-setup) is where the first answer is the rule.
+  Checked on the render: of the screen's interactive elements, the one with the largest rendered area is enabled.
 - **A disabled control stays in the tab order** where the reason it is disabled is not obvious, so a screen-reader user can reach it and hear why.
   Where it is obvious, `disabled` is correct.
   Measured practice splits the same way: `cursor: not-allowed` on 21 sites, `pointer-events: none` on only 7.

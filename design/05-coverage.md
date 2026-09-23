@@ -36,7 +36,7 @@ A row is a claim, and the script is what makes it a checkable one.
 
 Counts, which are what a reader should look at first, and which the script verifies against the
 table so they cannot drift - here and in every other live copy, `README.md` and `SKILL.md` included:
-**154 surfaces, 120 covered, 8 partial, 26 excluded.**
+**157 surfaces, 123 covered, 8 partial, 26 excluded.**
 
 ## The cross-check manifest
 
@@ -87,6 +87,7 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Numerals and tabular figures | covered | `20-type.md#figures-which-is-the-rule-most-often-missed` | |
 | Spacing scale | covered | `30-space-radius-elevation.md#space` | |
 | Vertical rhythm, and how the spacing scale relates to the type ramp | covered | `32-rhythm.md#the-unit-and-exactly-what-it-governs` | **this row was not found by the cross-check; it was found by a reader asking whether the system captures rhythm, which is the inventory working rather than a hole in it.** The system had a spacing scale, a type ramp and a line-height set and no statement of how the three relate, so being on the grid was a habit rather than a checkable property. `tools/build.py` now refuses to emit an off-unit space or size value that is not declared with a reason |
+| One primary focus per screen | covered | `35-layout.md#one-primary-focus-per-screen` | **found by the system's owner reviewing a first-run screen, not by the cross-check.** The book held one primary action, one `h1`, one subject per panel and one page-defining headline, and nothing held the screen those parts add up to, so a disabled control could be its largest object without breaking a written rule. `60-states.md` now refuses that directly |
 | Corner radius and nesting | covered | `30-space-radius-elevation.md#radius` | |
 | Elevation and shadow | covered | `30-space-radius-elevation.md#elevation` | the panel exception is in `36-form-factors.md` |
 | How a surface separates from the one behind it | covered | `50-surface-texture.md#the-four-ways-a-surface-may-separate` | |
@@ -102,6 +103,7 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Pictograms, the one illustration set | covered | `55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing` | `@carbon/pictograms`, Apache-2.0, named and not vendored: `currentColor`, at 48 or 64px and never at the 16px icon size, one per view, in the nothing-yet empty state or a marketing section. The sentence four files carried, that inventing one drawing per empty state ends in six unrelated drawings, argued for one set rather than none |
 | Figurative illustration | excluded | `55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing` | the only figurative construction measured bakes five values into each asset and has no dark-theme answer. Whether one is ever commissioned is an [open decision](#open-decisions) |
 | Photography | excluded | `80-anti-patterns.md#imagery-and-icons` | no photography in product surfaces |
+| A product's mark on its own screens | covered | `00-brand-book.md#the-mark` | the mark was excluded as a drawing and nothing said how many a screen may carry, so one first-run screen carried three. One mark per screen, the product's own, counted on the render |
 | Logomark and wordmark | excluded | `00-brand-book.md#the-mark` | a mark is a commission rather than something an agent invents |
 | Sound and haptics | excluded | `05-coverage.md#foundations` | no product uses non-speech audio or haptics as an interface signal. quoth records audio as content, which is not the same thing. Adding one needs a decision about what a failure is allowed to sound like, and nothing here covers it |
 | Layout grid and columns | covered | `35-layout.md#the-grid` | |
@@ -249,6 +251,7 @@ answered until the cross-check found them. [37-navigation.md](37-navigation.md) 
 | surface | status | where | note |
 |---|---|---|---|
 | Log in, sign up, reset password | covered | `68-page-patterns.md#the-way-in-sign-in-sign-up-reset-password` | a sweep for log in, login, sign in, sign up and authenticate returned one match, a casing example. Every product with a rail has a way in |
+| First run and setup | covered | `68-page-patterns.md#first-run-and-setup` | **this inventory pointed first run at the empty state, which answers a container and not a page.** The onboarding row excluded a tour and named `65-components.md#empty-state` as the answer to a first-run screen, so setup had no width, no placement, no progress rule and no dead-end rules, while `Setting Up` sat in the manifest's returns above. Found by the system's owner reviewing a first-run screen on 2026-09-21 |
 | Settings and preferences page | covered | `68-page-patterns.md#the-settings-page` | one match, an aside in `45-density.md` that presumed a settings page this book never specified |
 | 404 page, and the status it returns | covered | `68-page-patterns.md#the-404-page` | **this file claimed an entry for it from the first public commit and there was none.** A sweep for `404` returned HTTP statuses and nothing that specified the page. Two of the four sites measured answer 200 at an address that does not exist, which is why the entry mandates the status code |
 | Pricing page | covered | `68-page-patterns.md#the-pricing-page` | **`36-form-factors.md` claimed an entry for it from the first public commit and there was none.** A sweep for `pricing` and `paywall` returned the checklist word and other sites' prices. Two pages measured differ in one value, the price at 17px against 56px, and the entry decides it on this book's own type rules |
@@ -274,7 +277,7 @@ needs one reports the gap.
 | Range slider with two thumbs | excluded | `05-coverage.md#ruled-out-with-the-reason` | one thumb is specified in `66-forms.md#slider`; a second is a different interaction and no product filters a range |
 | Feed and infinite scroll | excluded | `05-coverage.md#ruled-out-with-the-reason` | pagination is the house answer once the breadcrumb and pagination row is finished. Infinite scroll loses the footer and loses the reader's position |
 | Notification centre | excluded | `05-coverage.md#ruled-out-with-the-reason` | a toast is transient and a centre is durable state a product must store, expire and mark read. No product has an inbox |
-| Step indicator and multi-step form | excluded | `05-coverage.md#ruled-out-with-the-reason` | `66-forms.md` specifies a single-screen form and no product splits one. The one multi-screen flow here is the password reset, which is three addresses rather than three steps |
+| Step indicator and multi-step form | excluded | `05-coverage.md#ruled-out-with-the-reason` | `66-forms.md` specifies a single-screen form and no product splits one. The one multi-screen flow here is the password reset, which is three addresses rather than three steps; first run is one page whose tasks are a list and whose progress is a count, `68-page-patterns.md#first-run-and-setup` |
 | Timeline and activity log | excluded | `05-coverage.md#ruled-out-with-the-reason` | a log is a table here, and `70-data-display.md` owns it |
 | Input mask, prefix and suffix | excluded | `05-coverage.md#ruled-out-with-the-reason` | the inputs this system takes are hashes, ids and durations, which a mask fights rather than helps |
 | Specialised payment inputs | excluded | `05-coverage.md#ruled-out-with-the-reason` | nothing here takes a payment, a phone number or a one-time code |
@@ -282,7 +285,7 @@ needs one reports the gap.
 | Image lightbox and media viewer | excluded | `05-coverage.md#ruled-out-with-the-reason` | photography in product surfaces is already excluded above, and this is its component |
 | Mentions | excluded | `05-coverage.md#ruled-out-with-the-reason` | these are single-operator instruments with no second user to mention |
 | Account and profile page | excluded | `05-coverage.md#ruled-out-with-the-reason` | single-operator instruments with no account model. The settings page above is the surface that would otherwise absorb this |
-| Onboarding and product tour | excluded | `05-coverage.md#ruled-out-with-the-reason` | a coachmark layer is a product decision none of these has taken, and `65-components.md#empty-state` is the house answer to a first-run screen |
+| Product tour and coachmarks | excluded | `05-coverage.md#ruled-out-with-the-reason` | a coachmark layer points at controls the reader cannot use yet, and is a product decision none of these has taken. A first-run screen is not this row: it is `First run and setup` above, a page |
 | Drag-to-reorder list | excluded | `05-coverage.md#ruled-out-with-the-reason` | `66-forms.md` already rules that drag is never the only route, and no product orders anything by hand |
 | Sheet or drawer as a general surface | excluded | `05-coverage.md#ruled-out-with-the-reason` | the one sheet in this system is the rail below `--hw-bp-lg`, specified in `36-form-factors.md`. A general drawer is a dialog that slides |
 
@@ -312,7 +315,7 @@ README are kept by hand.
 Two more are open and belong outside this book: whether to pay for Refero's reference-screen corpus,
 which is a spending decision, and whether the ship checklist becomes a merge gate in every
 repository that ships a screen, which is a fleet process and is not ripe until real reviews record
-which of its 30 questions a tool could answer.
+which of its 35 questions a tool could answer.
 
 | decision | what is already measured | the recommendation on the evidence | what would change it | who answers it |
 |---|---|---|---|---|

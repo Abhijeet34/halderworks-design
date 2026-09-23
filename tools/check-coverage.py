@@ -101,6 +101,15 @@ check to catch a stale write. `docs/` is not swept: it is a dated record of what
 its counts are true of that day. What a pass does not prove: that the declaration describes its
 sentence, and that a status claim phrased outside the patterns was read at all.
 
+  9  every published count of the ship checklist's questions must match the checklist
+
+The same drift one file over. The closing checklist in `80-anti-patterns.md` is numbered, and
+its size is restated in words in `README.md`, `SKILL.md`, `95-extending.md`, this inventory and
+the checklist's own closing paragraphs. Five questions added at once left seven copies saying
+"thirty" or "30", and nothing read any of them. A count is read by its phrase - "the N questions", "all N questions", "its N
+questions", "N yes-or-no questions", "an N-question checklist", in digits or words - and must
+equal the number of items in the checklist, which must also run 1 to N with none skipped.
+
 Exits non-zero, and names every failure, when any claim is unbacked.
 
     python3 tools/check-coverage.py [repo-root]
@@ -394,11 +403,49 @@ COUNT = re.compile(r"\b(\d+)\**\s+(?:inventoried\s+)?(surfaces|covered|partial|e
 STATUS_CLAIM = re.compile(r"\bnamed gap\b|\bstill (?:an? |)(?:open |known |)gap\b|"
                           r"\bstill (?:partial|excluded|uncovered)\b", re.I)
 RESTATES = re.compile(r"<!--\s*status:\s*(.+?)\s+is\s+(covered|partial|excluded)\s*-->")
+# Rule 9. A number in digits or in words up to ninety-nine, then one of the phrases the book
+# uses for the checklist; "answers two questions" names no checklist and is not read.
+_UNITS = ("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen "
+          "fifteen sixteen seventeen eighteen nineteen").split()
+_TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70,
+         "eighty": 80, "ninety": 90}
+_NUM = r"(\d+|[a-z]+(?:-[a-z]+)?)"
+QUESTIONS = re.compile(rf"\b(?:the|all|its)\s+{_NUM}\s+questions\b|"
+                       rf"\b{_NUM}(?:-question\b|\s+yes-or-no\s+questions\b)", re.I)
 
 
-def check_restatements(root: Path, inventory: Path, counts: dict, total: int, failures: list):
-    """Rule 8. Every count and every declared status claim, in every live Markdown file,
-    against the table."""
+def number(word: str):
+    """An integer from digits or English words, or None for any other word."""
+    if word.isdigit():
+        return int(word)
+    head, _, tail = word.lower().partition("-")
+    if not tail and head in _UNITS:
+        return _UNITS.index(head)
+    if head in _TENS and (not tail or tail in _UNITS[1:10]):
+        return _TENS[head] + (_UNITS.index(tail) if tail else 0)
+    return None
+
+
+def checklist_size(book: Path, failures: list):
+    """The number of items in the ship checklist, which must run 1 to N."""
+    path = book / "80-anti-patterns.md"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    start = next((i for i, l in enumerate(lines) if l.strip() == "## The checklist"), None)
+    if start is None:
+        failures.append(f"{path.name}  has no '## The checklist' section to count")
+        return 0
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")),
+               len(lines))
+    items = [int(m[1]) for l in lines[start:end] if (m := re.match(r"^(\d+)\. ", l))]
+    if items != list(range(1, len(items) + 1)):
+        failures.append(f"{path.name}  the checklist is numbered {items}, not 1 to {len(items)}")
+    return len(items)
+
+
+def check_restatements(root: Path, inventory: Path, counts: dict, total: int, questions: int,
+                        failures: list):
+    """Rules 8 and 9. Every count and every declared status claim, in every live Markdown file,
+    against the table, and every count of the checklist's questions against the checklist."""
     want = {"surfaces": total, **counts}
     status = {cells[0]: cells[1] for _, cells in rows(inventory.read_text(encoding="utf-8"))}
     files = sorted(f for f in root.rglob("*.md") if not {".git", "node_modules"} & set(f.parts)
@@ -418,6 +465,17 @@ def check_restatements(root: Path, inventory: Path, counts: dict, total: int, fa
                         f"{name}:{line_no}  says {m.group(0)!r}, and the table in "
                         f"{inventory.name} holds {want[noun]} {noun}. Every copy of a count "
                         f"moves with the inventory")
+            for m in QUESTIONS.finditer(text):
+                said = number(m.group(1) or m.group(2))
+                if said is None:
+                    continue
+                line_no = max(n for off, n in starts if off <= m.start())
+                copies += 1
+                if said != questions:
+                    failures.append(
+                        f"{name}:{line_no}  says {m.group(0)!r}, and the checklist in "
+                        f"80-anti-patterns.md holds {questions} questions. Every copy of its "
+                        f"size moves with it")
             for m in STATUS_CLAIM.finditer(text):
                 line_no = max(n for off, n in starts if off <= m.start())
                 claims += 1
@@ -508,7 +566,8 @@ def main() -> int:
     counts, total, claims = check_inventory(inventory, book, failures)
     swept, resolved, waived = check_refusals(book, inventory, claims, failures)
     admitted, backed = check_admissions(book, inventory, failures)
-    copies, restated = check_restatements(root, inventory, counts, total, failures)
+    questions = checklist_size(book, failures)
+    copies, restated = check_restatements(root, inventory, counts, total, questions, failures)
     lists = check_manifest(inventory, failures)
     links = check_links(root, failures)
 
@@ -521,7 +580,7 @@ def main() -> int:
           f"refusal.")
     print(f"{admitted} claims of an existing entry swept, {backed} resolved to a row.")
     print(f"{copies} published copies of a count and {restated} status claims checked "
-          f"against the table.")
+          f"against the table and the {questions}-question checklist.")
     print(f"{lists} external taxonomies named in the cross-check manifest.")
     print(f"{links} internal links and anchors checked.")
     print(f"{len(failures)} unbacked.")
