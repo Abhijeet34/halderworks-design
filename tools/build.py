@@ -356,6 +356,10 @@ def resolve_hue(expr, accent, neutral=None):
         return (accent if neutral is None else neutral) % 360
     if isinstance(expr, str) and expr.startswith("accent+"):
         return (accent + int(expr[len("accent+"):])) % 360
+    # Whole degrees, as every hue input is: int() alone would truncate 59.78 to 59 and ship a
+    # colour the seed never named.
+    if isinstance(expr, float) and not expr.is_integer():
+        raise ValueError(f"hue {expr} is not a whole number of degrees")
     return int(expr) % 360
 
 
@@ -1262,8 +1266,8 @@ def extension_shape(seed, ext):
         hue = e.get("hue")
         if not (set(hue) == set(theme_ids(seed)) and all(map(hue_expr_ok, hue.values()))
                 if isinstance(hue, dict) else hue_expr_ok(hue)):
-            bad.append(f"{name} has hue {hue!r}, which is neither a number, accent+N, nor one "
-                       f"of those for each of {', '.join(theme_ids(seed))}")
+            bad.append(f"{name} has hue {hue!r}, which is neither a whole number of degrees, "
+                       f"accent+N, nor one of those for each of {', '.join(theme_ids(seed))}")
         for t in theme_ids(seed):
             bad += anchor_leaf_errors(name, t, e.get(t, {}))
         more = e.get("contrastMore", {})

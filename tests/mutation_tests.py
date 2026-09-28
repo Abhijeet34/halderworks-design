@@ -505,6 +505,13 @@ case("X11 quoth.tokens.css is deleted before contrast.py --extend runs", "caught
      note="a well-formed seed with no built CSS is one FAIL line, never a traceback")
 
 
+case("X12 quoth-live's hue becomes 297.6, a fraction of a degree", "caught",
+     lambda r: product_edit(r, lambda e: e.__setitem__("hue", 297.6)), by="extend",
+     says="which is neither a whole number of degrees",
+     note="a hue is whole degrees; int() used to truncate it and ship a colour the seed never "
+          "named")
+
+
 # ---------------------------------------------------------------- the brand tier
 def brand_dir(repo, name):
     return repo / FIELD if name == "field" else repo / "examples" / name
