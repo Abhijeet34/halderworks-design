@@ -462,11 +462,7 @@ class Solver:
         return Lq, written(snap(min(C0, max_chroma(Lq, h)), up=False), anchor["C"])
 
     def solve_one(self, entry):
-        hue = entry["hue"]
-        # A product colour may name one hue per theme, as a platform's own signal does: macOS's
-        # microphone orange is hue 45 as an ink on a light ground and 60 as a light on a dark one.
-        h = resolve_hue(hue[self.theme] if isinstance(hue, dict) else hue, self.accent,
-                        self.neutral)
+        h = resolve_hue(entry["hue"], self.accent, self.neutral)
         anchor = self.anchor(entry)
         L0, C0 = float(anchor["L"]), float(anchor["C"])
         C = min(C0, max_chroma(L0, h))
@@ -1263,11 +1259,9 @@ def extension_shape(seed, ext):
             bad.append(f"a colour token entry {e!r} is not an object with a string name")
             continue
         name = e["name"]
-        hue = e.get("hue")
-        if not (set(hue) == set(theme_ids(seed)) and all(map(hue_expr_ok, hue.values()))
-                if isinstance(hue, dict) else hue_expr_ok(hue)):
-            bad.append(f"{name} has hue {hue!r}, which is neither a whole number of degrees, "
-                       f"accent+N, nor one of those for each of {', '.join(theme_ids(seed))}")
+        if not hue_expr_ok(e.get("hue")):
+            bad.append(f"{name} has hue {e.get('hue')!r}, which is neither a whole number of "
+                       f"degrees nor accent+N")
         for t in theme_ids(seed):
             bad += anchor_leaf_errors(name, t, e.get(t, {}))
         more = e.get("contrastMore", {})
