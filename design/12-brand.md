@@ -224,6 +224,11 @@ The build lifts `hw-surface`, and every surface and colour drawn above the groun
 The emitted header says `Dark cards: stepped`, and `tools/contrast.py` then holds both steps in both dark blocks against its own 1.2; `--check` refuses a header that drifts from what the seed builds.
 The house's own dark cards keep their step, 1.076, with the border and no shadow, as [30-space-radius-elevation.md](30-space-radius-elevation.md) has them.
 
+The step is narrow, and the accent decides where it builds.
+On the house set its lift is 0.0547, and it slides the chart ramp's light series from L 0.88 to 0.935, where the gamut leaves most hues too little chroma to tell two series apart: at the house accent, 198, `hw-chart-2` sits 5.2 CIEDE2000 from `hw-chart-4` in dark, against the 8.0 they keep.
+With the ink ring the step builds at accent hues 245 to 265, 21 of 360, and Field's 255 is inside that arc; under the house ring it builds at none, because the lifted `hw-border-strong` also closes on the accent ring.
+`tests/hue_sweep.py` records that arc and fails if it moves.
+
 ### Identities are not one style
 
 The owner's rule, recorded 2026-09-28: **an identity is not bound to fixed specifics.**
