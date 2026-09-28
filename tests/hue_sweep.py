@@ -16,17 +16,19 @@ every rebuild; each built hue is therefore also measured for chart separation.
 
 A brand moves more than the hue, so the sweep also builds every fifth hue at four corners of the
 two chroma multipliers a brand seed reaches every colour pair through, with the selected-row fill
-at its lowest, and every fifth hue as a vivid brand whose key is that hue (12-brand.md#the-inputs),
-and asks the second instrument about each of those too.
+at its lowest, every fifth hue as a vivid brand whose key is that hue (12-brand.md#the-inputs),
+and every hue again with the dark card step (12-brand.md#the-dark-card-step), and asks the second
+instrument about each of those too.
 
-The hues the house set builds at are recorded below as BUILDABLE, and a change to that arc fails
-the sweep: which hues a product may take is a published claim (10-color.md), so a solver change
-that opens or closes one has to say so here in the same change.
+The hues the house set builds at are recorded below as BUILDABLE, and those it builds at with the
+dark card step as STEP_BUILDABLE, and a change to either arc fails the sweep: which hues a product
+may take is a published claim (10-color.md), so a solver change that opens or closes one has to
+say so here in the same change.
 
     python3 tests/hue_sweep.py [repo-root]
 
-It runs in-process rather than through subprocesses, which is what keeps 648 builds inside a CI
-step's patience, at about 90 seconds.
+It runs in-process rather than through subprocesses, which is what keeps 1,080 builds inside a CI
+step's patience, at about two and a half minutes.
 """
 import collections
 import contextlib
@@ -50,9 +52,16 @@ import contrast       # noqa: E402
 CORNERS = [(ac, nc) for ac in (build.BOUNDS["accentChroma"][0], 2.5)
            for nc in (build.BOUNDS["neutralChroma"][0], 6.7)]
 # A vivid brand at every fifth hue: that hue's key at quoth's Field lightness and chroma, as the
-# primary, with the neutral selection, the ink ring and the dark card step, on the house accent.
+# primary, with the neutral selection and the ink ring, on the house accent. It carried the dark
+# card step until 2026-09-29, and the step refuses the house accent on its own, so no vivid seed
+# built; the step is swept as its own axis below.
 VIVID = {"brandLightness": {"light": 0.8844, "dark": 0.8844}, "brandChroma": 0.1838,
-         "primary": "brand", "selection": "neutral", "ring": "ink", "darkCard": "step"}
+         "primary": "brand", "selection": "neutral", "ring": "ink"}
+# The dark card step on the house set, with the ink ring Field pairs it with: under the house ring
+# it builds at no hue. Recorded 2026-09-29: the step's lift takes the chart ramp's light series to
+# L 0.935, where two series collide at 298 of the 339 refused hues (12-brand.md#the-dark-card-step).
+STEP = {"ring": "ink", "darkCard": "step"}
+STEP_BUILDABLE = [(245, 265)]
 # The accent hues the house set builds at, as (first, last) runs, recorded 2026-09-28 when the
 # vivid tier narrowed the ink bar to the primary fill: 155 hues. Before it, 127 built, at
 # 113-115, 187-219 and 265-355.
@@ -68,6 +77,10 @@ def runs_of(hues):
         else:
             out.append((h, h))
     return out
+
+
+def spans(runs):
+    return ", ".join(f"{a}-{b}" if a != b else f"{a}" for a, b in runs)
 
 
 def main():
@@ -92,6 +105,11 @@ def main():
         seed_file.write_text(json.dumps({"name": "vivid", "brandHue": hue, **VIVID}),
                              encoding="utf-8")
         runs.append((f"a vivid key at hue {hue}", ["--brand", str(seed_file)]))
+    for hue in range(360):
+        seed_file = tmp / f"s{hue}.json"
+        seed_file.write_text(json.dumps({"name": "step", "accentHue": hue, **STEP}),
+                             encoding="utf-8")
+        runs.append((f"the dark card step at hue {hue}", ["--brand", str(seed_file)]))
     try:
         for hue, args in runs:
             out = tmp / "h"
@@ -131,7 +149,8 @@ def main():
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    print(f"hues 0..359, and every fifth hue at {len(CORNERS)} brand corners: "
+    print(f"hues 0..359, every fifth hue at {len(CORNERS)} brand corners and as a vivid key, and "
+          f"hues 0..359 with the dark card step: "
           f"{sum(refused.values())} refused by build, {len(built)} built")
     for kind, n in refused.most_common():
         print(f"  refused for: {kind}: {n}")
@@ -148,10 +167,12 @@ def main():
         print(f"  hue {hue}: {collisions[hue][0]}")
     house = sorted(int(h) for h in built if h.isdigit())
     arc = [(a, b) for a, b in runs_of(house)]
-    print(f"the house set builds at {len(house)} of 360 accent hues: "
-          + ", ".join(f"{a}-{b}" if a != b else f"{a}" for a, b in arc))
+    print(f"the house set builds at {len(house)} of 360 accent hues: {spans(arc)}")
     vivid = [h for h in built if h.startswith("a vivid key")]
     print(f"a vivid key builds at {len(vivid)} of 72 hues; every one certified above")
+    step = runs_of(sorted(int(h.split()[-1]) for h in built if h.startswith("the dark card step")))
+    print(f"the dark card step builds at {sum(b - a + 1 for a, b in step)} of 360 accent hues: "
+          f"{spans(step)}")
     documented = "318"
     print(f"the worked example AGENTS.md documents, hue {documented}: "
           f"{'built' if documented in built else 'refused by build'}, "
@@ -164,6 +185,17 @@ def main():
         print(f"FAIL  the buildable arc is {arc}, and BUILDABLE records {BUILDABLE}. A solver "
               f"change that opens or closes a hue records it here and in 10-color.md",
               file=sys.stderr)
+    # "Every one certified above" over an empty set certifies nothing: from PR #16 (2026-09-28) to
+    # 2026-09-29 no vivid seed built and the sweep stayed green.
+    if not vivid:
+        fails += 1
+        print("FAIL  no vivid key built, so the vivid tier was certified at no hue",
+              file=sys.stderr)
+    if step != STEP_BUILDABLE:
+        fails += 1
+        print(f"FAIL  the dark card step builds at {step}, and STEP_BUILDABLE records "
+              f"{STEP_BUILDABLE}. A solver change that opens or closes a hue records it here and "
+              f"in 12-brand.md#the-dark-card-step", file=sys.stderr)
     if fails:
         print(f"\nFAIL  {len(contrast_fail)} buildable hue(s) emit a palette the second "
               f"instrument refuses, {len(under)} carry a pair under its bar exactly, and "
