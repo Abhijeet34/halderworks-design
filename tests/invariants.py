@@ -123,19 +123,23 @@ def colour_difference_agrees(fails):
 # here as a third declaration so lowering both instruments' copies in one edit still fails.
 # The primary bar is the old ink bar's 14, moved by the vivid tier from the accent ink to the
 # loudest fill (10-color.md#the-three-bars-the-accent-is-held-to); the number did not change.
+# The two product bars replaced productSeparation 8.0 on 2026-09-28
+# (95-extending.md#how-a-product-colour-is-held-apart).
 DECIDED = {"primary": 14, "fill": 5, "ring": 17, "ringFromBorder": 14, "stateFillFromGround": 6,
-           "chartSeparation": 8.0, "productSeparation": 8.0}
+           "chartSeparation": 8.0, "productFromState": 14, "productHueChroma": 5.0}
 
 
 def bars_hold(seed, fails):
     sd = seed["seed"]
     seed_bars = {**sd["accentSeparation"], **{k: sd[k] for k in (
-        "ringFromBorder", "stateFillFromGround", "chartSeparation", "productSeparation")}}
+        "ringFromBorder", "stateFillFromGround", "chartSeparation", "productFromState",
+        "productHueChroma")}}
     contrast_bars = {kind: bar for kind, _, _, _, bar in contrast.ACCENT_BARS}
     contrast_bars.update(ringFromBorder=contrast.RING_FROM_BORDER,
                          stateFillFromGround=contrast.FILL_FROM_GROUND,
                          chartSeparation=contrast.CHART_SEPARATION,
-                         productSeparation=contrast.PRODUCT_SEPARATION)
+                         productFromState=contrast.PRODUCT_FROM_STATE,
+                         productHueChroma=contrast.PRODUCT_HUE_CHROMA)
     for where, got in (("tokens.seed.json", seed_bars), ("tools/contrast.py", contrast_bars)):
         for k, want in DECIDED.items():
             if got.get(k) != want:
