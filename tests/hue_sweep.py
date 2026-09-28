@@ -164,6 +164,12 @@ def main():
         print(f"FAIL  the buildable arc is {arc}, and BUILDABLE records {BUILDABLE}. A solver "
               f"change that opens or closes a hue records it here and in 10-color.md",
               file=sys.stderr)
+    # "Every one certified above" over an empty set certifies nothing: from PR #16 (2026-09-28) to
+    # 2026-09-29 no vivid seed built and the sweep stayed green.
+    if not vivid:
+        fails += 1
+        print("FAIL  no vivid key built, so the vivid tier was certified at no hue",
+              file=sys.stderr)
     if fails:
         print(f"\nFAIL  {len(contrast_fail)} buildable hue(s) emit a palette the second "
               f"instrument refuses, {len(under)} carry a pair under its bar exactly, and "
