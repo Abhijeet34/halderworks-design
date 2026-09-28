@@ -745,9 +745,10 @@ case("V4 the moulded register is hand-edited to 4/7/11", "caught",
      by="contrast-field", says="none of the registers",
      note="12-brand.md: 4/7/12 is a register beside crisp, house and soft, not a free triple")
 
-case("V5 Field's ground moves to putty, L 0.925, and is rebuilt", "green",
-     lambda r: brand_edit(r, "field", lambda b: b["groundLightness"].__setitem__("light", 0.925),
-                          rebuild=True),
+case("V5 Field's ground moves to putty, L 0.925, over the house's own well, and is rebuilt",
+     "green",
+     lambda r: brand_edit(r, "field", lambda b: (b["groundLightness"].__setitem__("light", 0.925),
+                                                 b.pop("sunkenDepth")), rebuild=True),
      strict=True,
      note="12-brand.md: a brand sits on putty as well as on paper, both certified")
 
@@ -802,6 +803,49 @@ case("V12 Field takes selection: accent, quietChroma 0.5, and hw-select is hand-
      by="contrast-field", says="neither neutral nor --hw-accent-quiet's value",
      note="12-brand.md#the-vivid-tier: hw-select is hw-accent-quiet's value with selection: "
           "accent, and the second instrument holds it on its own without opening the seed")
+
+
+case("V13 Field keeps its 0.047 chassis under a putty ground, and is rebuilt", "caught",
+     lambda r: brand_edit(r, "field", lambda b: b["groundLightness"].__setitem__("light", 0.925),
+                          rebuild=True),
+     by="brand-field", says="hw-chart-4 sits 7.5 from hw-chart-6 in light-more",
+     note="12-brand.md#sunken-depth: everything under the well moves down with it, and on putty "
+          "a 0.047 well takes the raised-contrast chart ramp past where it keeps 8.0")
+
+case("V14 Field asks for a light well 0.09 under its pane, past the 0.08 bound", "caught",
+     lambda r: brand_edit(r, "field", lambda b: b["sunkenDepth"].__setitem__("light", 0.09)),
+     by="brand-field", says="is not one step of lightness under the ground",
+     note="12-brand.md#sunken-depth: at 0.081 Field's raised-contrast chart ramp closes")
+
+case("V15 Field's light well is hand-edited down to L 0.85 without its inks re-solved", "caught",
+     lambda r: brand_css_edit(r, "field", field_value(r, LIGHT, "hw-surface-sunken"),
+                              "--hw-surface-sunken: oklch(0.8500 0.0060 95);"),
+     by="contrast-field", says=("light --hw-text-muted on --hw-surface-sunken",
+                                "light --hw-chart-1 on --hw-surface-sunken"),
+     note="the second instrument re-measures every pair on the well at the depth the file paints")
+
+
+def v16_after(repo):
+    # The same seed without the input, built beside it: the two files may differ only in the
+    # header line that names the seed they came from.
+    seed = json.loads((repo / FIELD / "brand.seed.json").read_text(encoding="utf-8"))
+    seed.pop("sunkenDepth")
+    bare = repo.parent / "bare.seed.json"
+    bare.write_text(json.dumps(seed), encoding="utf-8")
+    run(repo, "tools/build.py", "--brand", str(bare), "--out", str(repo.parent / "bare"))
+
+    def body(path):
+        return [ln for ln in path.read_text(encoding="utf-8").splitlines()
+                if not ln.lstrip().startswith("Brand:")]
+    same = body(repo / FIELD / "tokens" / "tokens.css") == body(repo.parent / "bare" / "tokens.css")
+    return ("" if same else "a well at the house's own step emits other bytes than no input"), same
+
+
+case("V16 Field's well is set to the house's own step, 0.020 and 0.034, and is rebuilt", "green",
+     lambda r: brand_edit(r, "field", lambda b: b.__setitem__(
+         "sunkenDepth", {"light": 0.020, "dark": 0.034}), rebuild=True),
+     after=v16_after, strict=True,
+     note="12-brand.md#sunken-depth: the bound's floor is the house's well, byte for byte")
 
 
 # ---------------------------------------------------------------- the face roster and type roles

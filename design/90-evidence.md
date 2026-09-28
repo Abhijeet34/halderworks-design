@@ -774,6 +774,12 @@ Before the tier, 127 accent hues built: 113 to 115, 187 to 219 and 265 to 355.
 After it, 155 build: 100 to 124, 184 to 219 and 265 to 358.
 `tests/hue_sweep.py` records the new arc and fails if it moves.
 
+### Sunken depth
+
+`sunkenDepth` is bounded the same way, measured on Field's inputs a thousandth at a time on 2026-09-29: a light well 0.080 under the pane builds, and at 0.081 the raised-contrast chart ramp closes, `hw-chart-4` under 8.0 from `hw-chart-6`; on a putty ground at 0.925 the same refusal arrives between 0.030 and 0.040.
+A dark well builds at every depth down to L 0, because nothing is drawn darker than it.
+The dark card step cannot carry a chassis: a dark pane at L 0.17 sits 1.098:1 over pure black, so D-040's 1.2:1 is out of reach under any neutral dark pane below L 0.216, Field's 0.17 among them, and [12-brand.md](12-brand.md#sunken-depth) records the step Field takes instead.
+
 ## What still cannot be reached
 
 Four sources were asked for in the first capture pass and could not be rendered, so no measured value in this system is attributed to any of them.

@@ -95,7 +95,7 @@ Measured separations, so a step is a number rather than an impression:
 |---|---:|---:|
 | `--hw-surface-hover` off `--hw-surface` | 1.083:1 | 1.042:1 |
 | `--hw-surface-active` off `--hw-surface` | 1.129:1 | 1.087:1 |
-| `--hw-surface-sunken` off `--hw-ground` | 1.043:1 | 1.132:1 |
+| `--hw-surface-sunken` off `--hw-ground` | 1.060:1 | 1.037:1 |
 
 These are deliberately small.
 A hover fill that reads as a colour change is a hover fill that makes a table flash as the pointer crosses it.

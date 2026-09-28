@@ -42,7 +42,7 @@ Two rules:
 
 ## A brand seed, and nothing else
 
-A product's identity is a **brand seed**: twenty-two bounded inputs the build solves into a full token set with the house's names, never a stylesheet of overrides.
+A product's identity is a **brand seed**: twenty-three bounded inputs the build solves into a full token set with the house's names, never a stylesheet of overrides.
 [12-brand.md](12-brand.md) owns the inputs, their bounds and the three product brands.
 papertrace is the worked example here, because it is the warm one:
 

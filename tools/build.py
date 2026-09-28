@@ -1548,7 +1548,7 @@ def extend(seed, accent, solvers, house_css, a):
 
 
 # --- the brand tier -------------------------------------------------------------------------
-# A product's identity is a brand seed: twenty-two bounded inputs this build applies to a copy of
+# A product's identity is a brand seed: twenty-three bounded inputs this build applies to a copy of
 # the house seed before solving that copy with the code above, so a brand is a rebuild and never
 # a hand-pick, and every brand ships the house's token names. 12-brand.md owns the rule. The
 # numeric bounds are pinned here rather than in the seed, for GRID_SCOPE's reason: a seed that
@@ -1557,7 +1557,8 @@ def extend(seed, accent, solvers, house_css, a):
 BRAND_INPUTS = ("accentHue", "accentChroma", "accentLightness", "quietChroma", "ring",
                 "neutralHue", "neutralChroma", "shape", "iconStroke", "display", "text",
                 "brandHue", "brandLightness", "brandChroma", "primary", "selection",
-                "groundLightness", "darkCard", "mono", "quote", "displayFrom", "displayScale")
+                "groundLightness", "darkCard", "mono", "quote", "displayFrom", "displayScale",
+                "sunkenDepth")
 # The chroma multipliers keep a floor and have no ceiling: the sRGB gamut clips each colour, and
 # the measured bars refuse what the gamut admits and a reader would misread
 # (12-brand.md#the-inputs). The ceilings they replace were 1.3 and 4.0, and nothing had tested
@@ -1569,6 +1570,12 @@ BOUNDS = {"accentChroma": (0.3, None), "quietChroma": (0.3, 1.0), "neutralChroma
 # hw-text-muted two roles on the sunken surface. The ceiling is the house surface's own 1.000
 # less the 0.022 the house keeps between ground and surface. Dark mirrors the same reasons.
 GROUND_BOUNDS = {"light": (0.92, 0.985), "dark": (0.13, 0.22)}
+# sunkenDepth, per theme: how far hw-surface-sunken sits under the ground, so a paper pane can sit
+# in a deeper chassis (D-055 in quoth's record). The floor is the house's own step, so the input
+# only deepens a well. In light, Field builds at 0.08 and at 0.081 its raised-contrast chart ramp
+# closes; in dark nothing is drawn under the well, and 0.13, the lowest dark ground, keeps every
+# admitted well at or above black (12-brand.md#sunken-depth).
+SUNKEN_BOUNDS = {"light": (0.020, 0.08), "dark": (0.034, 0.13)}
 # groundLightness slides every colour of its theme by the ground's own offset before the solver
 # runs, so every relationship the house measured between them is kept and only the residue is
 # re-solved. Moving the ground alone was tried first: the inks re-solved by different amounts, the
@@ -1626,19 +1633,20 @@ def brand_errors(seed, brand):
             bad.append(f"{k} {brand.get(k)!r} is not {span} times the house anchors "
                        f"(12-brand.md#the-inputs)")
 
-    def per_theme(k, lo, hi):
+    def per_theme(k, bounds, what="one lightness"):
         v = brand[k]
-        bounds = {t: (lo, hi) for t in theme_ids(seed)} if lo is not None else GROUND_BOUNDS
         if not (isinstance(v, dict) and set(v) == set(theme_ids(seed))
                 and all(finite_number(x) is not None and not isinstance(x, str)
                         and bounds[t][0] <= x <= bounds[t][1] for t, x in v.items())):
             span = ", ".join(f"{t} {a} to {b}" for t, (a, b) in bounds.items())
-            bad.append(f"{k} {v!r} is not one lightness for each theme, {span}")
+            bad.append(f"{k} {v!r} is not {what} for each theme, {span}")
     for k in ("accentLightness", "brandLightness"):
         if k in brand:
-            per_theme(k, 1e-4, 1 - 1e-4)
+            per_theme(k, {t: (1e-4, 1 - 1e-4) for t in theme_ids(seed)})
     if "groundLightness" in brand:
-        per_theme("groundLightness", None, None)
+        per_theme("groundLightness", GROUND_BOUNDS)
+    if "sunkenDepth" in brand:
+        per_theme("sunkenDepth", SUNKEN_BOUNDS, "one step of lightness under the ground")
     if "brandChroma" in brand:
         v = brand["brandChroma"]
         if isinstance(v, str) or finite_number(v) is None or v <= 0:
@@ -1773,6 +1781,19 @@ def apply_brand(seed, brand):
         if ground and slides(e):
             for theme, anchor in anchors(e):
                 anchor["L"] = slide(anchor["L"], ground[theme])
+    tok = {e["name"]: e for e in s["color"]["tokens"]}
+    for t, depth in brand.get("sunkenDepth", {}).items():
+        was = tok["hw-surface-sunken"][t]["L"]
+        tok["hw-surface-sunken"][t]["L"] = slide(tok["hw-ground"][t]["L"], -depth)
+        # Every colour darker than the well moves down with it, for the reason slides() gives:
+        # moving the well alone closed hw-text-muted on hw-text-secondary to 0.0487 and left
+        # hw-select 0.001 under the well, a selected rail row nobody could see.
+        drop = float(tok["hw-surface-sunken"][t]["L"]) - float(was)
+        for e in s["color"]["tokens"]:
+            if drop and slides(e) and e["name"] != "hw-surface-sunken":
+                for theme, anchor in anchors(e):
+                    if theme == t and float(anchor["L"]) < float(was):
+                        anchor["L"] = slide(anchor["L"], drop)
     if "ring" in brand:
         # "accent": the ring is the accent ink itself, as a product whose focus ring is its one
         # colour draws it. "ink": the ring takes the text ink, so it is as visible as the most
