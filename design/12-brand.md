@@ -229,7 +229,7 @@ On top of the floors, both instruments hold the painted distances below, in CIED
 
 The accent ink is no longer held to the states; `tools/contrast.py` reports its distance and does not refuse it ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)).
 
-The chart ramp keeps its own bar, 8.0 in oklab distance times 100 from each semantic and between series, and a product's own colour keeps 8.0 in hue and chroma from each state and the accent ([95-extending.md](95-extending.md#why-the-separation-leaves-lightness-out)).
+The chart ramp keeps its own bar, 8.0 in oklab distance times 100 from each semantic and between series, and a product's own colour keeps 14 CIEDE2000 from each state and 5.0 in hue and chroma from each state and the accent ([95-extending.md](95-extending.md#how-a-product-colour-is-held-apart)).
 
 ## Building a brand
 

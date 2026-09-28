@@ -115,61 +115,87 @@ What both tools refuse, whatever the product's seed says:
   A product colour is a mark drawn on a house surface, and nothing stops a component putting it on any of them.
 - **An `apart` list without `hw-success`, `hw-warning`, `hw-danger` and `hw-accent`.**
   A seed can name more colours to stay clear of, never fewer.
-- **A solved value closer than 8.0 in hue and chroma to anything in `apart`**, in any of the four blocks, with the number:
+- **A solved value under either product bar**, in any of the four blocks, with the number: under 14 CIEDE2000 at 8-bit from `hw-success`, `hw-warning` or `hw-danger`, or under 5.0 in hue and chroma from anything in `apart`. [The next section](#how-a-product-colour-is-held-apart) says why there are two.
 
 ```text
-FAIL  quoth-live at hue 150 sits 0.8 from hw-success in hue and chroma in light, below the 8.0
+FAIL  quoth-live at hue 150 sits 2.9 from hw-success in hue and chroma in light, below the 5.0
+      this system requires (95-extending.md#a-colour-of-the-products-own)
+FAIL  quoth-live at hue 150 sits 5.4 CIEDE2000 from hw-success at 8-bit in light, below the 14
       this system requires (95-extending.md#a-colour-of-the-products-own)
 ```
 
-`tools/contrast.py --extend` holds every product colour to 3:1 on the six surfaces and to 8.0 from the four state colours from its own declarations, and reads the seed only for what it adds, such as a text bar.
+`tools/contrast.py --extend` holds every product colour to 3:1 on the six surfaces, 14 CIEDE2000 from the three states and 5.0 in hue and chroma from the states and the accent from its own declarations, and reads the seed only for what it adds, such as a text bar.
 Weakening the seed and moving the value in one edit still fails.
 
 Both tools also validate the seed's raw JSON before any of the above runs: a non-object top level, a namespace or token name that is not a string, an anchor `L` or `C` that is not a finite number, a hue that is neither a whole number of degrees nor `accent+N`, or a floor `bar` or `apart`/`on` entry of the wrong type or shape.
 Every leaf a solver later reads is checked once at that boundary, so a bad leaf is one `FAIL` line and exit 1, never a traceback.
 `tools/contrast.py --extend` also refuses to run against a seed whose built CSS is missing, naming the `tools/build.py --extend` command to run first, rather than measuring a file that is not there.
 
-### Why the separation leaves lightness out
+### How a product colour is held apart
 
-The accent is held apart from the states in CIEDE2000, which counts lightness, and that is right for the accent: its lightness is solved to the same floors as the states', so what separates it has to be hue and chroma anyway, and a brand's own lightness is a real, visible difference.
-A product colour's anchors are its own, so a rule that counts lightness can be cleared by lightness alone.
-Recording red is the case.
-Hue 27 anchored at L 0.30 in light and 0.85 in dark solves to a maroon, `#5C0105`, and a salmon, `#FEBAB2`, which sit 23.9 and 20.9 from `hw-danger` counting lightness, and 14.0 and 9.8 under more contrast.
-In hue and chroma they sit 0.9 and 3.1, which is what a reader sees: a red.
-The accent's own bar would not catch it either: the maroon sits 21.6 CIEDE2000 from `hw-danger`, past the 14 the accent is held to.
-So a product colour is held to 8.0 in hue and chroma, oklab distance times 100 with lightness left out, which lightness cannot clear.
+Decided by the system's owner on 2026-09-28, on the house-live-orange audit of that day.
+It replaces 8.0 in hue and chroma, which was the accent's retired 8.0 carried into the product rule without calibration, and which refused five of the six inks the constraint audit's renders judged to be colours of their own: 186, 116, 350, the umber and the moss sit 5.4 to 6.7.
+
+Against `hw-success`, `hw-warning` and `hw-danger`, in all four blocks, a product colour clears two bars:
+
+| bar | measured | calibrated on |
+|---|---|---|
+| 14 | CIEDE2000 on the 8-bit value a display receives | the accent's ink bar: teal 172 at 10.5 read as a state and 186 at 14.3 as its own colour ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)) |
+| 5.0 | oklab distance times 100 with lightness left out, "in hue and chroma" | the same judged inks: hue 52 at 4.58 sat with Failed and Retried, the umber at 5.36 read as dark brown |
+
+Each bar refuses a colour the other passes, and the mutation suite watches both fail:
+
+- **The guard catches a state moved in lightness.** Recording red kept at hue 27 and anchored at L 0.30 and 0.85 solves to a maroon, `#5C0105`, 21.6 CIEDE2000 from `hw-danger`, past the 14, and 0.9 from it in hue and chroma, which is what a reader sees: a red. An oxblood at hue 36, `#812101`, clears 14 in light at 15.7 and sits 2.2 in hue and chroma.
+- **CIEDE2000 catches a state moved in chroma.** Recording red at hue 30 at a 3:1 floor, `#D41101` and `#FE6653`, clears the guard at 7.9 because its chroma is higher than `hw-danger`'s, and sits 10.4 CIEDE2000 from it in dark.
+  That keeps quoth's recording red excluded mechanically.
+
+Against `hw-accent`, and any further colour a seed names, the guard alone.
+The ink bar was calibrated on chromatic inks against the states, and quoth's violet of 2026-09-21, approved on render, sits 12.0 CIEDE2000 from quoth's near-neutral slate accent and 8.8 clear of it in hue and chroma.
+
+Colour-vision separation is reported and never refused on, as for the accent.
+Both tools print, in each block, the closest a product colour comes to a state under protanopia, deuteranopia and tritanopia, simulated with Machado, Oliveira and Fernandes 2009 at full severity ([90-evidence.md](90-evidence.md#the-painted-separation-bars)).
+The house's own states already collapse under deuteranopia and are told apart by their words ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)), so refusing a product colour on it would hold the product to a bar the house fails; the product's word or shape carries the state instead.
+
+The floor is set by use: 3:1 on the six surfaces for a mark, per WCAG 2.2 SC 1.4.11, and 4.5:1 only when text is set in the colour.
+The seed's `floors` declare which, and `tools/contrast.py` never certifies less than 3:1 whatever they say.
+
+A third reading was measured and declined: CIEDE2000 with its lightness term dropped.
+No bar in it reproduces the judged inks, because it puts the umber, judged distinct, at 10.6 and hue 52, judged a state, at 12.0, and at 8.0 it admits teal 172 and hue 52 as product colours, both rejected on render.
 
 ### The worked example, quoth's live colour
 
 The microphone-open state takes its own colour, decided by the system's owner on 2026-09-21.
 The accent already marks selection, focus and the active tab, so a shared accent makes "the microphone is open" read as "this row is selected", and recording red sits on `hw-danger`.
+quoth's decision D-062 moved it from a violet to the orange of the open microphone, and D-059 took the word out of it, so it is a mark.
 
-Solved against quoth's brand set, [examples/quoth/quoth.tokens.css](../examples/quoth/quoth.tokens.css):
+Solved against quoth's brand set, [examples/quoth/quoth.tokens.css](../examples/quoth/quoth.tokens.css), as `tools/contrast.py` measures it:
 
-| block | value | hex | worst contrast, six surfaces | closest in hue and chroma |
-|---|---|---|---:|---|
-| light | `oklch(0.515 0.13 297)` | `#7054A8` | 5.25:1 | 11.1 from `hw-accent` |
-| dark | `oklch(0.6252 0.11 297)` | `#8F79C2` | 4.53:1 | 8.8 from `hw-accent` |
-| light, more contrast | `oklch(0.4467 0.13 297)` | `#5D4192` | 7.07:1 | 11.1 from `hw-accent` |
-| dark, more contrast | `oklch(0.7396 0.11 297)` | `#B29CE8` | 7.03:1 | 8.8 from `hw-accent` |
+| block | value | hex | worst contrast, six surfaces | closest CIEDE2000 to a state | closest in hue and chroma | a dichromat, reported |
+|---|---|---|---:|---|---|---|
+| light | `oklch(0.55 0.1492 48)` | `#B45001` | 4.54:1 | 15.6 from `hw-warning` | 5.43 from `hw-danger` | protan 1.8 from `hw-warning` |
+| dark | `oklch(0.74 0.1687 48)` | `#FE853E` | 6.88:1 | 18.7 from `hw-danger` | 7.69 from `hw-danger` | protan 6.7 from `hw-warning` |
+| light, more contrast | `oklch(0.55 0.1492 48)` | `#B45001` | 4.54:1 | 19.4 from `hw-danger` | 5.43 from `hw-danger` | protan 8.2 from `hw-warning` |
+| dark, more contrast | `oklch(0.74 0.1687 48)` | `#FE853E` | 6.88:1 | 16.4 from `hw-danger` | 7.69 from `hw-danger` | deutan 3.9 from `hw-warning` |
 
-Against the house set the dark value was L 0.6255; quoth's own surfaces move it to 0.6252, which is the reason a product colour is solved against its brand's set rather than the house's.
-Its closest colour is now quoth's own slate accent, at hue 255, rather than a state.
+The contrast figures are the 8-bit ones.
+Neither anchor re-solves: the floor rises to 4.5:1 under more contrast, and the light value already holds 4.54:1.
+`tools/build.py` reads the light block's CIEDE2000 as 15.2, because it also measures the rounding a display may take the other way on a channel near a boundary.
 
 The derivation, one input at a time:
 
-- **Hue 297** was chosen against the house set, where it is the hue whose worst separation from the four state colours is largest, 15.5, in a one-degree sweep of the wheel. Against quoth's set the 67 hues from 278 to 344 clear 8.0 with every floor held, and 297 is among them at 8.8.
-- **The anchors** are the accent's lightness, 0.515 and 0.619, and `hw-danger`'s chroma, 0.13 and 0.11, so recording is exactly as loud as an error and no louder.
-- **The floor is the text bar, 4.5:1 on all six surfaces**, because the word is set in this colour; that subsumes the 3:1 a mark needs.
-  It carries no pair on a quiet fill, because quoth has no live fill, so a live badge is the fill-less form [15-color-combinations.md](15-color-combinations.md) already gives a badge on a tinted row.
+- **Hue 48 at L 0.55 and 0.74** is quoth's D-062. It passes by 0.43 in hue and chroma, and the choice among the oranges that pass was a render judgement, not a number.
+- **The chroma** is asked at 0.30 and clamped by the build to the sRGB edge, 0.1492 and 0.1687, so the orange is as vivid as a display paints it at that lightness.
+- **The floor is 3:1 on all six surfaces**, because it is a mark: the lit segments of the level meter.
+  It carries no pair on a quiet fill, because quoth has no live fill.
 
 Colour is never the only carrier of the state: [15-color-combinations.md](15-color-combinations.md) puts a word beside every semantic colour and [55-iconography.md](55-iconography.md#colour) puts one beside every icon.
-So the live state is always the word `Recording` and Lucide's `mic` icon at `--hw-icon-sm`, both in `--quoth-live`.
+So the live state is always the word `Recording`, in a house text colour, beside the mark in `--quoth-live`.
+Under protanopia the light value comes within 1.8 of `hw-warning`, which is that word's job, not the colour's.
 It does not pulse, because [40-motion.md](40-motion.md) lets only a determinate progress indicator loop, and the change is announced in a `role="status"` region, which quoth provides.
 It is not certified on the menu-bar item, which sits on a ground the house does not own.
 
-It sits 5.2 from quoth's `hw-chart-2` at its closest, and no hue clears 8.0 from all six chart colours and the four state colours at once: the best, hue 290, reaches 6.4.
-A quoth screen that colours speakers from the chart ramp therefore keeps the live state out of the chart, and relies on the word and the icon beside it.
+It sits 6.2 in hue and chroma and 17.5 CIEDE2000 from quoth's `hw-chart-3` at its closest.
+The chart ramp is not in its `apart` list, so a quoth screen that colours speakers from the chart ramp keeps the live state out of the chart, and relies on the word beside it.
 
 ## Adding a component
 
