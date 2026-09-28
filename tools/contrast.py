@@ -308,6 +308,52 @@ def required():
         yield AA, fg, "--hw-border", "ink permitted on the ruled ground"
 
 
+# The vivid tier (12-brand.md#the-vivid-tier), declared here on its own for the same reason as the
+# pairs above. A set that declares none of these tokens is not held to them; a set that declares
+# one declares all of them, or it is refused.
+VIVID = ["--hw-brand", "--hw-brand-hover", "--hw-brand-active", "--hw-on-brand",
+         "--hw-brand-quiet", "--hw-field", "--hw-on-field", "--hw-select", "--hw-primary",
+         "--hw-primary-hover", "--hw-primary-active", "--hw-on-primary"]
+# What the primary aliases may copy: the ink family, or the brand's.
+PRIMARY_FAMILIES = {"ink": ("--hw-ink", "--hw-ink-hover", "--hw-ink-active", "--hw-ink-text"),
+                    "brand": ("--hw-brand", "--hw-brand-hover", "--hw-brand-active",
+                              "--hw-on-brand")}
+PRIMARY_ALIASES = ("--hw-primary", "--hw-primary-hover", "--hw-primary-active", "--hw-on-primary")
+# The labels a vivid fill may carry: the text ink or the ink control's label, nothing else.
+LABEL_INKS = ("--hw-text", "--hw-ink-text")
+
+
+def vivid_required():
+    """(bar, foreground, background, what relies on it), every pair of the vivid tier."""
+    for fill in ("--hw-brand", "--hw-brand-hover", "--hw-brand-active"):
+        yield AA, "--hw-on-brand", fill, "a label on the brand fill, at rest, hovered and pressed"
+    yield AA, "--hw-on-field", "--hw-field", "display copy and its one action on a vivid field"
+    for fill in PRIMARY_ALIASES[:3]:
+        yield AA, "--hw-on-primary", fill, "the primary button's label, at rest, hovered and pressed"
+    # 7:1 in both tiers: a selected row and a brand tint are read at length, so the default tier
+    # already holds them at the raised bar.
+    yield 7.0, "--hw-text", "--hw-brand-quiet", "body copy on the brand's quiet tint"
+    yield 7.0, "--hw-text", "--hw-select", "body copy in a selected row"
+
+
+def vivid(tokens):
+    """Failures of the vivid tier's forms in one block: every token declared, each label one of
+    the two inks, and the primary aliases one family copied whole."""
+    missing = [v for v in VIVID if v not in tokens]
+    if missing:
+        return [f"declares part of the vivid tier and not {', '.join(missing)}"]
+    bad = []
+    for label in ("--hw-on-brand", "--hw-on-field"):
+        if not any(tokens[label] == tokens[ink] for ink in LABEL_INKS):
+            bad.append(f"{label} is {hexof(*tokens[label])}, which is neither --hw-text nor "
+                       f"--hw-ink-text")
+    if not any(all(tokens[a] == tokens[f] for a, f in zip(PRIMARY_ALIASES, fam))
+               for fam in PRIMARY_FAMILIES.values()):
+        bad.append("--hw-primary and its states copy neither the ink family nor the brand's "
+                   "whole")
+    return bad
+
+
 def refused():
     """(bar, foreground, background, why), pairs the book refuses because they fall BELOW the bar.
 
@@ -325,9 +371,16 @@ def refused():
 # oklab distance times 100 against each semantic and each other series, and neighbours alternate
 # in lightness: 0.12 of lightness is a separation of 12 on its own, so neighbours stay apart
 # where hue is lost, in greyscale print or to a reader who cannot see it.
-ACCENT_BARS = (("ink", "--hw-accent", "", ("success", "warning", "danger"), 14),
-               ("fill", "--hw-accent-quiet", "-quiet", ("success", "warning", "danger"), 5),
-               ("ring", "--hw-accent-ring", "", ("danger",), 17))
+# The primary bar used to hold the accent ink from all three states. Narrowed by the vivid tier:
+# it holds the loudest fill, --hw-primary where the set declares it and --hw-ink otherwise, from
+# --hw-danger, the one state drawn as a filled button; the accent ink is reported, not refused
+# (10-color.md#the-three-bars-the-accent-is-held-to). The selected-row fill is --hw-select where
+# declared, and a neutral one is exempt because it is not a hue.
+ACCENT_BARS = (("primary", ("--hw-primary", "--hw-ink"), "", ("danger",), 14),
+               ("fill", ("--hw-select", "--hw-accent-quiet"), "-quiet",
+                ("success", "warning", "danger"), 5),
+               ("ring", ("--hw-accent-ring",), "", ("danger",), 17))
+NEUTRALS = SURFACES + ["--hw-border"]
 RING_FROM_BORDER, FILL_FROM_GROUND = 14, 6
 CHART_SEPARATION, NEIGHBOUR_DL = 8.0, 0.12
 CHARTS = [f"--hw-chart-{n}" for n in range(1, 7)]
@@ -345,13 +398,22 @@ def separation(a, b, lightness=True):
 def separations(tokens):
     """(failures, closest chart pair, worst painted distance per bar), for one block."""
     bad, closest, worst = [], None, {}
-    for kind, ours, suffix, states, bar in ACCENT_BARS:
+    worst["ink"] = min(painted(tokens["--hw-accent"], tokens[f"--hw-{s}"]) for s in SEMANTICS[1:])
+    for kind, names, suffix, states, bar in ACCENT_BARS:
+        ours = next(n for n in names if n in tokens)
+        if (ours == "--hw-select"
+                and tokens[ours][1] <= max(tokens[n][1] for n in NEUTRALS) + 1e-9):
+            worst[kind] = float("inf")
+            continue
         for sem in states:
             d = painted(tokens[ours], tokens[f"--hw-{sem}{suffix}"])
             worst[kind] = min(worst.get(kind, d), d)
             if d < bar:
-                bad.append(f"{ours}, the accent's {kind}, sits {d:.1f} from --hw-{sem}{suffix}, "
-                           f"below {bar} CIEDE2000: an accent that reads as a state")
+                bad.append(f"{ours}, the {kind} fill, sits {d:.1f} from --hw-{sem}{suffix}, "
+                           f"below {bar} CIEDE2000: a brand element that reads as a state"
+                           if kind != "ring" else
+                           f"{ours}, the ring, sits {d:.1f} from --hw-{sem}{suffix}, "
+                           f"below {bar} CIEDE2000: a focus ring that reads as an error border")
     d = painted(tokens["--hw-accent-ring"], tokens["--hw-border-strong"])
     worst["ring-border"] = d
     if d < RING_FROM_BORDER:
@@ -387,7 +449,7 @@ def separations(tokens):
 # A brand's shape and stroke, one of the house's own (12-brand.md). Three radii bound to three
 # roles, child never larger than parent, is what a register guarantees; a free triple does not.
 REGISTERS = {"crisp": ("2px", "3px", "6px"), "house": ("4px", "6px", "10px"),
-             "soft": ("6px", "8px", "14px")}
+             "moulded": ("4px", "7px", "12px"), "soft": ("6px", "8px", "14px")}
 ICON_STROKES = ("1.5px", "1.75px", "2px")
 DECLARATION = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*([^;]+);")
 
@@ -421,6 +483,11 @@ def geometry(path):
 
 
 BRAND_LINE = re.compile(r"^\s*Brand: (.+)\.$", re.M)
+# A set whose header says its dark cards are stepped is held to that step in both dark blocks:
+# a card told from the page by a lighter surface and a border, never a shadow
+# (12-brand.md#the-dark-card-step). The number is this file's, not the header's.
+CARD_LINE = re.compile(r"^\s*Dark cards: stepped", re.M)
+CARD_STEP = 1.2
 
 
 # The text roles, most prominent first, and the smallest lightness step the default themes keep
@@ -738,6 +805,19 @@ def main(argv):
             key = ("text" if base >= AA else "nontext", theme)
             if key not in worst or got < worst[key][0]:
                 worst[key] = (got, got8, fg, bg)
+    vivid_blocks = [t for t in BLOCKS_CERTIFIED if any(v in themes[t] for v in VIVID)]
+    for theme in vivid_blocks:
+        failures += [f"{theme} {f}" for f in vivid(themes[theme])]
+    for base, fg, bg, why in vivid_required():
+        for theme in vivid_blocks:
+            if fg not in themes[theme] or bg not in themes[theme]:
+                continue
+            bar = MORE_BAR.get(base, base) if theme.endswith("-more") else base
+            got, got8 = ratio(themes[theme][fg], themes[theme][bg])
+            checked += 1
+            if got < bar or got8 < bar:
+                failures.append(f"{theme} {fg} on {bg}: {got:.3f} ({got8:.3f} at 8-bit), below "
+                                f"{bar} ({why})")
     for bar, fg, bg, why in refused():
         for theme in ("light", "dark"):
             got, got8 = ratio(themes[theme][fg], themes[theme][bg])
@@ -756,10 +836,23 @@ def main(argv):
         bad, (d, a, b), w = separations(themes[theme])
         bad += roles(themes[theme])
         failures += [f"{theme} {f}" for f in bad]
-        print(f"pass 3: {theme:10} {len(bad)} below bar; accent ink {w['ink']:.1f}, fill "
-              f"{w['fill']:.1f}, ring {w['ring']:.1f}; ring from border {w['ring-border']:.1f}; "
+        fill = "exempt, neutral" if w["fill"] == float("inf") else f"{w['fill']:.1f}"
+        print(f"pass 3: {theme:10} {len(bad)} below bar; primary {w['primary']:.1f}, fill "
+              f"{fill}, ring {w['ring']:.1f}; accent ink {w['ink']:.1f} reported; "
+              f"ring from border {w['ring-border']:.1f}; "
               f"state fill from ground {w['fill-ground']:.1f}; closest chart pair {d:.1f}, "
               f"{a[5:]} / {b[5:]}")
+    if CARD_LINE.search(Path(path).read_text(encoding="utf-8")):
+        steps = []
+        for theme in ("dark", "dark-more"):
+            for fg, bg in (("--hw-surface", "--hw-ground"), ("--hw-border", "--hw-surface")):
+                got, got8 = ratio(themes[theme][fg], themes[theme][bg])
+                steps.append(got)
+                if got < CARD_STEP or got8 < CARD_STEP:
+                    failures.append(f"{theme} {fg} sits {got:.3f}:1 ({got8:.3f} at 8-bit) over "
+                                    f"{bg}, below the {CARD_STEP}:1 dark card step the header "
+                                    f"claims")
+        print(f"pass 3: dark cards stepped, worst {min(steps):.3f}:1 against {CARD_STEP}:1")
     bad, shape = geometry(path)
     failures += bad
     print(f"pass 3: shape register {shape}, {len(bad)} outside the house's own")
