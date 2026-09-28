@@ -3,7 +3,7 @@
 A design system for instruments of record: software whose job is to be trusted about a number, a
 state or a record rather than to be admired.
 
-One token set, two themes, two densities, fifteen components, and **157 inventoried surfaces** each
+One token set, two themes, two densities, fifteen components, and **160 inventoried surfaces** each
 marked covered, partial or excluded. Every value traces to a measurement, and the repository carries
 the tools that prove it.
 
@@ -61,7 +61,7 @@ that owns it.
    project takes [exports/theme.css](exports/theme.css) instead. Dark theme is
    `data-theme="dark"` on the root, compact density is `data-density="compact"` on any ancestor, and
    with neither set the page follows `prefers-color-scheme`.
-2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 157 surfaces, each
+2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 160 surfaces, each
    `covered` with the section to read, `partial` with what is missing, or `excluded` with the
    reason. No row at all is a gap to report, not permission to invent.
 3. **Build from the component card**, not from a screenshot:
@@ -79,11 +79,11 @@ that owns it.
    form [design/95-extending.md](design/95-extending.md#reporting-a-gap) shows. Product-specific
    tokens go in the product's own namespace, `--quoth-`, never by redefining an `hw-` token.
 
-A product takes its identity from a brand seed, eleven bounded inputs, and only by regenerating:
+A product takes its identity from a brand seed, eighteen bounded inputs, and only by regenerating:
 `python3 tools/build.py --brand examples/papertrace/brand.seed.json` solves a full set in the
 house's own token names and refuses to write if one pair fails
-([design/12-brand.md](design/12-brand.md)). At accent hue 150 it refuses, because that hue's ink
-sits 6.1 CIEDE2000 from `hw-success` against the 14
+([design/12-brand.md](design/12-brand.md)). At accent hue 150 it refuses, because that hue's
+selected-row fill sits 0.3 CIEDE2000 from `hw-success-quiet` against the 5
 [design/10-color.md](design/10-color.md#the-three-bars-the-accent-is-held-to) requires.
 
 ## How a model loads it
@@ -126,8 +126,8 @@ first publication was scrubbed and verified.
 ## What is open
 
 [design/05-coverage.md](design/05-coverage.md) is the full answer and it is checkable. Eight rows are
-`partial`, each naming what is missing, and two decisions are recorded as open with the
-measurement already done and a recommendation on each - they are in
+`partial`, each naming what is missing, and one decision is recorded as open with the
+measurement already done and a recommendation - it is in
 [that file's open-decisions table](design/05-coverage.md#open-decisions), beside the ones since
 settled and why. The two worth knowing before you read anything else:
 

@@ -2,7 +2,7 @@
 
 The house design system for everything Halderworks ships: quoth, papertrace, pointback, treadling, foliot, gates and the tools around them.
 One system, one set of tokens, two themes, two densities.
-A product takes its identity from a brand seed of eleven bounded inputs, solved by the same build and certified by the same second instrument ([12-brand.md](12-brand.md)); nothing else is negotiable.
+A product takes its identity from a brand seed of eighteen bounded inputs, solved by the same build and certified by the same second instrument ([12-brand.md](12-brand.md)); nothing else is negotiable.
 
 ## The rule that matters most
 

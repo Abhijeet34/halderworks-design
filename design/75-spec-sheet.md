@@ -424,6 +424,11 @@ position reads `2 / 6` and never `02 / 06`.
 The advance mark depicts only what the surface does. An arrow is honest on a feed that swipes; a
 drawn control that does nothing when tapped is not.
 
+**On a product's field.** A sequence may sit on a product's vivid field, `--hw-field`, instead of the ground, and then two corrections hold that the measured originals needed.
+Every label, the corner labels and both ordinals included, is the field's solved label, `--hw-on-field`, never white: the originals set white labels on their fields at 2.11:1 and 2.83:1, where the product-identities render measured ink on its butter field at 15:1 and the Field fixture solves its label on the yellow at 11.45:1 light and 14.09:1 dark.
+The call to action is a label in that ink, not a pastiche of a system control, for the reason the advance mark above gives.
+Across products only three things differ, the field colour, the display face and the art language; the frame is the house's, and [56-asset-placement.md](56-asset-placement.md#carousel-slides) holds where slides may appear at all.
+
 **What the consumer provides:** the content of each slide, the export at 1080 x 1350 or a multiple
 of it, and alt text on every slide carrying its words, because a slide's text is otherwise in
 pixels only.

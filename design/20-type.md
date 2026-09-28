@@ -84,7 +84,7 @@ Measure is a real `ch` measurement of the rendered paragraph divided by the widt
 
 ## A brand's faces
 
-A brand may name its own display face and its own text face ([12-brand.md](12-brand.md#the-eleven-inputs)); the mono face is the house's in every product, so every hash and timestamp is set alike.
+A brand may name its own display face and its own text face ([12-brand.md](12-brand.md#the-inputs)); the mono face is the house's in every product, so every hash and timestamp is set alike.
 A face is an entry in the roster in `tokens/tokens.seed.json`, and an entry is a face **plus its delivery**:
 
 - **self-hosted**: the product ships the file. The roster cites the upstream file by URL and pins its sha256, so the metrics below were read from a file a reader can fetch and check.

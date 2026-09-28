@@ -1,6 +1,6 @@
 # Brand
 
-A product's identity is a **brand seed**: eleven bounded inputs that `tools/build.py --brand` applies to a copy of the house seed and then solves with the same code as the house set.
+A product's identity is a **brand seed**: eighteen bounded inputs that `tools/build.py --brand` applies to a copy of the house seed and then solves with the same code as the house set.
 Every brand ships the house's token names, clears the house's contrast floors, and is certified by the same second instrument.
 A brand is a rebuild, never a hand-pick, and "never redefine an `hw-` token" does not change by a word.
 
@@ -10,6 +10,10 @@ Until 2026-09-21 the rule was "the accent hue, and nothing else", and it could n
 Under the separation bar it used, only hues 198 to 342 built, at most three accents in that arc sat 8.0 apart, and six evenly spaced ones sat 3.8 apart, which is the distance at which [10-color.md](10-color.md#why-hue-198) rejected teal 172 because the live badge and the passed badge read as one colour.
 Every product was the house with a different link colour.
 The system's owner gave the direction the same day: each product needs its own distinction rather than a sampler hue.
+
+The first brand tier, eleven inputs, still produced twins.
+The product-identities scout of 2026-09-22 found five causes, and four were rules whose evidence did not hold: the accent was a text ink and only a text ink, so at the L 0.515 its floor pins, hue 113 is olive and butter, marigold, lime and pink do not exist; the loudest control was ink in every product; accent chroma was capped at 1.3 times the anchor, C 0.103, against a field median of C 0.194 measured across 87 systems; the three semantic bars closed half the wheel; and a neutral ceiling of 4.0 refused nothing the measured bar beside it did not already refuse.
+The owner approved the amendment the same day, and [the vivid tier](#the-vivid-tier) is it.
 
 What that rule got right survives whole.
 A product stylesheet that sets `--hw-radius-md: 8px` is still a fork wearing the system's name, because nobody solved that value and nobody certified it.
@@ -29,33 +33,41 @@ A product may pin a viewer setting where its surface has a convention, as pointb
 The pin needs no tool: both themes are still solved and certified, and the pin chooses which one the product shows.
 A product may also name a default overlay or a default density for a surface; the viewer's choice still wins where the screen is theirs.
 
-## The eleven inputs
+## The inputs
 
 Anything not in this table is not a brand input, and `tools/build.py` refuses a brand seed that names anything else, an `hw-` token included.
+A brand that names none of the last seven emits exactly what it emitted before they existed, byte for byte; that is how the three example brands stayed unchanged when the vivid tier landed.
 
 | input | range | default | what it moves |
 |---|---|---|---|
 | `accentHue` | 0 to 359 | 198 | the accent family and the chart rotation |
-| `accentChroma` | 0.3 to 1.3 times the house anchors | 1.0 | the chroma of `hw-accent`, `hw-accent-hover` and `hw-accent-ring` |
+| `accentChroma` | at least 0.3 times the house anchors | 1.0 | the chroma of `hw-accent`, `hw-accent-hover` and `hw-accent-ring` |
 | `accentLightness` | a lightness per theme | 0.515 and 0.619 | `hw-accent` and `hw-accent-hover`, in all four blocks |
 | `quietChroma` | 0.3 to 1.0 times the house anchor | 1.0 | `hw-accent-quiet`, the selected-row fill |
 | `ring` | `accent` or `ink` | the house ring | `hw-accent-ring` |
 | `neutralHue` | 0 to 359 | the accent hue | all sixteen neutrals together |
-| `neutralChroma` | 0 to 4.0 times the house anchors | 1.0 | all sixteen neutrals together |
-| `shape` | `crisp` 2/3/6px, `house` 4/6/10px, `soft` 6/8/14px | `house` | `hw-radius-sm`, `-md`, `-lg` |
+| `neutralChroma` | at least 0 times the house anchors | 1.0 | all sixteen neutrals together |
+| `shape` | `crisp` 2/3/6px, `house` 4/6/10px, `moulded` 4/7/12px, `soft` 6/8/14px | `house` | `hw-radius-sm`, `-md`, `-lg` |
 | `iconStroke` | `1.5px`, `1.75px`, `2px` | `1.5px` | `hw-icon-stroke` |
 | `display` | a face in the roster | Newsreader | `--hw-font-display` |
 | `text` | a face in the roster | Public Sans | `--hw-font-sans`, held to the house x-height |
+| `brandHue` | 0 to 359 | the accent hue | the hue of the [vivid tier](#the-vivid-tier)'s fills |
+| `brandLightness` | a lightness per theme | none: naming it opens the tier | `hw-brand` and `hw-field` |
+| `brandChroma` | an absolute chroma above 0, clipped by the sRGB gamut | none: named with `brandLightness` | `hw-brand` and `hw-field` |
+| `primary` | `ink` or `brand` | `ink` | `hw-primary` and its states and label |
+| `selection` | `accent` or `neutral` | `accent` | `hw-select` |
+| `groundLightness` | a lightness per theme, 0.92 to 0.985 light, 0.13 to 0.22 dark | the house ground | [every colour of that theme](#ground-lightness) |
+| `darkCard` | `house` or `step` | `house` | [the dark card step](#the-dark-card-step) |
 
 The numeric bounds are pinned in `tools/build.py` rather than in the seed, so an edit to the seed cannot widen one.
 The registers, the stroke weights and the roster live in the seed's `brand` block, and `tools/contrast.py` declares the registers and the weights again on its own, so a hand-edited radius or stroke in an emitted file is refused by the second instrument too.
 
 ### Accent chroma
 
-The upper bound keeps a brand accent under `hw-danger`'s chroma in light, 0.103 against 0.13, so no accent outshouts an error on the default theme.
-In dark it does not hold: 1.3 times reaches 0.125 against `hw-danger`'s 0.11, and pointback's shipped pencil sits at 0.12.
-That half of the bound is a principle nothing has tested, kept because nothing contradicts it and the one product above 0.11 ships there already.
-The lower bound is the quiet end: quoth's slate sits at 0.35, C 0.028, under the 0.055 floor this book uses to count a colour as chromatic, which makes `--quoth-live` the only vivid thing quoth paints.
+The sRGB gamut is the only ceiling on it now.
+The 1.3 times it replaced kept a brand accent under `hw-danger`'s chroma in light, and its own text called that "a principle nothing has tested": in dark it never held, pointback's shipped pencil sat at 0.12 against `hw-danger`'s 0.11, and the field median is C 0.194, which Todoist's accent (C 0.20) and Duolingo's (C 0.24) sit either side of.
+What stops a loud accent reading as a state is the separation bars in [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to), measured on each element it paints, not a multiplier on its chroma.
+The lower bound is the quiet end: quoth's slate sits at 0.35, C 0.028, under the 0.055 floor this book uses to count a colour as chromatic.
 
 ### Accent lightness
 
@@ -90,7 +102,7 @@ The ring is also held 17 from `hw-danger`, the error border, which [10-color.md]
 
 This is where a product's warmth or coolness lives, and it moves all sixteen neutrals together, so a warm ground never sits under cool text.
 A tinted ground costs no contrast: the solver re-solves every ink against the ground it actually sits on, and all 198 certified pairs held at 1, 2, 4 and 6 times the house chroma at hue 75, and at 0 and 4 times across the brand corners `tests/hue_sweep.py` builds.
-What a tinted ground does cost is its states. A warm ground swallows the warning fill first, and the bound is the point where that begins to show:
+What a tinted ground does cost is its states. A warm ground swallows the warning fill first:
 
 | neutral hue 75 at | light ground | warning fill from the ground | reads as |
 |---|---|---:|---|
@@ -99,14 +111,18 @@ What a tinted ground does cost is its states. A warm ground swallows the warning
 | 4 times | `#FDF7EF` | 6.7 | paper |
 | 6 times | `#FEF7ED` | 5.9 | cream in light, brown in dark |
 
-So `neutralChroma` stops at 4.0, and every state's quiet fill is held **at least 6 CIEDE2000 from `hw-ground`** in every block, which is the failure the bound prevents stated as a measurement.
+Every state's quiet fill is held **at least 6 CIEDE2000 from `hw-ground`** in every block, and that bar is the rule.
+`neutralChroma` used to stop at 4.0 as well, and the ceiling refused nothing the bar did not: with it lifted and every other refusal untouched, a violet ground at 5.5 times built and certified, while papertrace's cream at 6.7 was still refused by the bar, its warning fill 5.0 from the ground.
+So the ceiling is gone, and a state fill that a tinted ground has swallowed **takes chroma before the build refuses it**, at the lightness it already has, until it clears 6 with 0.2 to spare: papertrace's cream at 6.7 times lifts `hw-warning-quiet` from C 0.035 to 0.0413, and both instruments certify the set.
+A fill that no chroma in gamut can lift is still refused.
 `hw-surface` keeps chroma 0 in light at every multiplier, so data never sits on the tint.
-[10-color.md](10-color.md#why-the-ground-is-neutral) says why the house's own ground stays neutral; a brand may warm or cool its ground within this bound, and the house does not.
+[10-color.md](10-color.md#why-the-ground-is-neutral) says why the house's own ground stays neutral; a brand may warm or cool its ground, and the house does not.
 
 ### Shape and stroke
 
-Three registers rather than a free number, because a 1px radius change is invisible and a free number invites one.
-`crisp` is the 3px of Radix and the 4px of Vercel and Stripe; `soft` is the 8px input and 12px card the field clusters on ([30-space-radius-elevation.md](30-space-radius-elevation.md#radius)).
+Four registers rather than a free number, because a 1px radius change is invisible and a free number invites one.
+`crisp` is the 3px of Radix and the 4px of Vercel and Stripe; `soft` is the 8px input and 12px card the field clusters on ([30-space-radius-elevation.md](30-space-radius-elevation.md#radius)); `moulded`, 4/7/12, is a device's injection-moulded corner, the register quoth's Field identity asks for.
+7px is off the 4px unit, and that is allowed: the unit governs space and size, and radius is outside its scope ([32-rhythm.md](32-rhythm.md)).
 Every register keeps the two rules that give radius its job: three sizes bound to three roles, and a child never larger than its parent.
 The stroke weights are the two the capture measured, 1.5px on 8 sites and 2px on 12, and the step between.
 
@@ -117,6 +133,78 @@ They are inputs because a product has a shape, and they carry no weight in telli
 
 A face is a roster entry with its delivery, and [20-type.md](20-type.md#a-brands-faces) owns the roster, the delivery rule and the x-height the text face is held to.
 
+## The vivid tier
+
+A brand that names `brandLightness` and `brandChroma` opens the vivid tier: twelve tokens the build appends to its copy of the seed and solves with everything else, and `tools/contrast.py` declares and certifies on its own.
+"Vivid" is carried by fills, fields, grounds and art, none of which is text, so raising the text floors under `prefers-contrast: more` does not dull them.
+
+| token | solved how | floor |
+|---|---|---|
+| `hw-brand` | the brand's fill at `brandHue`, `brandLightness` and `brandChroma`, clipped to sRGB | none of its own |
+| `hw-brand-hover`, `hw-brand-active` | 0.03 and 0.06 of lightness toward the label | the label's floor holds on each |
+| `hw-on-brand` | `hw-text` or `hw-ink-text`, whichever clears higher; if neither clears, `hw-brand` moves away from it | 4.5:1, 7:1 under more contrast |
+| `hw-brand-quiet` | the brand hue at L 0.94 light, 0.27 dark, C 0.05 at most | `hw-text` at 7:1 on it |
+| `hw-field`, `hw-on-field` | a large vivid area, solved as the brand fill with its own label | 4.5:1, 7:1 under more contrast |
+| `hw-select` | the selected-row fill: a neutral step past `hw-surface-active` with `selection: neutral`, `hw-accent-quiet`'s value with `selection: accent` | `hw-text` at 7:1 on it |
+| `hw-primary`, `hw-primary-hover`, `hw-primary-active`, `hw-on-primary` | copies of the ink family, or of the brand's, per `primary` | the label's 4.5:1 on each |
+
+`hw-accent` stays what it was, the text-safe ink, and keeps its four jobs.
+The fill has no floor of its own on purpose: a butter key is not text, and a label is what a reader reads.
+When a label cannot clear, the fill moves rather than the label, because the fill is the brand's and the label is the reader's.
+`tools/contrast.py` checks the forms as well as the ratios: a set that declares one of the twelve declares all twelve, each label is exactly `hw-text` or `hw-ink-text`, and the four primary tokens copy one family whole.
+
+**A field is never under data.** It carries display copy and one action, in `hw-on-field`, and no `hw-text-secondary` is ever placed on it.
+
+**`primary: brand` makes the loudest control the brand's.** The key is then held 14 CIEDE2000 from `hw-danger`, in all four blocks, because a destructive confirm is the one state drawn as a filled button ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)).
+A coral at hue 30, L 0.72, C 0.16 as the primary sits 6.5 from the dark `hw-danger` and is refused; the same coral with `primary: ink` paints no button and builds.
+
+**`selection: neutral` takes the selected row off the wheel.** The fill bar exists because the selected row is the one accent element with no second channel; a neutral row is not a hue, so it cannot read as a state, and the bar does not hold it.
+Linear, Notion and Things select with a neutral fill.
+
+### Ground lightness
+
+`groundLightness` sets `hw-ground` per theme, and slides **every colour of that theme** by the ground's own offset before the solver runs, except the ink family, a control and its label solved to each other, and the vivid fills, whose lightness is the brand's input.
+Sliding the ground alone was tried first and failed twice on quoth's Field identity: the inks re-solved by different amounts and the text ladder closed to 0.0587 against the 0.06 it keeps, and the semantics climbed onto the chart series, which do not re-solve, to 3.8 against their 8.0.
+Slid together, every relationship the house measured is kept and the solver re-solves only the residue.
+
+The bounds are the solver's own refusals, measured on Field's inputs: at 0.91 in light the raised-contrast chart ramp closes, two of its series falling under the 8.0 they keep, and 0.92 builds; at 0.12 in dark the text ladder closes, and 0.13 builds.
+The light ceiling is the house surface's own white less the 0.015 that still reads as a step; the dark ceiling, 0.22, admits a ground the dark card step then refuses, because the step's own lift takes the chart ramp past white: with the step, Field builds at 0.17 and is refused at 0.18.
+That spans both of the grounds a brand has asked for: quoth's putty at 0.925 (D-039 in quoth's record) and its paper pane at 0.972 (D-055).
+
+### The dark card step
+
+`darkCard: step` is quoth's D-040 made a floor: in the dark theme a card is told from the page by a lighter surface and a visible border, never a shadow.
+The build lifts `hw-surface`, and every surface and colour drawn above the ground with it, by the smallest amount that puts **`hw-surface` 1.2:1 over `hw-ground`**, then lifts `hw-border` until it sits **1.2:1 over the lifted surface**, each on the float value and at 8-bit.
+1.2 is the smallest round step above every dark card step recorded as failing to separate, 1.094, 1.107, 1.111 and 1.116, and above the house's own raised step, 1.169.
+The emitted header says `Dark cards: stepped`, and `tools/contrast.py` then holds both steps in both dark blocks against its own 1.2; `--check` refuses a header that drifts from what the seed builds.
+The house's own dark cards keep their step, 1.076, with the border and no shadow, as [30-space-radius-elevation.md](30-space-radius-elevation.md) has them.
+
+### Identities are not one style
+
+The owner's rule, recorded 2026-09-28: **an identity is not bound to fixed specifics.**
+Mixing styles across products, and within one product, is allowed wherever it serves the experience, under the contrast floors.
+A product may pair a grotesque with a hand, a flat fill with a drawn scribble, an engraving in its hero with in-house drawings of real controls on its setup steps.
+Illustration and art styles may vary, and they are not one: [55-iconography.md](55-iconography.md#illustration) says what every style is still held to, and [56-asset-placement.md](56-asset-placement.md) where each may and may not go.
+What does not vary is the floor: every colour a style brings is solved and certified, and every pair it puts text on clears its bar.
+
+### quoth's Field identity, as the house solves it
+
+`tests/fixtures/field/` is quoth's Field identity (D-039) as a brand seed, and the fixture every vivid-tier input is certified against on every change:
+
+```json
+{"accentHue": 255, "accentChroma": 0.35, "quietChroma": 0.4, "ring": "ink",
+ "neutralHue": 95, "neutralChroma": 2.0, "shape": "moulded", "iconStroke": "1.5px",
+ "brandHue": 100,
+ "brandLightness": {"light": 0.8844, "dark": 0.8844}, "brandChroma": 0.1838,
+ "primary": "brand", "selection": "neutral",
+ "groundLightness": {"light": 0.972, "dark": 0.17}, "darkCard": "step"}
+```
+
+It solves to the sports-yellow key `#F6DA02`, C 0.1836 where the seed asks 0.1838, because the gamut clips it, one blue step off the decided `#F6DA00`, with an ink label at 11.45:1 in light and 14.09:1 in dark; a paper pane `#F7F6F1`; a dark ground `#110F09` with its cards at 1.23:1 over it; and every certified pair clears: `tools/contrast.py` checks 434 on it where it checks 398 on the house set, and the 36 more are the vivid tier's.
+It is not quoth's shipped seed.
+quoth owns that copy, adopts Field in its own task, and `examples/quoth/` takes the adopted seed then.
+Its faces wait on the type roster: Archivo and Martian Mono are not in it yet ([20-type.md](20-type.md#a-brands-faces)).
+
 ## The bars every brand is held to
 
 Every brand is held to every house floor, in all four blocks, on the float value and at 8-bit.
@@ -124,11 +212,15 @@ On top of the floors, both instruments hold the painted distances below, in CIED
 
 | what | bar | owned by |
 |---|---:|---|
-| the accent ink from each state ink | 14 | [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) |
-| the selected-row fill from each state's quiet fill | 5 | [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) |
+| the primary fill, `hw-primary` or `hw-ink`, from `hw-danger` | 14 | [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) |
+| the selected-row fill, `hw-select` or `hw-accent-quiet`, from each state's quiet fill, unless it is neutral | 5 | [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) |
 | the focus ring from `hw-danger` | 17 | [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) |
 | the focus ring from `hw-border-strong` | 14 | [the focus ring](#the-focus-ring) |
 | each state's quiet fill from `hw-ground` | 6 | [neutral hue and chroma](#neutral-hue-and-chroma) |
+| a vivid label on its fill | 4.5:1, 7:1 under more contrast | [the vivid tier](#the-vivid-tier) |
+| `hw-surface` over `hw-ground`, and `hw-border` over `hw-surface`, in dark, with `darkCard: step` | 1.2:1 | [the dark card step](#the-dark-card-step) |
+
+The accent ink is no longer held to the states; `tools/contrast.py` reports its distance and does not refuse it ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)).
 
 The chart ramp keeps its own bar, 8.0 in oklab distance times 100 from each semantic and between series, and a product's own colour keeps 8.0 in hue and chroma from each state and the accent ([95-extending.md](95-extending.md#why-the-separation-leaves-lightness-out)).
 
@@ -169,7 +261,8 @@ Whether two brands read as two is a render looked at, not a number, so rendering
 ## The three brands
 
 Decided by the system's owner on 2026-09-21, as the constraint audit re-derived them.
-Values are the emitted light and dark `hw-accent` and `hw-ground`; the bars are each product's worst over all four blocks, as `tools/contrast.py` reports them.
+Values are the emitted light and dark `hw-accent` and `hw-ground`; the bars are each product's worst over all four blocks, as `tools/contrast.py` reports them, the ink column now a reported distance rather than a bar.
+None of the three names a vivid-tier input yet, so the vivid tier left every value here unchanged.
 
 | brand | accent | ground | ink | fill | ring from danger | ring from border | fill from ground |
 |---|---|---|---:|---:|---:|---:|---:|
@@ -207,7 +300,7 @@ A slot is reserved rather than built: when one of them gets a surface, its brand
 
 What makes two of these recognisably from one maker is everything a brand seed cannot reach, and the list is long on purpose:
 
-- **The loudest control is ink in every product.** `hw-ink` carries no hue, so every primary button is the same near-black or near-white.
+- **The loudest control is ink by default**, and a brand makes it its own only through `primary: brand`, solved and held off `hw-danger`. Until the vivid tier every primary button in the fleet was the same near-black.
 - **The accent does four jobs and no others**, and the three states are the same green, amber and red everywhere.
 - **One mono face**, so every hash, run id and timestamp is set identically.
 - **One rhythm**: the 4px unit, the ten steps, the 44px row, the 32px control, the two densities.
@@ -223,13 +316,13 @@ Put two products in greyscale with their names covered, and they should still di
 
 | candidate | why not |
 |---|---|
-| motion | the house curves are identity: three alternative ease-outs differ from the house curve by at most 1.5px on an 8px move. One named large transition may live in a product's namespace ([40-motion.md](40-motion.md#a-products-own-transition)) |
+| motion | the house curves are identity: three alternative ease-outs differ from the house curve by at most 1.5px on an 8px move. Up to four named large moments may live in a product's namespace ([40-motion.md](40-motion.md#a-products-own-moments)) |
 | the type scale below `title-1` | every size there is load-bearing for density, from the 44px row down |
 | a display-size step | no product needs one, so the input was not built |
 | a ring chroma of its own | the accent and ink rings cover every brand that fails the border bar |
 | elevation | 73 of 75 sampled elements carry no shadow; border-first is identity |
-| surface texture | a signature ground is a product token held to the two-token pattern rule ([75-spec-sheet.md](75-spec-sheet.md)), not a brand input |
-| a figurative illustration set | brings its palette through the product's namespace, and its SVG carries no literal colour ([55-iconography.md](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing)) |
+| surface texture | a product may have one, as a tier rather than an input: a signature ground is a product token held to the two-token pattern rule ([75-spec-sheet.md](75-spec-sheet.md)) |
+| a figurative illustration set | brings its palette through the product's namespace, and its SVG carries no literal colour ([55-iconography.md](55-iconography.md#illustration)) |
 | voice | the house rules are invariant; a product's register is its noun glossary ([25-content.md](25-content.md)) |
 | a mark | a mark is a commission ([00-brand-book.md](00-brand-book.md#the-mark)) |
 

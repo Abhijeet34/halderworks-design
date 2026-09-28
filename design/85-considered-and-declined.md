@@ -43,8 +43,8 @@ rather than once per transition. Intensity is not answered and is not a question
 **What would change it:** a product surface where two moves of the same direction genuinely need
 different emphasis, with the pair named. That has not happened.
 
-One named large transition in a product's own namespace, which [40-motion.md](40-motion.md#a-products-own-transition)
-allows, is not a second axis: it is one move, owned by one product, and adds no curve to the house set.
+The named moments a product may add in its own namespace, four at most, which [40-motion.md](40-motion.md#a-products-own-moments)
+allows, are not a second axis: each is one move, owned by one product, and none adds a curve to the house set.
 
 ## Contrast as integer arithmetic on the token name
 

@@ -95,6 +95,26 @@ That is `hw-ink`, which carries no hue, and the reason is in [10-color.md](10-co
 **A semantic colour never appears without a word beside it.**
 A row of coloured dots with no labels fails for the roughly 8% of men with a colour vision deficiency, and it fails for anyone reading a screenshot.
 
+## The vivid tier
+
+A brand that opens the vivid tier ([12-brand.md](12-brand.md#the-vivid-tier)) gets five more pairings, and these are all of them.
+A vivid fill takes one label and nothing else, and the label is always `hw-text` or `hw-ink-text`, whichever the build found clears higher.
+Measured on quoth's Field identity, `tests/fixtures/field/`, the one set in this repository that opens the tier; the raised tier moves none of them, because every label already clears 7:1:
+
+| pair | floor | light | dark |
+|---|---|---:|---:|
+| label on the brand fill, `hw-on-brand` on `hw-brand` | 4.5:1, 7:1 more | 11.45 | 14.09 |
+| the same label hovered and pressed, on `hw-brand-hover` and `hw-brand-active` | 4.5:1, 7:1 more | 10.40 and 9.42 | 12.80 and 11.59 |
+| display copy on a field, `hw-on-field` on `hw-field` | 4.5:1, 7:1 more | 11.45 | 14.09 |
+| body copy on the brand tint, `hw-text` on `hw-brand-quiet` | 7:1 in both tiers | 13.30 | 12.00 |
+| body copy in a selected row, `hw-text` on `hw-select` | 7:1 in both tiers | 12.85 | 11.57 |
+
+`hw-on-primary` on `hw-primary` and its two states is the ink pair above or the brand pair above, because the four primary tokens are copies of one family.
+The brand tint and the selected row are held at 7:1 even in the default tier, because both are read at length, and a row is read for as long as it stays selected.
+
+**No other ink sits on a vivid fill.** `hw-text-secondary` on a field, `hw-accent` on the brand fill, or a state ink on either is not in this table, so it is not permitted.
+A vivid fill is never under data, and a field carries display copy and one action.
+
 ## What must never sit on what
 
 Each of these is a real pairing an agent reaches for, and each is refused.
@@ -102,7 +122,7 @@ Each of these is a real pairing an agent reaches for, and each is refused.
 | never | why | instead |
 |---|---|---|
 | `hw-text-secondary` or `hw-text-muted` on any quiet fill | not solved for it, and not in the table above | `hw-text`, or the fill's own semantic |
-| any ink on `hw-accent` as a fill | the accent is an ink and a 2px ring. It is not a surface | `hw-ink` with `hw-ink-text` for a filled control; `hw-accent-quiet` for a tinted one |
+| any ink on `hw-accent` as a fill | the accent is an ink and a 2px ring. It is not a surface | `hw-primary` with `hw-on-primary` for a filled control, which is `hw-ink` and `hw-ink-text` unless the brand made it its key; `hw-accent-quiet` or `hw-brand-quiet` for a tinted one |
 | `hw-accent` on `hw-ink` | 3.30:1 light, 3.07:1 dark: below AA for text, and two strong values neither of which is legible on the other | `hw-ink-text` on `hw-ink` |
 | a semantic ink on a different semantic's quiet fill | `hw-danger` on `hw-warning-quiet` says two contradictory things | one state per element |
 | `hw-text-muted` on `hw-surface-active` | 4.60:1 clears AA, but muted text on a pressed row is text nobody was meant to read while pressing | `hw-text-secondary` |
@@ -143,7 +163,7 @@ A screen that follows this file uses, in a typical case, four colours and no mor
 1. `--hw-ground` for the page.
 2. `--hw-surface` with `--hw-border` for whatever holds content.
 3. `--hw-text` and `--hw-text-secondary` for everything readable.
-4. `--hw-ink` for the one action the screen exists for.
+4. `--hw-ink`, or `--hw-primary` in a brand with the vivid tier, for the one action the screen exists for.
 
 The accent and the semantics appear only where a state is being reported.
 A screen with no state on it should have no hue on it, and that is a check, not a coincidence.

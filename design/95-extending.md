@@ -42,7 +42,7 @@ Two rules:
 
 ## A brand seed, and nothing else
 
-A product's identity is a **brand seed**: eleven bounded inputs the build solves into a full token set with the house's names, never a stylesheet of overrides.
+A product's identity is a **brand seed**: eighteen bounded inputs the build solves into a full token set with the house's names, never a stylesheet of overrides.
 [12-brand.md](12-brand.md) owns the inputs, their bounds and the three product brands.
 papertrace is the worked example here, because it is the warm one:
 
@@ -69,15 +69,16 @@ The inputs are applied to a copy of the house seed: the sixteen neutrals follow 
 Then the copy is solved exactly as the house is: chroma clamped to the in-gamut maximum, and any token whose contrast floor no longer holds re-solved by binary search, as close to its anchor as the floor permits - which is not a formality, because rotating a hue at fixed lightness moves WCAG luminance.
 Built from papertrace's seed, three tokens re-solve and all 198 certified pairs clear their bar, on the float value and at 8-bit: worst 3.031:1 non-text and 4.594:1 text.
 
-**An accent must stand apart from every state on each thing it paints**: its ink, the selected-row fill and the focus ring, each in CIEDE2000 on the 8-bit value, which [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) owns.
-A product cannot take hue 150 because it is close to `hw-success`, and the build says so with the number rather than refusing on principle:
+**What a brand paints must stand apart from the state drawn in the same form**: the primary fill from `hw-danger`, the selected-row fill from each state's quiet fill, and the focus ring from `hw-danger`, each in CIEDE2000 on the 8-bit value, which [10-color.md](10-color.md#the-three-bars-the-accent-is-held-to) owns.
+A product cannot take hue 150 with an accent selection, because its selected row is a passed row, and the build says so with the number rather than refusing on principle:
 
 ```text
-FAIL  hw-accent at hue 150: its ink, hw-accent, sits 6.1 from hw-success in light, below the 14
+FAIL  the fill, hw-accent-quiet at hue 150, sits 0.3 from hw-success-quiet in light, below the 5
       CIEDE2000 this system requires (10-color.md#the-three-bars-the-accent-is-held-to)
-FAIL  hw-accent at hue 150: its fill, hw-accent-quiet, sits 0.3 from hw-success-quiet in light,
-      below the 5 CIEDE2000 this system requires (10-color.md#the-three-bars-the-accent-is-held-to)
 ```
+
+Its ink, 6.1 from `hw-success`, is reported rather than refused since the vivid tier: every state carries a glyph and a word.
+With `selection: neutral`, in a brand that opens the vivid tier, the same hue builds and certifies, because a neutral row is not a hue.
 
 That is a measurement rather than a veto, and it is executable rather than merely written down.
 
