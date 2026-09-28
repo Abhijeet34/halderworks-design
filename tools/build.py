@@ -1766,8 +1766,9 @@ def apply_brand(seed, brand):
                         ("quote", "quote")):
         if key in brand:
             s["type"]["families"][family] = kit["faces"][brand[key]]["stack"]
-            if face_declarations(kit["faces"][brand[key]]):
-                declared[family] = face_declarations(kit["faces"][brand[key]])
+            decl = face_declarations(kit["faces"][brand[key]])
+            if decl:
+                declared[family] = decl
     if declared:
         s["type"]["faceDeclarations"] = declared
     house_x = kit["faces"][house_face(seed, "sans")]["xHeight"]
