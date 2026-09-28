@@ -739,6 +739,19 @@ case("V11 a brand names primary: brand without a brand fill", "caught",
      note="12-brand.md#the-vivid-tier: brandLightness and brandChroma open the tier")
 
 
+def v12(repo):
+    brand_edit(repo, "field", lambda b: b.update(selection="accent", quietChroma=0.5), rebuild=True)
+    brand_css_edit(repo, "field", field_value(repo, LIGHT, "hw-select"),
+                   "--hw-select: oklch(0.7 0.15 30);")
+
+
+case("V12 Field takes selection: accent, quietChroma 0.5, and hw-select is hand-edited off "
+     "hw-accent-quiet", "caught", v12,
+     by="contrast-field", says="neither neutral nor --hw-accent-quiet's value",
+     note="12-brand.md#the-vivid-tier: hw-select is hw-accent-quiet's value with selection: "
+          "accent, and the second instrument holds it on its own without opening the seed")
+
+
 # ---------------------------------------------------------------- check-coverage.py
 def cov_edit(repo, fn):
     p = repo / "design" / "05-coverage.md"

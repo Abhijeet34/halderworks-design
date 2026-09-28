@@ -1653,7 +1653,8 @@ def apply_brand(seed, brand):
             continue
         k = (brand.get("neutralChroma", 1.0) if e["hue"] == "neutral" else
              brand.get("accentChroma", 1.0) if e["name"] in ACCENT_FAMILY else
-             brand.get("quietChroma", 1.0) if e["name"] == "hw-accent-quiet" else 1.0)
+             brand.get("quietChroma", 1.0) if e["name"] == "hw-accent-quiet"
+             or (e["name"] == "hw-select" and e["hue"] == "accent") else 1.0)
         for theme, anchor in anchors(e):
             if k != 1.0:
                 anchor["C"] = f"{float(anchor['C']) * k:.4f}"

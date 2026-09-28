@@ -351,6 +351,10 @@ def vivid(tokens):
                for fam in PRIMARY_FAMILIES.values()):
         bad.append("--hw-primary and its states copy neither the ink family nor the brand's "
                    "whole")
+    if not (tokens["--hw-select"][1] <= max(tokens[n][1] for n in NEUTRALS) + 1e-9
+            or tokens["--hw-select"] == tokens["--hw-accent-quiet"]):
+        bad.append(f"--hw-select is {hexof(*tokens['--hw-select'])}, neither neutral nor "
+                   f"--hw-accent-quiet's value")
     return bad
 
 
