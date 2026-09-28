@@ -1,6 +1,6 @@
 # Brand
 
-A product's identity is a **brand seed**: twenty-two bounded inputs that `tools/build.py --brand` applies to a copy of the house seed and then solves with the same code as the house set.
+A product's identity is a **brand seed**: twenty-three bounded inputs that `tools/build.py --brand` applies to a copy of the house seed and then solves with the same code as the house set.
 Every brand ships the house's token names, clears the house's contrast floors, and is certified by the same second instrument.
 A brand is a rebuild, never a hand-pick, and "never redefine an `hw-` token" does not change by a word.
 
@@ -38,6 +38,7 @@ A product may also name a default overlay or a default density for a surface; th
 Anything not in this table is not a brand input, and `tools/build.py` refuses a brand seed that names anything else, an `hw-` token included.
 A brand that names none of the vivid tier's seven inputs, from `brandHue` to `darkCard`, emits exactly what it emitted before they existed, byte for byte; that is how the three example brands stayed unchanged when the vivid tier landed.
 The four type inputs after them hold the same way: a brand that names none of them emits the bytes it did before, and the house set is unchanged by the roster that feeds them.
+`sunkenDepth` holds it too, and a brand that names it at the house's own step, 0.020 and 0.034, emits the bytes a brand that does not name it emits.
 
 | input | range | default | what it moves |
 |---|---|---|---|
@@ -63,6 +64,7 @@ The four type inputs after them hold the same way: a brand that names none of th
 | `quote` | a face in the roster | none | `--hw-font-quote` and the `.hw-quote` class, held to the house x-height |
 | `displayFrom` | `display-2` or `title-1` | `display-2` | whether `title-1` is set in the display face |
 | `displayScale` | `0.9`, `1.0` or `1.25` | `1.0` | the sizes of `display-1` and `display-2`, to whole px |
+| `sunkenDepth` | a step of lightness per theme, 0.020 to 0.08 light, 0.034 to 0.13 dark | the house step, 0.020 and 0.034 | [`hw-surface-sunken`, and every colour darker than it](#sunken-depth) |
 
 The numeric bounds are pinned in `tools/build.py` rather than in the seed, so an edit to the seed cannot widen one.
 The registers, the stroke weights and the roster live in the seed's `brand` block, and `tools/contrast.py` declares the registers and the weights again on its own, so a hand-edited radius or stroke in an emitted file is refused by the second instrument too.
@@ -174,7 +176,45 @@ Slid together, every relationship the house measured is kept and the solver re-s
 
 The bounds are the solver's own refusals, measured on Field's inputs: at 0.91 in light the raised-contrast chart ramp closes, two of its series falling under the 8.0 they keep, and 0.92 builds; at 0.12 in dark the text ladder closes, and 0.13 builds.
 The light ceiling is the house surface's own white less the 0.015 that still reads as a step; the dark ceiling, 0.22, admits a ground the dark card step then refuses, because the step's own lift takes the chart ramp past white: with the step, Field builds at 0.17 and is refused at 0.18.
-That spans both of the grounds a brand has asked for: quoth's putty at 0.925 (D-039 in quoth's record) and its paper pane at 0.972 (D-055).
+Each of quoth's two grounds builds on its own, its putty at 0.925 (D-039 in quoth's record) and its paper at 0.972.
+D-055 asks for both at once, the paper pane inside the putty chassis, and the chassis is not a second ground: it is the sunken surface, which [sunken depth](#sunken-depth) sets.
+
+### Sunken depth
+
+`sunkenDepth` sets how far `hw-surface-sunken` sits under `hw-ground`, per theme, as a step of lightness.
+It exists for a pane set in a deeper chassis: D-055 puts Field's content on paper at L 0.972 inside a putty chassis at L 0.925 that carries the rail and the window chrome, 1.151:1 under the pane.
+Without it the deepest surface a brand has is the house's own step, 0.020 in light and 0.034 in dark, and Field's chassis sat at L 0.952, 1.061:1 under its pane.
+
+The input moves the well, and **every colour darker than the well moves down with it**, for the reason [ground lightness](#ground-lightness) gives, except the ink family and the vivid fills.
+Two narrower rules were tried first on Field, and both failed.
+Moving the well alone re-solved `hw-text-muted` onto it and closed it on `hw-text-secondary` to 0.0487, against the 0.06 the ladder keeps, and left `hw-select` at L 0.924, 0.001 under the chassis: a selected rail row nobody could see.
+Moving the well and the inks certified on it took `hw-text-muted` to 4.533:1 on `hw-border`, a pair the ruled ground refuses, because the rule stayed where it was.
+Moved together, the selected row sits 1.090:1 and 2.0 CIEDE2000 under the chassis, and `hw-text-muted` on `hw-border` is 4.165:1, still refused.
+In dark nothing is drawn darker than the well, so a deeper dark well moves nothing else.
+
+The bounds are the solver's own refusals, measured on Field's inputs a thousandth at a time.
+In light a well 0.080 deep builds, and at 0.081 the raised-contrast chart ramp closes, `hw-chart-4` falling under the 8.0 it keeps from `hw-chart-6`.
+That is Field's ceiling, and the solver still refuses past its own on other grounds: under putty at 0.925 a well 0.030 deep builds and one 0.040 deep is refused on the same pair.
+In dark every depth builds, down to a black well, so the ceiling is 0.13, the lowest dark ground, where every well the bound admits sits at or above L 0.
+The floor is the house's own step, so the input only ever deepens a well.
+
+Everything on the well is re-measured at the depth the file paints.
+`tools/contrast.py` measures its 17 pairs, text and non-text, in all four blocks, and prints the well's step with its worst pair of each kind; on Field:
+
+```text
+the well light      L 0.9250, 1.151:1 under the ground; 17 pairs on it, worst text 4.805 --hw-text-muted, worst non-text 3.098 --hw-text-disabled
+the well dark       L 0.1230, 1.059:1 under the ground; 17 pairs on it, worst text 7.110 --hw-text-muted, worst non-text 4.728 --hw-text-disabled
+the well light-more L 0.9250, 1.151:1 under the ground; 17 pairs on it, worst text 7.074 --hw-text-muted, worst non-text 4.531 --hw-chart-1
+the well dark-more  L 0.1230, 1.059:1 under the ground; 17 pairs on it, worst text 10.298 --hw-text-muted, worst non-text 5.915 --hw-text-disabled
+```
+
+The chart ramp moves down with the well, 0.027 in light, and is re-measured on the chassis: its six fills clear 3:1 on L 0.925 with 3.194 at worst, `hw-chart-5`, and 4.5:1 under more contrast with 4.531, `hw-chart-1`, and its closest pair sits 12.5 apart in light and 9.1 under more contrast, against the 8.0 it keeps.
+
+**The dark chassis.**
+D-055 left it to be measured against D-040's floor, and the floor cannot be met: a pane at L 0.17 sits 1.098:1 over pure black, under D-040's 1.2:1 at every chassis beneath it.
+So Field's dark chassis takes the light chassis's own step of lightness, 0.047: L 0.123, `#070603` under the dark pane `#110F09`, 1.059:1 (1.058 at 8-bit) and 1.7 CIEDE2000, where the light chassis sits 3.2.
+That value was accepted in review on 2026-09-29, with the rule that goes with it: **in dark the pane's edge is carried by a border, as D-040 carries a card's**, because the fill step alone cannot be.
+`hw-border` sits 1.806:1 over the dark chassis and 1.705:1 over the dark pane, where in light it sits 1.154:1 over the chassis and 1.328:1 over the pane.
 
 ### The dark card step
 
@@ -202,11 +242,12 @@ What does not vary is the floor: every colour a style brings is solved and certi
  "brandHue": 100,
  "brandLightness": {"light": 0.8844, "dark": 0.8844}, "brandChroma": 0.1838,
  "primary": "brand", "selection": "neutral",
- "groundLightness": {"light": 0.972, "dark": 0.17}, "darkCard": "step",
+ "groundLightness": {"light": 0.972, "dark": 0.17}, "sunkenDepth": {"light": 0.047, "dark": 0.047},
+ "darkCard": "step",
  "display": "Archivo Expanded", "text": "Archivo", "mono": "Martian Mono", "displayFrom": "title-1"}
 ```
 
-It solves to the sports-yellow key `#F6DA02`, C 0.1836 where the seed asks 0.1838, because the gamut clips it, one blue step off the decided `#F6DA00`, with an ink label at 11.45:1 in light and 14.09:1 in dark; a paper pane `#F7F6F1`; a dark ground `#110F09` with its cards at 1.23:1 over it; and every certified pair clears: `tools/contrast.py` checks 434 on it where it checks 398 on the house set, and the 36 more are the vivid tier's.
+It solves to the sports-yellow key `#F6DA02`, C 0.1836 where the seed asks 0.1838, because the gamut clips it, one blue step off the decided `#F6DA00`, with an ink label at 12.29:1 in light and 14.09:1 in dark; a paper pane `#F7F6F1` in a putty chassis `#E7E6E2`; a dark ground `#110F09` in a chassis `#070603`, with its cards at 1.23:1 over it; and every certified pair clears: `tools/contrast.py` checks 434 on it where it checks 398 on the house set, and the 36 more are the vivid tier's.
 It is not quoth's shipped seed.
 quoth owns that copy, adopts Field in its own task, and `examples/quoth/` takes the adopted seed then.
 Its faces are D-039's: Archivo at 125% width for `title-1` and the display steps, Archivo at its normal width for text, and Martian Mono as its mono, which sets the spoken and typed lines, the labels in lowercase (D-054) and the numbers ([20-type.md](20-type.md#a-brands-faces)).
@@ -250,9 +291,9 @@ CI builds, certifies and exports every `examples/*/brand.seed.json` on every cha
 `tools/distinct.py` reads two or more emitted files and reports, per pair, the CIEDE2000 between their grounds, accents, selected fills and rings in each theme, and whether their display and text faces differ:
 
 ```text
-pair                          ground      accent        fill        ring   display  text
-papertrace / pointback       6.3/6.6     9.6/8.6     5.0/5.0     9.5/8.1     differ  differ
-pointback / quoth            1.5/2.1    13.4/21.6    6.8/6.1    33.2/26.8    differ  differ
+pair                            ground      accent        fill        ring   display  text   (CIEDE2000 light/dark)
+papertrace / pointback       6.3/6.6     9.6/8.6     5.0/5.0    20.5/29.7    differ  differ
+pointback / quoth            1.5/2.1    13.4/21.6    6.8/6.1    23.2/22.3    differ  differ
 ```
 
 It is a report, and it refuses one case only: a pair whose every one of those colours sits under 2.3, the CIELAB just-noticeable difference, in both themes, with the same two faces, which is one brand built twice.

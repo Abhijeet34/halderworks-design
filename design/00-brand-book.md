@@ -2,7 +2,7 @@
 
 The house design system for everything Halderworks ships: quoth, papertrace, pointback, treadling, foliot, gates and the tools around them.
 One system, one set of tokens, two themes, two densities.
-A product takes its identity from a brand seed of twenty-two bounded inputs, solved by the same build and certified by the same second instrument ([12-brand.md](12-brand.md)); nothing else is negotiable.
+A product takes its identity from a brand seed of twenty-three bounded inputs, solved by the same build and certified by the same second instrument ([12-brand.md](12-brand.md)); nothing else is negotiable.
 
 ## The rule that matters most
 
@@ -54,7 +54,7 @@ Three rules cover most of what goes wrong:
 | **Layout** | Twelve columns above 1024px, six above 768px, four below. Five breakpoints, three container widths, two page shells. |
 | **Density** | Comfortable and compact. One attribute, four tokens, and a written list of what does not change. |
 | **Icons** | Lucide, ISC-licensed, 16px default, painted 1.5px stroke at every size, or a brand's 1.75px or 2px. |
-| **Brand** | Twenty-two bounded inputs a product's brand seed may set, solved and certified like the house set. Three product brands, quoth, papertrace and pointback, and three reserved slots. |
+| **Brand** | Twenty-three bounded inputs a product's brand seed may set, solved and certified like the house set. Three product brands, quoth, papertrace and pointback, and three reserved slots. |
 | **States** | Nine states for every interactive element, as a matrix. |
 | **Forms** | Fourteen controls, the furniture around them, and validation as its own layer. |
 | **Form factors** | The app shell, the menu-bar panel, the marketing page and touch, plus what is out of scope and why. |

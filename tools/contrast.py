@@ -569,6 +569,12 @@ PROSE = [
       for fg, row in (("text", (12.17, 11.84)), ("text-secondary", (5.23, 5.06)),
                       ("text-muted", (4.01, 3.89)))
       for t, v in zip(("light", "dark"), row)],
+    # 50-surface-texture.md, the measured separations table
+    *[(t, f"--hw-{fg}", f"--hw-{bg}", v)
+      for fg, bg, row in (("surface-hover", "surface", (1.083, 1.042)),
+                          ("surface-active", "surface", (1.129, 1.087)),
+                          ("surface-sunken", "ground", (1.060, 1.037)))
+      for t, v in zip(("light", "dark"), row)],
     # 60-states.md:75-76, the disabled text table
     *[(t, "--hw-text-disabled", f"--hw-{g}", v)
       for t, row in (("light", [3.21, 3.42, 3.03]), ("dark", [3.51, 3.26, 3.64]))
@@ -795,6 +801,9 @@ def main(argv):
                     help="the product's built CSS, if not <namespace>.tokens.css beside the seed")
     opts = ap.parse_args(argv[1:])
     path = opts.css
+    if not Path(path).is_file():
+        print(f"FAIL  {path} does not exist; build it with tools/build.py first", file=sys.stderr)
+        return 1
     themes = parse_tokens(path)
     failures = []
 
@@ -864,6 +873,20 @@ def main(argv):
           f"{2 * len(list(refused()))} of them asserted below their bar")
     for (kind, theme), (got, got8, fg, bg) in sorted(worst.items()):
         print(f"  worst {kind:8} {theme:10} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
+    # A brand sets the well's depth (12-brand.md#sunken-depth), so every pair on it is reported
+    # at the depth this file actually paints, beside the step it sits under the ground.
+    well = "--hw-surface-sunken"
+    for theme in BLOCKS_CERTIFIED:
+        t = themes[theme]
+        on = sorted((ratio(t[fg], t[well])[0], base, fg) for base, fg, bg, _ in required()
+                    if bg == well and fg in t and well in t)
+        if not on or "--hw-ground" not in t:
+            continue
+        worst_of = ", ".join(f"worst {kind} {p[0]:.3f} {p[2]}" for kind, p in (
+            ("text", next((p for p in on if p[1] >= AA), None)),
+            ("non-text", next((p for p in on if p[1] < AA), None))) if p)
+        print(f"  the well {theme:10} L {t[well][0]:.4f}, {ratio(t['--hw-ground'], t[well])[0]:.3f}"
+              f":1 under the ground; {len(on)} pairs on it, {worst_of}")
 
     for theme in BLOCKS_CERTIFIED:
         bad, (d, a, b), w = separations(themes[theme])
