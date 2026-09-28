@@ -123,52 +123,67 @@ It was **bracketed by one rejection and one acceptance**, teal 172 at 3.8 and 19
 It was **blind to lightness by construction**: every ink is solved to the same 4.5:1 floor, so every ink shares a lightness, and the one freedom that could separate a warm accent from the states, a deeper or lighter accent, never registered.
 And it **measured one of the three things the accent paints**, the ink, while the first to collide is the selected-row fill: every quiet fill sits at L 0.94, C 0.035, so fills sit about a third as far apart as inks, and 198's own fill is 2.7 in oklab from `hw-success-quiet`.
 
-So the accent is held apart from the three states on each element it paints, in CIEDE2000, the difference formula built to track how far apart two colours look, on the 8-bit value a display receives, in all four blocks:
+So each element the brand paints is held apart, in CIEDE2000, the difference formula built to track how far apart two colours look, on the 8-bit value a display receives, in all four blocks, from the state drawn in the same form:
 
-| element | held apart from | bar | calibrated between, light and dark as the audit rendered them |
+| element | held apart from | bar | why that state |
 |---|---|---:|---|
-| the ink, `hw-accent` | each state ink | 14 | teal 172 at 10.5, where Live and Passed read as one family, and 186 at 14.3, which reads as its own colour |
-| the selected-row fill, `hw-accent-quiet` | each state's quiet fill | 5 | a full-chroma 52 at 4.9, whose peach row reads as a status, and a rust 50 at 5.4, whose warm-grey row does not |
-| the focus ring, `hw-accent-ring` | `hw-danger`, the error border | 17 | an oxblood at 14.7, whose ring reads as the error border, and the rust at 17.4, whose ring reads brown |
+| the primary fill, `hw-primary`, or `hw-ink` in a set with no vivid tier | `hw-danger` | 14 | a destructive confirm is the one state drawn as a filled button |
+| the selected-row fill, `hw-select`, or `hw-accent-quiet` in a set with no vivid tier | each state's quiet fill | 5 | the selected row is the one accent element with no second channel, and it sits in a list beside status rows |
+| the focus ring, `hw-accent-ring` | `hw-danger` | 17 | an error field is the one state drawn as a border around a control, where a focus ring also sits |
 
-The ring is held to `hw-danger` alone because an error field is the one state drawn as a border around a control, where a focus ring also sits.
-Held to all three states, the ring bar would close umber, ochre and rust on `hw-warning`, a colour that is never drawn as a border.
-The three numbers were set by one viewer on the rendered accents below, and they are the system owner's decision of 2026-09-21; if one of them reads wrong on a render, the bar moves, not the render.
+The numbers are the ones calibrated on renders: 14 between teal 172 at 10.5, where Live and Passed read as one family, and 186 at 14.3; 5 between a full-chroma 52 at 4.9, whose peach row reads as a status, and a rust 50 at 5.4; 17 between an oxblood at 14.7, whose ring reads as the error border, and the rust at 17.4.
+They are the system owner's decisions of 2026-09-21, and the vivid tier, proposed by the scout of 2026-09-22 and built on 2026-09-28, moved the first of them without changing its number.
 
-The house clears all three with room: ink 18.7, fill 8.2, ring 44.6 at its worst block.
-Every accent the audit rendered and judged, measured by `tools/contrast.py` at its worst of the four blocks; the old reading is the 8.0 bar's, light and dark only:
+**The accent ink is no longer held to the states**, and `tools/contrast.py` reports its distance rather than refusing it.
+The bar used to hold the ink 14 from all three state inks, and shipped products measure otherwise.
+Two Mobbin screens read through a canvas on 2026-09-22 ([90-evidence.md](90-evidence.md#shipped-accents-on-state-hues)): Todoist paints its accent 2.5 CIEDE2000 from its own overdue red, with a selected row 5.5 from this system's danger fill, and Duolingo's primary button is 9.6 from its own success ink.
+Nothing is confused, because every state carries a glyph and a word, which [15-color-combinations.md](15-color-combinations.md) already requires here, and macOS itself offers red, orange, yellow and green as the system accent while its alerts keep the system red.
+Teal 172's render finding stands for the case it tested, and that case is now carried by the words.
+The selected row keeps its bar because a wordless row beside a wordless state container is exactly where colour is the only channel; a neutral selection is exempt, because it is not a hue.
 
-| accent | old reading | ink | fill | ring from danger | ring from border | as rendered | the build |
+The house clears all three with room: primary 29.9, fill 8.2, ring 44.6 at its worst block, and its accent ink sits 18.7 from the nearest state ink, reported.
+Every accent the audit rendered and judged, measured by `tools/contrast.py` at its worst of the four blocks; the old reading is the 8.0 bar's, light and dark only, and the ink column is now a reported distance:
+
+| accent | old reading | ink, reported | fill | ring from danger | ring from border | as rendered | the build |
 |---|---:|---:|---:|---:|---:|---|---|
 | **198, the house** | 8.2 | 18.7 | 8.2 | 44.6 | 16.0 | chosen | builds |
 | 186 | 6.2 | 14.1 | 6.0 | 46.2 | 16.6 | its own colour | builds |
 | 116 | 6.3 | 14.2 | 6.5 | 37.3 | 15.9 | its own colour | builds |
 | 350 | 6.7 | 16.0 | 6.5 | 20.0 | 16.7 | its own colour | builds |
-| 172, teal | 3.8 | 8.1 | 3.3 | 47.0 | 16.7 | Live and Passed read as one family | refuses ink and fill |
-| 152 | 1.4 | 1.8 | 0.0 | 45.8 | 16.8 | the selected row is a passed row | refuses ink and fill |
-| 27 | 1.8 | 2.1 | 0.6 | 12.2 | 16.3 | the ring is the error border | refuses all three |
-| 52, full chroma | 4.7 | 11.8 | 4.9 | 16.4 | 15.9 | the peach row reads as a status | refuses all three |
+| 172, teal | 3.8 | 8.1 | 3.3 | 47.0 | 16.7 | Live and Passed read as one family | refuses the fill |
+| 152 | 1.4 | 1.8 | 0.0 | 45.8 | 16.8 | the selected row is a passed row | refuses the fill |
+| 27 | 1.8 | 2.1 | 0.6 | 12.2 | 16.3 | the ring is the error border | refuses the fill and the ring |
+| 52, full chroma | 4.7 | 11.8 | 4.9 | 16.4 | 15.9 | the peach row reads as a status | refuses the fill and the ring |
 | 70 umber, deep, quiet | 13.7 | 14.3 | 6.9 | 22.4 | 9.7 | dark brown; selection a warm grey | builds with the accent or ink ring |
 | 115 moss, deep | 9.4 | 15.1 | 7.1 | 35.2 | 13.5 | its own colour | builds with the accent or ink ring |
-| 5 rose | 5.5 | 10.9 | 3.8 | 17.5 | 12.8 | the pink-grey row reads as a failed row | refuses ink and fill |
-| 30 oxblood, deep | 12.2 | 12.0 | 0.9 | 14.2 | 13.7 | the ring reads as the error border | refuses all three |
+| 5 rose | 5.5 | 10.9 | 3.8 | 17.5 | 12.8 | the pink-grey row reads as a failed row | refuses the fill |
+| 30 oxblood, deep | 12.2 | 12.0 | 0.9 | 14.2 | 13.7 | the ring reads as the error border | refuses the fill and the ring |
 
 The umber is hue 70 at 0.6 times the house chroma, L 0.38 and 0.76, with its fill at 0.3; the moss is hue 115 at 0.8, L 0.44 and 0.70; the rose is hue 5 at 0.7 with its fill at 0.4; the oxblood is hue 30 at 0.8, L 0.38 and 0.76.
-Every verdict the render reached, the build reaches: the three that read as their own colour build, and the six that read as a state refuse, on the element the render named.
+Every accent the render read as a state still refuses, on the fill or the ring; the ink half of teal's and 152's verdict is the one the words now carry.
 The umber and the moss refuse only the ring's distance from a control's own edge, which [12-brand.md](12-brand.md#the-focus-ring) owns, and build with either of the rings it offers.
 
-**What this opens is warm colour.** Umber, bronze, ochre, olive and moss build with a deeper accent, the way two shipped products already set theirs, and a quieter fill; rust opens at hue 55.
-A warm accent needs an input the old rule never had, because the fill, not the ink, is what binds it: for hues 0 to 95 the fill tops out at 4.7 at the house chroma whatever the ink does.
-**What stays closed is red and pink**, on the evidence of the renders rather than on principle.
+**What this opens is warm colour, and a second band.** The house set builds at 155 accent hues where it built at 127: 100 to 124, 184 to 219 and 265 to 358, against 113 to 115, 187 to 219 and 265 to 355 before, and `tests/hue_sweep.py` fails if that arc moves without this sentence moving with it.
+A brand's vivid key is bound by none of the accent's arc: its one bar is the primary's 14 from `hw-danger`, and only when it is the primary.
+quoth's Field identity keys on hue 100 over a slate accent at 255.
+A warm accent at the house chroma is still bound by its fill: for hues 0 to 95 the fill tops out at 4.7 whatever the ink does.
+**What stays closed with an accent selection is red and pink**, on the evidence of the renders rather than on principle.
 
 Under simulated colour-vision deficiency the house already fails any bar like these, and survives on words: the shipped `hw-success` and `hw-danger` fills sit 0.9 apart under deuteranopia, three tan pills told apart by Passed, Retried and Failed.
 That is the book's design ([15-color-combinations.md](15-color-combinations.md)), so the bars refuse on normal vision only.
 
 A product's own colour is held to a different reading, 8.0 in hue and chroma with lightness left out, and [95-extending.md](95-extending.md#why-the-separation-leaves-lightness-out) says why.
 
+### The vivid tier
+
+The accent is a text ink, solved to 4.5:1, and at the lightness that pins it butter, marigold, lime and pink do not exist: hue 113 at L 0.5 is olive.
+A brand that wants a vivid colour takes it as a **fill with a solved label**, `hw-brand` and `hw-on-brand`, and as a large **field**, `hw-field`, never as text.
+[12-brand.md](12-brand.md#the-vivid-tier) owns the tokens, their floors and the inputs that open them; [15-color-combinations.md](15-color-combinations.md#the-vivid-tier) the pairs.
+
 ## How colour is spent
 
-The loudest control on any screen is `hw-ink`: near-black in light theme, near-white in dark, and carrying no hue at all.
+The loudest control on any screen is `hw-primary`, and in the house set it is `hw-ink`: near-black in light theme, near-white in dark, and carrying no hue at all.
+A brand may make it its own vivid fill with `primary: brand` ([12-brand.md](12-brand.md#the-vivid-tier)); the house does not.
 The accent is spent on four things and nothing else - a link, a selected row, a live state, and the focus ring.
 quoth's open microphone is the one live state that takes a colour of its own, `--quoth-live`, because there the accent would read as selection; [95-extending.md](95-extending.md#the-worked-example-quoths-live-colour) has the value and its derivation.
 

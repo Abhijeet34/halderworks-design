@@ -5,7 +5,7 @@ description: >-
   interface - a screen, a route, a component, a form, a table, a landing page, an email sign-in,
   a first-run setup screen, a settings page, a chart, an icon row, a piece of UI copy - and before
   proposing a colour, a size, a radius, a duration, a breakpoint or a z-index. It carries one token
-  set, two themes, two densities, 157 inventoried surfaces, and a rule that no value is invented: a value the system
+  set, two themes, two densities, 160 inventoried surfaces, and a rule that no value is invented: a value the system
   lacks is a gap to report, not a number to guess. Also load it when asked whether this system
   covers a surface at all, when a contrast ratio or an accessibility keyboard behaviour is in
   question, or when extending the system.
@@ -36,7 +36,7 @@ component library, and no dependency on which model or tool is reading it. Read 
 
 **Before you build a surface, check whether this system already answers it.**
 
-`design/05-coverage.md` lists **157 surfaces**, each marked `covered`, `partial` or `excluded`, and
+`design/05-coverage.md` lists **160 surfaces**, each marked `covered`, `partial` or `excluded`, and
 it was audited against six external component and accessibility taxonomies so that it can report
 what it does not have. Searching it takes one read and returns one of four answers:
 
@@ -71,6 +71,7 @@ invent. That is why the inventory exists and why it is checked by a script.
 | build a dense screen, or add a compact mode | `design/45-density.md` |
 | decide how a surface separates from the one behind it | `design/50-surface-texture.md` |
 | draw or choose an icon | `design/55-iconography.md` |
+| place art, a hero, a slide or a texture, or decide what may sit beside what | `design/56-asset-placement.md`, then `design/55-iconography.md` for how art is built |
 | give a control its hover, focus, disabled or loading behaviour | `design/60-states.md` |
 | build any of fifteen components | `design/65-components.md` |
 | build a form, or any single control in one | `design/66-forms.md`, then `design/67-validation.md` |
@@ -130,10 +131,11 @@ W3C DTCG with a `$description` on every token.
 ## What you may and may not change
 
 **A product's identity is its brand seed, and nothing else.**
-Eleven bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
-neutral hue and chroma, a shape register, an icon stroke, a display face and a text face - solved
-into the house's own token names ([design/12-brand.md](design/12-brand.md)). Take it by
-regenerating, never by hand-picking a colour:
+Eighteen bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
+neutral hue and chroma, a shape register, an icon stroke, a display face, a text face, and a vivid
+tier of seven more, opt-in by naming `brandLightness` - solved into the house's own token names
+([design/12-brand.md](design/12-brand.md#the-inputs)). Take it by regenerating, never by
+hand-picking a colour:
 
 ```bash
 python3 tools/build.py --brand examples/papertrace/brand.seed.json
@@ -144,7 +146,8 @@ The build re-solves every affected token against its contrast floor and **refuse
 does not hold. It also refuses an accent whose ink, selected-row fill or focus ring sits too close to
 a state colour in CIEDE2000, so a product cannot take a green that competes with "passed".
 The second line is not a formality and it is not a second opinion from the same head: `contrast.py` shares no arithmetic with the build and carries its own list of what must hold.
-Of the 360 integer hues at the house anchors, 127 build, and `contrast.py` accepts all 127.
+Of the 360 integer hues at the house anchors, 155 build, and `contrast.py` accepts all 155
+([design/10-color.md](design/10-color.md#the-three-bars-the-accent-is-held-to)).
 
 **Everything else goes in the product's own namespace**, `--quoth-`, `--gates-`, never by
 redefining an `hw-` token. `design/95-extending.md` is the whole procedure. A colour the house has

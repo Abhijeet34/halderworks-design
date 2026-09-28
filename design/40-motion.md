@@ -35,15 +35,25 @@ Where a height must animate, animate `transform: scaleY()` on a wrapper, or `gri
 No loop runs longer than 1.2s, and the only thing allowed to loop at all is a determinate progress indicator.
 A spinner that spins forever is telling the user nothing except that the product does not know either.
 
-## A product's own transition
+## A product's own moments
 
 The four durations and three curves are the house's in every product, and no brand input moves them ([12-brand.md](12-brand.md#declined-as-inputs)).
-One exception lives in a product's own namespace: **one named transition**, the product's defining moment, that moves a large distance, such as quoth's recording panel appearing.
-It is a `--quoth-` token, it takes a house duration, it may take a curve of its own, and it is removed under `prefers-reduced-motion` like every other movement.
+A product may add **named moments** in its own namespace, **four at most**, each a `--<product>-` token that takes a house duration, may take a curve of its own, and is removed under `prefers-reduced-motion` like every other movement.
+A moment is the product's character in motion: quoth's Field identity names one, the key sinking on press at 120ms, and a highlighter swipe, a line of words arriving with a stagger, and a panel moving a large distance are the other shapes a moment has taken.
 
-The reason one is allowed and a brand-wide curve is not is a measurement.
+Every moment holds to four rules, which is what keeps four from becoming a motion language:
+
+- **It is named and listed.** A product's design record lists its moments, and a movement not on the list takes the house tokens.
+- **It runs once per trigger and never loops.** The loop rule above has no product exception.
+- **Nothing else moves while a live signal is on screen.** A level meter or a presence dot is the one moving thing in its view, because two moving things make neither a signal; [56-asset-placement.md](56-asset-placement.md#never-together) holds the pairing.
+- **Art never moves.** A moment animates a control, a line of text or a panel, never an illustration.
+
+Four, and not one, because a product's character is carried by more than one surface: of the identities specified for quoth, papertrace and pointback in September 2026, the most any needed was four, quoth's first direction.
+Four, and not open, because every added moment is one more thing to hold still beside a live signal.
+
+The reason a moment is allowed and a brand-wide curve is not is a measurement.
 Three alternative ease-out curves, sampled at 60Hz against the house curve, differ from it by at most 18.9% of the travel: 1.5px on the 8px a control moves, which nobody sees, and 30 to 60px on a 320px panel, which everybody does.
-A curve is identity only where the distance is large enough to show it.
+A curve is identity only where the distance is large enough to show it, so a moment takes a curve of its own only when it moves a large distance.
 
 ## Reduced motion
 

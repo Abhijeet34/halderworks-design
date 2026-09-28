@@ -82,6 +82,12 @@ jobs:
               python3 tools/contrast.py "$dir/tokens/tokens.css"
             run "The $dir exporter refused to emit" python3 tools/export.py "$dir"
           done
+          # quoth's Field identity, the fixture every vivid-tier input is certified against:
+          # built and certified like a brand, never exported, because no product ships it.
+          run "The Field fixture no longer builds from its seed" \
+            python3 tools/build.py --check --brand tests/fixtures/field/brand.seed.json
+          run "The Field fixture no longer holds" \
+            python3 tools/contrast.py tests/fixtures/field/tokens/tokens.css
           run "Two example brands paint as one" \
             python3 tools/distinct.py tokens/tokens.css examples/*/tokens/tokens.css
           # The worked product colour: solved against quoth's brand set, and verified by the

@@ -94,6 +94,14 @@ EPS = 1e-9
 # is not in this budget because it is measured directly instead, in meets().
 MARGIN = 0.03
 
+# How far past stateFillFromGround a re-solved state fill is placed, in CIEDE2000. The build reads
+# every 8-bit rounding and tests/invariants.py holds it to never read a pair more than 0.01 further
+# apart than tools/contrast.py does, so 0.2 is twenty times the disagreement it has to cover.
+FILL_MARGIN = 0.2
+
+# The lightness a press step moves a vivid fill toward its label: hover one step, pressed two.
+PRESS_STEP = 0.03
+
 # The two bars this system recognises: WCAG 2.2 SC 1.4.3 for text and SC 1.4.11 for a control
 # boundary. A floor outside this set is a typo or a weakening, and either way it is refused
 # rather than silently counted as the lower one.
@@ -348,6 +356,10 @@ def resolve_hue(expr, accent, neutral=None):
         return (accent if neutral is None else neutral) % 360
     if isinstance(expr, str) and expr.startswith("accent+"):
         return (accent + int(expr[len("accent+"):])) % 360
+    # Whole degrees, as every hue input is: int() alone would truncate 59.78 to 59 and ship a
+    # colour the seed never named.
+    if isinstance(expr, float) and not expr.is_integer():
+        raise ValueError(f"hue {expr} is not a whole number of degrees")
     return int(expr) % 360
 
 
@@ -361,6 +373,19 @@ def theme_ids(seed):
 
 
 # --- the solve -----------------------------------------------------------------------------
+
+def solve_order(tokens):
+    """Grounds and fills first, then every floored token, then the roles settled from others: a
+    label picks one of two inks and may move its fill, a press follows its fill, and an alias
+    copies. Everything else is measured against the first group, so it must exist before."""
+    oklch = [e for e in tokens if e["kind"] == "oklch"]
+
+    def settled(e):
+        return e.get("role") in ("press", "label", "alias")
+    return ([e for e in oklch if not settled(e) and not e.get("floors")]
+            + [e for e in oklch if not settled(e) and e.get("floors")]
+            + [e for e in oklch if settled(e)])
+
 
 class UnsolvedGround(Exception):
     """A floor measured against a ground the solver has not produced yet.
@@ -389,11 +414,7 @@ class Solver:
         return [e for e in self.seed["color"]["tokens"] if e["kind"] == "oklch"]
 
     def order(self):
-        """Two passes: everything without a floor is a ground or a fill and must exist before
-        anything is measured against it."""
-        entries = self.entries()
-        return [e for e in entries if not e.get("floors")] + \
-               [e for e in entries if e.get("floors")]
+        return solve_order(self.entries())
 
     def anchor(self, entry):
         """A role that the raised bars would push onto its neighbour carries its own target."""
@@ -487,14 +508,104 @@ class Solver:
             f"C {C0:.4f} -> {C:.4f} at hue {h}")
         return L, C, h, True
 
+    def put(self, name, value):
+        self.solved[self.short(name)] = value
+        self.lums[self.short(name)] = (luminance(*value), luminance8(*value))
+
+    def lift_state_fill(self, entry, L, C, h):
+        """A state's quiet fill that sits closer than stateFillFromGround to a tinted ground takes
+        chroma until it clears, before the separation check refuses it. Lightness stays: the
+        fill's own inks are solved against it afterwards, and chroma is what a tinted ground took
+        away (12-brand.md#neutral-hue-and-chroma)."""
+        bar = self.seed["seed"]["stateFillFromGround"]
+        ground = self.solved["ground"]
+        if painted((L, C, h), ground) >= bar:
+            return C
+        anchor = self.anchor(entry)
+        top = written(snap(max_chroma(L, h), up=False), anchor["C"])
+        if painted((L, top, h), ground) < bar + FILL_MARGIN:
+            return C
+        lo, hi = C, top
+        for _ in range(40):
+            mid = min(written(snap((lo + hi) / 2, up=True), anchor["C"]), top)
+            if painted((L, mid, h), ground) >= bar + FILL_MARGIN:
+                hi = mid
+            else:
+                lo = mid
+        self.notes.append(f"{entry['name']} ({self.label}): chroma {C:.4f} -> {hi:.4f} to clear "
+                          f"{bar} from hw-ground")
+        return hi
+
+    def solve_label(self, entry):
+        """A label on a vivid fill is hw-text or hw-ink-text, whichever clears higher on the fill.
+        If neither clears on the fill and each of its press steps, the fill moves away from the
+        label, to the nearest lightness where it does: a vivid fill is the brand's to name, a
+        label is the reader's to read."""
+        fe = next(x for x in self.entries() if x["name"] == entry["of"])
+        presses = sorted((x for x in self.entries()
+                          if x.get("role") == "press" and x["of"] == entry["of"]),
+                         key=lambda x: x["step"])
+        anchor = self.anchor(fe)
+        L0, _, h = self.solved[self.short(fe["name"])]
+        C0 = float(anchor["C"])
+        floors = self.floors(entry)
+        fill_lum = luminance(*self.solved[self.short(fe["name"])])
+        label = max((self.solved["text"], self.solved["ink-text"]),
+                    key=lambda v: ratio_lum(luminance(*v), fill_lum))
+        toward = 1 if luminance(*label) > fill_lum else -1
+
+        def place(L):
+            self.put(fe["name"], (L, written(snap(min(C0, max_chroma(L, h)), up=False),
+                                             anchor["C"]), h))
+            for p in presses:
+                # a press moves toward the label and snaps back away from it, so rounding can
+                # only add contrast
+                Lp = min(max(L + toward * PRESS_STEP * p["step"], 0.0), 1.0)
+                Lp = written(snap(Lp, up=toward < 0), self.anchor(p)["L"])
+                self.put(p["name"], (Lp, written(snap(min(C0, max_chroma(Lp, h)), up=False),
+                                                 self.anchor(p)["C"]), h))
+            return self.meets(*label, floors, MARGIN)[0]
+
+        if not place(L0):
+            away = -toward
+            lo, hi = (L0, 1.0) if away > 0 else (0.0, L0)
+            best = None
+            for _ in range(60):
+                mid = (lo + hi) / 2
+                Lq = written(snap(mid, up=away > 0), anchor["L"])
+                if place(Lq):
+                    best = Lq
+                    lo, hi = (lo, mid) if away > 0 else (mid, hi)
+                else:
+                    lo, hi = (mid, hi) if away > 0 else (lo, mid)
+            if best is None:
+                _, worst, where = self.meets(*label, floors)
+                self.failures.append(f"{entry['name']} ({self.label}): no lightness of "
+                                     f"{fe['name']} at hue {h} lets hw-text or hw-ink-text clear "
+                                     f"{floors[0]['bar']}:1; worst {worst:.3f} on --hw-{where}")
+                place(L0)
+            else:
+                place(best)
+                self.notes.append(f"{fe['name']} ({self.label}): moved L {L0:.4f} -> {best:.4f} "
+                                  f"so its label clears")
+        self.put(entry["name"], label)
+
     def run(self):
-        out = {}
         for e in self.order():
-            L, C, h, moved = self.solve_one(e)
-            self.solved[self.short(e["name"])] = (L, C, h)
-            self.lums[self.short(e["name"])] = (luminance(L, C, h), luminance8(L, C, h))
-            out[e["name"]] = (L, C, h, moved, e)
-        for name, (L, C, h, _, _) in out.items():
+            role = e.get("role")
+            if role == "press":
+                continue  # placed by the label of its fill
+            if role == "label":
+                self.solve_label(e)
+            elif role == "alias":
+                self.put(e["name"], self.solved[self.short(e["of"])])
+            else:
+                L, C, h, _ = self.solve_one(e)
+                if e["name"] in STATE_FILLS:
+                    C = self.lift_state_fill(e, L, C, h)
+                self.put(e["name"], (L, C, h))
+        out = {e["name"]: self.solved[self.short(e["name"])] for e in self.entries()}
+        for name, (L, C, h) in out.items():
             if not in_gamut(L, C, h):
                 self.failures.append(f"{name} ({self.label}): oklch({L} {C} {h}) is outside sRGB")
         return out
@@ -599,10 +710,7 @@ def check_floors(seed):
     names = {e["name"] for e in seed["color"]["tokens"]}
     bad = []
     position = {}
-    for i, e in enumerate([x for x in seed["color"]["tokens"]
-                           if x["kind"] == "oklch" and not x.get("floors")]
-                          + [x for x in seed["color"]["tokens"]
-                             if x["kind"] == "oklch" and x.get("floors")]):
+    for i, e in enumerate(solve_order(seed["color"]["tokens"])):
         position[e["name"]] = i
     for e in seed["color"]["tokens"]:
         for floor in e.get("floors", []):
@@ -626,14 +734,26 @@ def check_floors(seed):
 
 CHARTS = [f"hw-chart-{n}" for n in range(1, 7)]
 STATES = ("success", "warning", "danger")
-# What the accent paints, and the state colours each element must never be mistaken for. The
-# ring is held to hw-danger alone because an error field is the one state drawn as a border
-# around a control, where a focus ring also sits; held to all three, the ring bar would close
-# the umber, rust and ochre accents 10-color.md opens, on hw-warning, a colour that is never
-# drawn as a border.
-ACCENT_ELEMENTS = (("ink", "hw-accent", "", STATES),
-                   ("fill", "hw-accent-quiet", "-quiet", STATES),
-                   ("ring", "hw-accent-ring", "", ("danger",)))
+STATE_FILLS = tuple(f"hw-{s}-quiet" for s in STATES)
+# What the brand paints, and the state colours each element must never be mistaken for. Each is
+# held to the state drawn in the same form: the primary fill to hw-danger, because a destructive
+# confirm is the one state drawn as a filled button; the selected-row fill to every state's quiet
+# fill, because it is the one accent element with no second channel; the ring to hw-danger, the
+# one state drawn as a border around a control. The accent ink is no longer held to the states:
+# every state carries a glyph and a word (15-color-combinations.md), and shipped products run an
+# accent 2.5 from their own error red without confusion (10-color.md#the-three-bars).
+# Each element is the vivid tier's token where the set declares one, and the house's otherwise.
+ACCENT_ELEMENTS = (("primary", ("hw-primary", "hw-ink"), "", ("danger",)),
+                   ("fill", ("hw-select", "hw-accent-quiet"), "-quiet", STATES),
+                   ("ring", ("hw-accent-ring",), "", ("danger",)))
+# The neutrals a selection fill is compared with: one no more chromatic than the most chromatic of
+# these is not a hue, so it cannot be read as a state and the fill bar does not apply to it.
+NEUTRAL_SURFACES = ("hw-ground", "hw-surface", "hw-surface-raised", "hw-surface-sunken",
+                    "hw-surface-hover", "hw-surface-active", "hw-border")
+
+
+def is_neutral(t, name):
+    return t[name][1] <= max(t[n][1] for n in NEUTRAL_SURFACES) + EPS
 
 
 def check_separation(seed, blocks):
@@ -646,13 +766,16 @@ def check_separation(seed, blocks):
     bars, step = sd["accentSeparation"], sd["minChartNeighbourDeltaL"]
     bad = []
     for block, t in blocks.items():
-        for kind, ours, suffix, states in ACCENT_ELEMENTS:
+        for kind, names, suffix, states in ACCENT_ELEMENTS:
+            ours = next(n for n in names if n in t)
+            if kind == "fill" and ours == "hw-select" and is_neutral(t, ours):
+                continue
             for sem in states:
                 d = painted(t[ours], t[f"hw-{sem}{suffix}"])
                 if d < bars[kind]:
-                    bad.append(f"hw-accent at hue {t['hw-accent'][2]:g}: its {kind}, {ours}, sits "
-                               f"{d:.1f} from hw-{sem}{suffix} in {block}, below the "
-                               f"{bars[kind]} CIEDE2000 this system requires "
+                    bad.append(f"the {kind}, {ours} at hue {t[ours][2]:g}, sits {d:.1f} from "
+                               f"hw-{sem}{suffix} in {block}, below the {bars[kind]} CIEDE2000 "
+                               f"this system requires "
                                f"(10-color.md#the-three-bars-the-accent-is-held-to)")
         d = painted(t["hw-accent-ring"], t["hw-border-strong"])
         if d < sd["ringFromBorder"]:
@@ -796,6 +919,10 @@ def build_tokens_css(seed, resolved, accent, stats, brand="house"):
     ids = theme_ids(seed)
     n_text = stats["text_pairs"]
     n_nontext = stats["nontext_pairs"]
+    step = seed["seed"].get("cardStep")
+    card_line = "" if step is None else (
+        f"\n\n   Dark cards: stepped, --hw-surface {step}:1 over --hw-ground and --hw-border"
+        f"\n   {step}:1 over --hw-surface in dark, with no shadow.")
     o = []
     o.append(f"""/* {seed['name']} - token definitions.
    Brand: {brand}.
@@ -812,7 +939,7 @@ def build_tokens_css(seed, resolved, accent, stats, brand="house"):
 
    Under @media (prefers-contrast: more) the same pairs are solved again from the same seed:
    {n_text} text pairs held to WCAG AAA 7:1 and {n_nontext} non-text pairs to 4.5:1, 0 below
-   either, measured the same two ways. */
+   either, measured the same two ways.{card_line} */
 """)
     o.append(":root {")
     for fam in SCALAR_FAMILIES:
@@ -992,10 +1119,26 @@ def verify_emitted(css, seed):
     names = certified_blocks(seed)
     bad = check_separation(seed, {b: blocks[b] for b in names})
     bad += check_roles(seed, {b: blocks[b] for b in names})
+    bad += check_card_step(seed, blocks)
     for block in names:
         for e in seed["color"]["tokens"]:
             bad += floor_failures(e, block, blocks[block], blocks[block])
     return bad + media_copies_differ(seed, blocks)
+
+
+def check_card_step(seed, blocks):
+    """darkCard: step, re-measured on the CSS about to be written, both dark blocks."""
+    step = seed["seed"].get("cardStep")
+    bad = []
+    for block in ([] if step is None else [b for b in certified_blocks(seed) if "dark" in b]):
+        t = blocks[block]
+        for fg, bg in (("hw-surface", "hw-ground"), ("hw-border", "hw-surface")):
+            r = ratio_lum(luminance(*t[fg]), luminance(*t[bg]))
+            r8 = ratio8(luminance8(*t[fg]), luminance8(*t[bg]))
+            if r < step or r8 < step:
+                bad.append(f"{fg} sits {r:.3f}:1 ({r8:.3f} at 8-bit) over {bg} in {block}, below "
+                           f"the {step}:1 dark card step (12-brand.md#the-dark-card-step)")
+    return bad
 
 
 def certified_blocks(seed):
@@ -1117,8 +1260,8 @@ def extension_shape(seed, ext):
             continue
         name = e["name"]
         if not hue_expr_ok(e.get("hue")):
-            bad.append(f"{name} has hue {e.get('hue')!r}, which is neither a number nor "
-                       f"accent+N")
+            bad.append(f"{name} has hue {e.get('hue')!r}, which is neither a whole number of "
+                       f"degrees nor accent+N")
         for t in theme_ids(seed):
             bad += anchor_leaf_errors(name, t, e.get(t, {}))
         more = e.get("contrastMore", {})
@@ -1308,15 +1451,48 @@ def extend(seed, accent, solvers, house_css, a):
 
 
 # --- the brand tier -------------------------------------------------------------------------
-# A product's identity is a brand seed: eleven bounded inputs this build applies to a copy of the
-# house seed before solving that copy with the code above, so a brand is a rebuild and never a
-# hand-pick, and every brand ships the house's token names. 12-brand.md owns the rule. The
+# A product's identity is a brand seed: eighteen bounded inputs this build applies to a copy of
+# the house seed before solving that copy with the code above, so a brand is a rebuild and never
+# a hand-pick, and every brand ships the house's token names. 12-brand.md owns the rule. The
 # numeric bounds are pinned here rather than in the seed, for GRID_SCOPE's reason: a seed that
 # can widen a bound can switch the rule off.
 
 BRAND_INPUTS = ("accentHue", "accentChroma", "accentLightness", "quietChroma", "ring",
-                "neutralHue", "neutralChroma", "shape", "iconStroke", "display", "text")
-BOUNDS = {"accentChroma": (0.3, 1.3), "quietChroma": (0.3, 1.0), "neutralChroma": (0.0, 4.0)}
+                "neutralHue", "neutralChroma", "shape", "iconStroke", "display", "text",
+                "brandHue", "brandLightness", "brandChroma", "primary", "selection",
+                "groundLightness", "darkCard")
+# The chroma multipliers keep a floor and have no ceiling: the sRGB gamut clips each colour, and
+# the measured bars refuse what the gamut admits and a reader would misread
+# (12-brand.md#the-inputs). The ceilings they replace were 1.3 and 4.0, and nothing had tested
+# either; the second refused a cream ground the stateFillFromGround bar certifies once its state
+# fills re-solve.
+BOUNDS = {"accentChroma": (0.3, None), "quietChroma": (0.3, 1.0), "neutralChroma": (0.0, None)}
+# groundLightness, per theme. The light floor is quoth's putty (D-039, L 0.925) with room for a
+# darker putty; below 0.92 the prefers-contrast: more tier cannot keep hw-text-secondary and
+# hw-text-muted two roles on the sunken surface. The ceiling is the house surface's own 1.000
+# less the 0.022 the house keeps between ground and surface. Dark mirrors the same reasons.
+GROUND_BOUNDS = {"light": (0.92, 0.985), "dark": (0.13, 0.22)}
+# groundLightness slides every colour of its theme by the ground's own offset before the solver
+# runs, so every relationship the house measured between them is kept and only the residue is
+# re-solved. Moving the ground alone was tried first: the inks re-solved by different amounts, the
+# text ladder closed to 0.0587 against the 0.06 it keeps, and the semantics climbed onto the chart
+# series, which do not re-solve, to 3.8 against the 8.0 they keep. Two groups stay: the ink family,
+# a control and its label solved to each other rather than to the ground, and the vivid tier's
+# fills, whose lightness is the brand's own input.
+NOT_SLID = ("hw-ink", "hw-ink-hover", "hw-ink-active", "hw-ink-text")
+
+
+def slides(e):
+    return e["kind"] == "oklch" and e["name"] not in NOT_SLID and not e.get("role")
+# darkCard: step (D-040 in quoth's record, 12-brand.md#the-dark-card-step): in the dark theme a
+# card is told from the page by a lighter surface and a visible border, never a shadow, so
+# hw-surface is solved to CARD_STEP over hw-ground and hw-border to CARD_STEP over hw-surface.
+# 1.2 is the smallest round step above every dark card step recorded as failing to separate
+# (1.094, 1.107, 1.111, 1.116) and above the house's own raised step, 1.169.
+CARD_STEP = 1.2
+PRIMARY_FAMILY = {"ink": ("hw-ink", "hw-ink-hover", "hw-ink-active", "hw-ink-text"),
+                  "brand": ("hw-brand", "hw-brand-hover", "hw-brand-active", "hw-on-brand")}
+PRIMARY_ALIASES = ("hw-primary", "hw-primary-hover", "hw-primary-active", "hw-on-primary")
 # accentChroma scales the accent family. accentLightness moves the ink and its hover, in all four
 # blocks, by the brand's offset from the house accent: moved in the default blocks alone, a deep
 # warm accent is pulled back onto hw-warning by the 7:1 re-solve under prefers-contrast: more.
@@ -1335,25 +1511,47 @@ def brand_errors(seed, brand):
     name = brand.get("name")
     if not (isinstance(name, str) and NAMESPACE.match(name) and name != "hw"):
         bad.append(f"name {name!r} is not a product's own name: one lowercase word, never hw")
-    for k in ("accentHue", "neutralHue"):
+    for k in ("accentHue", "neutralHue", "brandHue"):
         v = brand.get(k, 0)
         if isinstance(v, bool) or not isinstance(v, int) or not 0 <= v < 360:
             bad.append(f"{k} {v!r} is not a whole number of degrees from 0 to 359")
     for k, (lo, hi) in BOUNDS.items():
         v = finite_number(brand.get(k, 1.0)) if not isinstance(brand.get(k), str) else None
-        if v is None or not lo <= v <= hi:
-            bad.append(f"{k} {brand.get(k)!r} is outside {lo} to {hi} times the house anchors "
-                       f"(12-brand.md#the-eleven-inputs)")
-    if "accentLightness" in brand:
-        v = brand["accentLightness"]
+        if v is None or v < lo or (hi is not None and v > hi):
+            span = f"{lo} to {hi}" if hi is not None else f"at least {lo}"
+            bad.append(f"{k} {brand.get(k)!r} is not {span} times the house anchors "
+                       f"(12-brand.md#the-inputs)")
+
+    def per_theme(k, lo, hi):
+        v = brand[k]
+        bounds = {t: (lo, hi) for t in theme_ids(seed)} if lo is not None else GROUND_BOUNDS
         if not (isinstance(v, dict) and set(v) == set(theme_ids(seed))
                 and all(finite_number(x) is not None and not isinstance(x, str)
-                        and 0 < x < 1 for x in v.values())):
-            bad.append(f"accentLightness {v!r} is not one lightness between 0 and 1 for each of "
-                       f"{', '.join(theme_ids(seed))}")
+                        and bounds[t][0] <= x <= bounds[t][1] for t, x in v.items())):
+            span = ", ".join(f"{t} {a} to {b}" for t, (a, b) in bounds.items())
+            bad.append(f"{k} {v!r} is not one lightness for each theme, {span}")
+    for k in ("accentLightness", "brandLightness"):
+        if k in brand:
+            per_theme(k, 1e-4, 1 - 1e-4)
+    if "groundLightness" in brand:
+        per_theme("groundLightness", None, None)
+    if "brandChroma" in brand:
+        v = brand["brandChroma"]
+        if isinstance(v, str) or finite_number(v) is None or v <= 0:
+            bad.append(f"brandChroma {v!r} is not a chroma above 0; it is absolute, and the sRGB "
+                       f"gamut clips it at the fill's lightness")
+    if ("brandLightness" in brand) != ("brandChroma" in brand):
+        bad.append("brandLightness and brandChroma name the vivid fill together; a seed names "
+                   "both or neither (12-brand.md#the-vivid-tier)")
+    for k in ("brandHue", "primary", "selection"):
+        if k in brand and "brandLightness" not in brand:
+            bad.append(f"{k} is a vivid-tier input, and this seed names no brandLightness and "
+                       f"brandChroma to open the tier with (12-brand.md#the-vivid-tier)")
     for k, allowed in (("ring", ("accent", "ink")), ("shape", tuple(kit["registers"])),
                        ("iconStroke", tuple(kit["iconStrokes"])),
-                       ("display", tuple(kit["faces"])), ("text", tuple(kit["faces"]))):
+                       ("display", tuple(kit["faces"])), ("text", tuple(kit["faces"])),
+                       ("primary", ("ink", "brand")), ("selection", ("accent", "neutral")),
+                       ("darkCard", ("house", "step"))):
         if k in brand and brand[k] not in allowed:
             bad.append(f"{k} {brand[k]!r} is not one of {', '.join(map(repr, allowed))}")
     return bad
@@ -1373,6 +1571,71 @@ def house_face(seed, family):
                 if f["stack"] == seed["type"]["families"][family])
 
 
+def open_vivid(s, brand):
+    """Append the vivid tier's tokens to a brand copy of the seed, their fills at the lightness
+    and chroma the brand names, and point the primary aliases and the selection fill."""
+    kit = s["brand"]["vivid"]
+    tokens = {e["name"]: e for e in s["color"]["tokens"]}
+    for name, floors in kit["floors"].items():
+        tokens[name]["floors"] = tokens[name].get("floors", []) + copy.deepcopy(floors)
+    family = dict(zip(PRIMARY_ALIASES, PRIMARY_FAMILY[brand.get("primary", "ink")]))
+    for e in copy.deepcopy(kit["tokens"]):
+        if e["hue"] == "accent":
+            e["hue"] = brand.get("brandHue", brand.get("accentHue", s["seed"]["accentHue"]))
+        if e.get("role") in ("fill", "press"):
+            for t in theme_ids(s):
+                e[t] = {"L": f"{brand['brandLightness'][t]:.4f}",
+                        "C": f"{brand['brandChroma']:.4f}"}
+        elif e["name"] == "hw-brand-quiet":
+            for t in theme_ids(s):
+                e[t]["C"] = f"{min(float(e[t]['C']), brand['brandChroma']):.4f}"
+        elif e["name"] == "hw-select" and brand.get("selection", "accent") == "accent":
+            quiet = tokens["hw-accent-quiet"]
+            e["hue"] = quiet["hue"]
+            e.update({t: dict(quiet[t]) for t in theme_ids(s)})
+        if e["name"] in family:
+            e["of"] = family[e["name"]]
+        s["color"]["tokens"].append(e)
+
+
+def slide(L, offset):
+    return f"{min(max(float(L) + offset, 0.0), 1.0):.4f}"
+
+
+def lift_cards(s):
+    """darkCard: step. Lift the dark surfaces above the ground by the smallest amount that puts
+    hw-surface CARD_STEP over hw-ground, then hw-border CARD_STEP over the lifted surface, each on
+    the float value and at 8-bit, and slide every colour drawn on them by the same lift, for the
+    reason slides() gives. The solver measures these tokens as grounds, so the step is fixed here,
+    before it runs, and re-measured on the written CSS by verify_emitted."""
+    tok = {e["name"]: e for e in s["color"]["tokens"]}
+    h = resolve_hue("neutral", s["seed"]["accentHue"], neutral_hue(s, s["seed"]["accentHue"]))
+
+    def value(name, lift):
+        L = min(float(tok[name]["dark"]["L"]) + lift, 1.0)
+        return L, min(float(tok[name]["dark"]["C"]), max_chroma(L, h)), h
+
+    def lift_over(name, under, start):
+        lift = start
+        while lift < 1.0:
+            a, b = value(name, lift), under
+            if (ratio_lum(luminance(*a), luminance(*b)) >= CARD_STEP + MARGIN
+                    and ratio8(luminance8(*a), luminance8(*b)) >= CARD_STEP):
+                return lift
+            lift += GRID
+        return lift
+    surface = lift_over("hw-surface", value("hw-ground", 0.0), 0.0)
+    border = lift_over("hw-border", value("hw-surface", surface), surface)
+    for e in s["color"]["tokens"]:
+        if e["name"] == "hw-border":
+            e["dark"]["L"] = slide(e["dark"]["L"], border)
+        elif slides(e) and e["name"] not in ("hw-ground", "hw-surface-sunken"):
+            for theme, anchor in anchors(e):
+                if theme == "dark":
+                    anchor["L"] = slide(anchor["L"], surface)
+    s["seed"]["cardStep"] = CARD_STEP
+
+
 def apply_brand(seed, brand):
     """A copy of the house seed with one brand's inputs applied; nothing else changes."""
     s = copy.deepcopy(seed)
@@ -1380,6 +1643,8 @@ def apply_brand(seed, brand):
     sd["accentHue"] = brand.get("accentHue", sd["accentHue"])
     sd["neutralHue"] = brand.get("neutralHue", sd["neutralHue"])
     s["name"] = f"{seed['name']}, {brand['name']} brand"
+    if "brandLightness" in brand:
+        open_vivid(s, brand)
     house = {e["name"]: e for e in seed["color"]["tokens"]}
     offset = {t: v - float(house["hw-accent"][t]["L"])
               for t, v in brand.get("accentLightness", {}).items()}
@@ -1388,12 +1653,19 @@ def apply_brand(seed, brand):
             continue
         k = (brand.get("neutralChroma", 1.0) if e["hue"] == "neutral" else
              brand.get("accentChroma", 1.0) if e["name"] in ACCENT_FAMILY else
-             brand.get("quietChroma", 1.0) if e["name"] == "hw-accent-quiet" else 1.0)
+             brand.get("quietChroma", 1.0) if e["name"] == "hw-accent-quiet"
+             or (e["name"] == "hw-select" and e["hue"] == "accent") else 1.0)
         for theme, anchor in anchors(e):
             if k != 1.0:
                 anchor["C"] = f"{float(anchor['C']) * k:.4f}"
             if offset and e["name"] in ACCENT_INK:
                 anchor["L"] = f"{min(max(float(anchor['L']) + offset[theme], 0.0), 1.0):.4f}"
+    ground = {t: L - float(house["hw-ground"][t]["L"])
+              for t, L in brand.get("groundLightness", {}).items()}
+    for e in s["color"]["tokens"]:
+        if ground and slides(e):
+            for theme, anchor in anchors(e):
+                anchor["L"] = slide(anchor["L"], ground[theme])
     if "ring" in brand:
         # "accent": the ring is the accent ink itself, as a product whose focus ring is its one
         # colour draws it. "ink": the ring takes the text ink, so it is as visible as the most
@@ -1418,6 +1690,8 @@ def apply_brand(seed, brand):
     if brand.get("text", house_face(seed, "sans")) != house_face(seed, "sans"):
         # 20-type.md: a text face other than the house's is held to the house x-height.
         s["type"]["sansSizeAdjust"] = kit["faces"][house_face(seed, "sans")]["xHeight"]
+    if brand.get("darkCard") == "step":
+        lift_cards(s)
     return s
 
 

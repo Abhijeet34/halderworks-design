@@ -94,14 +94,15 @@ def colour_difference_agrees(fails):
                              f"paper gives as {want}")
     if build.ciede2000 is contrast.de2000:
         fails.append("build.ciede2000 and contrast.de2000 are the same object")
-    files = [ROOT / "tokens" / "tokens.css", *sorted(ROOT.glob("examples/*/tokens/tokens.css"))]
+    files = [ROOT / "tokens" / "tokens.css", *sorted(ROOT.glob("examples/*/tokens/tokens.css")),
+             ROOT / "tests" / "fixtures" / "field" / "tokens" / "tokens.css"]
     n, worst = 0, (0.0, None)
     for css in files:
         themes = contrast.parse_tokens(css)
         for t in contrast.BLOCKS_CERTIFIED:
             tok = themes[t]
-            pairs = [(ours, f"--hw-{s}{suffix}") for _, ours, suffix, states, _ in
-                     contrast.ACCENT_BARS for s in states]
+            pairs = [(next(n for n in names if n in tok), f"--hw-{s}{suffix}")
+                     for _, names, suffix, states, _ in contrast.ACCENT_BARS for s in states]
             pairs += [("--hw-accent-ring", "--hw-border-strong")]
             pairs += [(f"--hw-{s}-quiet", "--hw-ground") for s in ("success", "warning", "danger")]
             for a, b in pairs:
@@ -120,7 +121,9 @@ def colour_difference_agrees(fails):
 
 # The separation bars decided on 2026-09-21 (design/10-color.md and design/12-brand.md), named
 # here as a third declaration so lowering both instruments' copies in one edit still fails.
-DECIDED = {"ink": 14, "fill": 5, "ring": 17, "ringFromBorder": 14, "stateFillFromGround": 6,
+# The primary bar is the old ink bar's 14, moved by the vivid tier from the accent ink to the
+# loudest fill (10-color.md#the-three-bars-the-accent-is-held-to); the number did not change.
+DECIDED = {"primary": 14, "fill": 5, "ring": 17, "ringFromBorder": 14, "stateFillFromGround": 6,
            "chartSeparation": 8.0, "productSeparation": 8.0}
 
 
@@ -150,6 +153,26 @@ def seed_pairs(seed):
 
 def certificate_pairs():
     return {(fg[2:], bg[2:], float(bar)) for bar, fg, bg, _ in contrast.required()}
+
+
+def vivid_certificate_agrees(seed, fails):
+    """The vivid tier's floors, as a brand that opens it carries them, against contrast.py's own
+    declaration of the same pairs."""
+    kit = seed["brand"]["vivid"]
+    a = {(e["name"], f"hw-{g}", float(f["bar"])) for e in kit["tokens"]
+         for f in e.get("floors", []) for g in f["on"]}
+    a |= {(name, f"hw-{g}", float(f["bar"])) for name, floors in kit["floors"].items()
+          for f in floors for g in f["on"]}
+    b = {(fg[2:], bg[2:], float(bar)) for bar, fg, bg, _ in contrast.vivid_required()}
+    for pair in sorted(a ^ b):
+        fails.append(f"the vivid tier's {pair[0]} on {pair[1]} at {pair[2]}:1 is declared in "
+                     f"{'tokens.seed.json' if pair in a else 'tools/contrast.py'} only")
+    names = {e["name"] for e in kit["tokens"]}
+    if names != {v[2:] for v in contrast.VIVID}:
+        fails.append(f"the vivid tier's tokens differ: seed {sorted(names)}, contrast.py "
+                     f"{sorted(v[2:] for v in contrast.VIVID)}")
+    print(f"  vivid:        {len(a)} floors in the seed's vivid tier, {len(b)} in "
+          f"contrast.vivid_required(), {len(a & b)} in both")
 
 
 def certificate_agrees(seed, fails):
@@ -245,6 +268,7 @@ def main():
     converters_agree(css, fails)
     colour_difference_agrees(fails)
     certificate_agrees(seed, fails)
+    vivid_certificate_agrees(seed, fails)
     named_claims_are_certified(seed, fails)
     headline_counts_hold(seed, fails)
     bars_hold(seed, fails)

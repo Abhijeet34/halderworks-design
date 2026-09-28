@@ -114,7 +114,12 @@ An icon that needs a legend is a label that should have been written.
   set is a pictogram set with its own sizes and rule, in the section below.
 - **An emoji.** Never, anywhere, in any product surface.
 
-## Illustration: one pictogram set, and no figurative drawing
+## Illustration
+
+Two kinds of drawing are specified here: the house's one pictogram set, and a product's own figurative art under one construction rule.
+They never share a view.
+
+### Pictograms, the house set
 
 Four files in this book carried a rule about illustration, and three of them carried the same sentence:
 
@@ -160,10 +165,49 @@ That keeps the rule above standing for its own reason, which no set removes: one
 chosen from anywhere by whoever built the screen, is the failure, and a licensed set does not
 prevent it. **A set plus a rule does**, and this is the set and the rule.
 
-**Figurative illustration stays excluded.** A figurative set would carry its own colours, and the
-only construction measured has five baked values and no dark-theme answer. If one is ever
-commissioned it brings its palette through [a product's own namespace](95-extending.md#a-products-own-namespace),
-never through an `hw-` token, and its files carry no literal colour: every fill is a `--<product>-illo-N`
-token solved by `tools/build.py --extend`, so the set has a dark-theme answer by construction and a
-literal `fill="#..."` in an asset is a defect a text search finds. Whether to commission one is an
-[open decision](05-coverage.md#open-decisions).
+### Figurative art, a product's own
+
+Figurative art was excluded while the only construction measured baked five colours into each asset and had no dark-theme answer.
+Both halves now have one, from the product-identities scout of 2026-09-22, and a product may carry figurative art under the rule below.
+It is a product's, never the house's: the house draws pictograms and diagrams of real numbers, and nothing figurative ships in `tokens/`.
+
+1. **An asset carries no colour literal.** Every fill and stroke is a `var(--<product>-art-*)`, so the asset is inlined, never an `<img>` and never a data URI, which cannot read a variable. A literal `fill="#..."` is a defect a text search finds, and a product's test searches for one.
+2. **Five roles, named by what they are**: `ink` for the outline and line detail, `hair`, `garment`, `skin`, a small set the illustrator extends, and `patch`.
+3. **Every figure sits on one patch**, a rounded block of one colour, and crosses its edge at most once.
+4. **No words inside art**, so a translation never needs a redraw.
+5. **Static.** Art never animates and never loops.
+6. **Each asset under 15 KB after `svgo`**, with no `<metadata>`, no editor comments, and `watermark-scan.py` clean.
+7. **An `artFiles` list in the product's design gate**, on the model of its live-colour file list, so an art token named in any other file fails the gate.
+8. **Human-made.** Nothing machine-generated goes into an asset. A source is drawn in house, commissioned, or taken from a human-made library whose licence allows use in a sold app, and it is named with what was taken from it.
+
+The outline holds **3:1 on its patch in both themes**, the non-text bar, because it is what says where the figure is.
+`tools/build.py --extend` solves a product colour against the house surfaces and does not yet solve a pair between two product colours, so that floor is the product's own test until it does.
+
+### Dark mode: only the patch changes
+
+A figure's skin, hair, garment and outline are **object colours** and never invert: a person does not change colour when the lights go down.
+Only the patch is a **surface**, and in dark it drops to a mid-tone, L 0.55 to 0.65, so the dark outline clears 3:1 on it and the light fills still read.
+Three treatments were rendered and measured with `tools/contrast.py`:
+
+| treatment | what changes in dark | hair on patch | patch on the dark surface | reads as |
+|---|---|---:|---:|---|
+| keep the light patch | nothing | 12.40:1 | 13.23:1 | a lit card, the brightest thing on a dark screen by a wide margin |
+| invert the palette | the ink goes light and the patch dark, so every fill that shared the ink flips | **1.31:1** | 1.20:1 | the hair sinks into the patch and the sweater turns white |
+| **only the patch changes** | the patch drops to `oklch(0.60 0.10 250)` | **4.65:1** | 4.19:1 | the same person in a dimmer room; the outline sits 4.81:1 on the patch |
+
+The rule is the third.
+The inversion's failure is structural rather than a tuning problem: a figure set commonly paints hair and some garments in the outline colour, so any palette that flips the outline flips them too.
+Keeping the light patch stays legal for a product whose dark surface has a convention for a lit object, as pointback's paper mount does.
+A dark patch never takes a product's live colour or a state's hue, because a mid-tone block of it would read as the signal.
+
+### Styles vary, and they are not one
+
+**An identity is not bound to one art style.**
+A product may mix styles across its surfaces, and products may differ from each other, wherever the mix serves the reader: an engraving in a hero, in-house drawings of real controls on setup steps, a pictogram in an empty state, a drawn scribble around the thing a reviewer points at.
+That is the owner's rule of 2026-09-28, and [12-brand.md](12-brand.md#identities-are-not-one-style) records it for identity as a whole.
+
+What holds whatever the style: the construction rule above, the contrast floors on anything carrying text or an outline, one drawing per view, and where each kind of art may and may not go, which [56-asset-placement.md](56-asset-placement.md) owns.
+A licensed set does not prevent six unrelated drawings on six screens; a placement map does, and so the rule is about where a style goes, not which style it is.
+
+Which figurative set a product draws from is its own decision, recorded in its own decision record.
+The open decision this book carried, whether a figurative set is commissioned, is closed: [05-coverage.md](05-coverage.md#settled-with-the-reason) has the answer and its date.

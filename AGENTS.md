@@ -13,7 +13,7 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 | `exports/` | generated from `tokens/tokens.json` by `tools/export.py`; never edited by hand |
 | `examples/` | one directory per product brand: its `brand.seed.json`, and the `tokens/` and `exports/` that `tools/build.py --brand` and `tools/export.py` write from it; `examples/quoth/` also holds quoth's own colour seed and the `quoth.tokens.css` that `--extend` solves against quoth's set. `examples/specimen.html` draws one product screen from any brand's files, for the render a release needs. The worked examples for [design/12-brand.md](design/12-brand.md) and [design/95-extending.md](design/95-extending.md#a-colour-of-the-products-own), and the fixtures CI builds and certifies on every change; each product owns the copy it ships |
 | `tools/` | eight standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
-| `tests/` | the suite that checks the tools rather than the tokens, adopted from the 2026-09-21 audit; `tests/run.py` is the one command |
+| `tests/` | the suite that checks the tools rather than the tokens, adopted from the 2026-09-21 audit; `tests/run.py` is the one command. `tests/fixtures/field/` is quoth's Field identity as a brand seed, the fixture every vivid-tier input is certified against |
 | `.github/rulesets/`, `.github/settings/` | what this repository enforces on the forge, as files. Nothing applies them on its own; see "The settings that are not files" below |
 | `scripts/apply-repo-settings.sh` | the one command that sends those files to GitHub |
 | `docs/publication-record.md` | the one-off record of the first publication; not maintained |
@@ -78,7 +78,7 @@ certified, so `build.py` re-reads the CSS it is about to write and refuses if it
 its own numbers, and `contrast.py` measures every pair twice - on the float value and on the 8-bit
 value a display receives.
 
-A product's identity is a rebuild, never a hand-pick: a brand seed of eleven bounded inputs
+A product's identity is a rebuild, never a hand-pick: a brand seed of eighteen bounded inputs
 ([design/12-brand.md](design/12-brand.md)), solved by the same code as the house set, with
 `--accent-hue` kept as the one-input form:
 
@@ -89,10 +89,21 @@ python3 tools/build.py --accent-hue 318 --out ./my-tokens
 ```
 
 At hue 318 five tokens re-solve and all 198 certified pairs still clear their bar. At hue 150 the
-build refuses, because that hue's ink sits 6.1 CIEDE2000 from `hw-success` and its selected-row
-fill 0.3 from `hw-success-quiet`, against the 14 and 5
-[design/10-color.md](design/10-color.md#the-three-bars-the-accent-is-held-to) requires - which is
-what makes "a product cannot take hue 150" an executable rule rather than a sentence.
+build refuses, because that hue's selected-row fill sits 0.3 CIEDE2000 from `hw-success-quiet`,
+against the 5 [design/10-color.md](design/10-color.md#the-three-bars-the-accent-is-held-to)
+requires - which is what makes "a product cannot take hue 150" an executable rule rather than a
+sentence.
+
+A brand that names none of the vivid tier's inputs (`brandLightness` and the six after it in
+[design/12-brand.md](design/12-brand.md#the-inputs)) must emit exactly the bytes it emitted
+before them; `build.py --check` on the three example brands is that regression.
+`tests/fixtures/field/` is the one set that opens the tier, quoth's Field identity, built and
+certified like an example brand and never exported:
+
+```bash
+python3 tools/build.py --check --brand tests/fixtures/field/brand.seed.json
+python3 tools/contrast.py tests/fixtures/field/tokens/tokens.css
+```
 
 ## Rules a change is held to
 

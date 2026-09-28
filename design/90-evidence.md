@@ -634,7 +634,7 @@ A source that produced nothing says so here, because silence reads as never havi
 | The request to follow those accounts' links and comments | bios of three of the four, the captions and comment threads of the posts opened | **nothing.** Zero outbound links in any bio, caption or thread read; the only non-Instagram anchors are the platform's own footer. On `ui.ux.jam` 9 of 24 posts gate a link behind commenting a keyword, and the keywords name AI build tools (Replit, Relume, Dreamina, Buzzy, CapCut), none a design reference | nothing to record elsewhere: the resources these accounts name are drawn on video frames or sent by direct message, never written where they can be followed |
 | Nine `ui.ux.jam` reels | four read frame by frame, 2026-09-21: `DdWwArCu2wL`, `DdB2dB5OvwC`, `Dc09UoeOz0x`, `DctRY7dt3I0` | ten tools named on the frames, none of them in any text on the page; each is judged in the table below | **Five reels were not extracted.** `DdJmu57IR6j` gates its link behind a comment, and nothing is ever posted from the account used to read it. The video of `Dcd0Q-stjjF`, `DcTl9qAN4Sk` and `DcQ5ySWNlwH` never loaded - `readyState` stayed 0 through a play call, a wait of up to 5 seconds and a click, after four clean loads - and `DcLw91ftPmM` was not attempted. Whatever those five name is not in this system |
 | `figma.expert` | ten posts, 2026-09-14 to 2026-09-20 | the four-corner frame as its third independent instance, in the [slide sequence](75-spec-sheet.md#slide-sequence) | every colour: its `Most Expensive Colour Pallet` is refused, [85-considered-and-declined.md](85-considered-and-declined.md#an-unsourced-superlative-as-a-palette-source). All ten advertised files are behind a direct message and none was obtained. Instagram labels the profile `AI-generated profile` |
-| An illustration reference image, 430x334 | every pixel, [above](#illustration-measured-rather-than-argued) | the five-value flat construction, measured at 97.59% of the image; its ground hue of 87.36 lands within one degree of the corpus's warm-ground median of 86.5, and its chroma ceiling of 0.0929 sits inside this system's restraint | its values as house colours: garment and ink at hues 257 and 264 sit 60 degrees from `--hw-accent`, and five baked values have no dark-theme answer. The pictogram set is named in [55-iconography.md](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing); figurative illustration stays excluded |
+| An illustration reference image, 430x334 | every pixel, [above](#illustration-measured-rather-than-argued) | the five-value flat construction, measured at 97.59% of the image; its ground hue of 87.36 lands within one degree of the corpus's warm-ground median of 86.5, and its chroma ceiling of 0.0929 sits inside this system's restraint | its values as house colours: garment and ink at hues 257 and 264 sit 60 degrees from `--hw-accent`, and five baked values have no dark-theme answer. The pictogram set is named in [55-iconography.md](55-iconography.md#pictograms-the-house-set); figurative illustration stayed excluded until the [construction rule and dark-theme answer](55-iconography.md#figurative-art-a-products-own) of 2026-09-28 |
 | Mobbin and Refero | the libraries themselves, [below](#what-still-cannot-be-reached) | two taxonomies, as coverage cross-checks only | every screen: one is capped at four apps on a free account, the other was read logged out |
 | A review of a product's first-run screen, a setup checklist | one screen, 2026-09-21 | five rules: [first run and setup](68-page-patterns.md#first-run-and-setup) as a page pattern, [one primary focus per screen](35-layout.md#one-primary-focus-per-screen), [a disabled control's weight](60-states.md#disabled-is-a-solved-colour-not-an-opacity), [one mark per screen](00-brand-book.md#the-mark) and [neutral progress](10-color.md#how-colour-is-spent), with their five checklist questions | the screen's own values and copy: it was evidence of what the book failed to say, not a reference to copy |
 
@@ -691,6 +691,53 @@ field. That audit also simulated colour-vision deficiency with Machado, Oliveira
 at full severity, and the bars do not refuse on it, because the house's own states already collapse
 under it and survive on their words.
 
+## The vivid tier
+
+What the tier of 2026-09-28 in [12-brand.md](12-brand.md#the-vivid-tier) rests on, taken from the product-identities scout of 2026-09-22 and re-measured on this repository's own tools where a number is this repository's.
+
+### Shipped accents on state hues
+
+Two Mobbin screens were opened in a browser on 2026-09-22 and their pixels read through a canvas.
+The histogram quantised each channel to four levels, so every distance below is plus or minus 2.
+
+| pair | CIEDE2000 | the house bar it was read against |
+|---|---:|---|
+| Todoist's accent, `#DA3226`, against its own overdue-date red, `#E23A2A` | 2.5 | |
+| Todoist's accent against `hw-danger` | 9.8 | 14 |
+| Todoist's selected-row fill, `#FEEEE2`, against `hw-danger-quiet` | 5.5 | 5 |
+| Duolingo's primary button, `#56CE02`, against its own success banner ink, `#56AA02` | 9.6 | |
+| Duolingo's success banner fill, `#D6FEBA`, against `hw-success-quiet` | 12.9 | |
+
+- [Todoist, the Today view](https://mobbin.com/screens/858c686b-66b3-4283-8f26-4a6f82b45b7b): the brand red paints "Add task", the selected row is a pale red fill, and an overdue date is the same red with a calendar glyph and a date.
+- [Duolingo, answer feedback](https://mobbin.com/screens/a1d54661-39f7-4ae3-a1d5-ec01bf9f5ccb): the primary button and "correct" are one green, and the state carries a check glyph, a word and a full-width banner.
+
+Taken: that an accent 2.5 from a state's ink confuses nobody when the state carries a glyph and a word, which is why the accent ink is now reported rather than refused.
+Left: both palettes, and any reading of the selected row, which in both products sits apart from the states by form rather than by hue, so the house keeps its fill bar with a neutral exit.
+
+### The two multipliers that were dropped
+
+`accentChroma` was capped at 1.3 times the house anchor and `neutralChroma` at 4.0 times, and neither cap had a measurement behind it.
+The field median accent chroma is C 0.194, which the second design-sources round measured across 87 systems and the scout cites; Todoist's accent sits at C 0.20 and Duolingo's at C 0.24.
+The scout lifted both caps in a scratch copy with every other refusal left standing: quoth at hue 295 and 5.5 times built and certified, and papertrace at hue 85 and 6.7 times was refused by the measured bar, "hw-warning-quiet sits 5.0 from hw-ground in light", below its 6.
+The build now raises a state's quiet fill in chroma until it clears 6.2 from a tinted ground before it refuses: papertrace's seed at 6.7 times moves its warning fill from C 0.035 to C 0.0413 and the set certifies, and with the re-solve switched off the same seed is refused, which `tests/mutation_tests.py` watches both ways.
+
+### The dark card step
+
+A dark card that separates from its ground by a lighter surface needs a step a viewer sees, and the house's own is 1.076:1, set for a product whose cards also carry a border.
+quoth's review measured four steps that read as flat: 1.094 first, then 1.116, 1.111 and 1.107 across the three directions it rendered.
+The house's raised surface steps 1.169 over the ground.
+1.2:1 is the smallest round step above every failing step and above the house's raised one, and `darkCard: "step"` solves the dark surfaces up to it on the float value and holds it at 8-bit.
+
+### Ground lightness, and the arc the tier opened
+
+`groundLightness` is bounded where the build stops solving, measured one hundredth at a time: a light ground builds from 0.92, and at 0.91 the raised-contrast chart ramp can no longer clear its floor; a dark ground builds from 0.13, and at 0.12 the text ladder collapses.
+The scout proposed 0.955 as the light floor; 0.92 admits quoth's putty chassis at 0.925, which its own record decided on 2026-09-28.
+With the dark card step on, a dark ground builds up to 0.17 and is refused from 0.18, because the lifted cards run out of room above it.
+
+Before the tier, 127 accent hues built: 113 to 115, 187 to 219 and 265 to 355.
+After it, 155 build: 100 to 124, 184 to 219 and 265 to 358.
+`tests/hue_sweep.py` records the new arc and fails if it moves.
+
 ## What still cannot be reached
 
 Four sources were asked for in the first capture pass and could not be rendered, so no measured value in this system is attributed to any of them.
@@ -698,6 +745,7 @@ Two later yielded a taxonomy, and a taxonomy is all this system takes from them.
 
 - **Mobbin.** `mobbin.com/browse/ios/apps` redirects to a sign-in wall.
   A signed-in free account shows the four latest apps and redirects every deep URL back to them; its 23-name taxonomy of screens, elements and flows is used only as a coverage cross-check, in the [manifest](05-coverage.md#the-cross-check-manifest).
+  Two screen URLs did open on 2026-09-22, and their pixels are [measured above](#shipped-accents-on-state-hues).
 - **Refero.** `refero.design` serves its own marketing page logged out and `refero.design/web` returns its 404.
   Its 15-name page-type taxonomy is used the same way.
   Its logged-out page advertises a **Refero MCP** - 142,000+ screens, Pro only, at 999 rupees a quarter when read on 2026-09-21 - which would remove the browser dependency for design references; it is a subscription nobody has taken, so it has not been evaluated.

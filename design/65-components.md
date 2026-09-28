@@ -264,7 +264,7 @@ Shipping "nothing yet" copy in a "nothing found" state is the most common failur
 
 ### EmptyState: rules
 
-- No illustration beyond one pictogram, in the **nothing yet** kind only, from the one set [55-iconography.md](55-iconography.md#illustration-one-pictogram-set-and-no-figurative-drawing) names. A drawing chosen per empty state from anywhere else is how a product ends up with six unrelated drawings.
+- No illustration beyond one pictogram, in the **nothing yet** kind only, from the one set [55-iconography.md](55-iconography.md#pictograms-the-house-set) names. A drawing chosen per empty state from anywhere else is how a product ends up with six unrelated drawings.
 - No emoji. That is on the anti-pattern list.
 - The explanation is one sentence. If it needs three, the feature needs documentation and the empty state needs a link to it.
 
