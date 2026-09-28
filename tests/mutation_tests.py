@@ -346,29 +346,38 @@ def product_css_edit(repo, old, new):
     p.write_text(t.replace(old, new, 1), encoding="utf-8")
 
 
-def x1(repo):
-    def f(e):
-        e["hue"] = 27
-        e["light"]["L"], e["dark"]["L"] = "0.30", "0.85"
-    product_edit(repo, f)
-    # The values that seed solves to, written into the product file as a contributor who
-    # bypassed the build would, so the second instrument has to refuse them on its own.
-    p = repo / "examples" / "quoth" / "quoth.tokens.css"
-    red = {"0.515": "0.3 0.1207", "0.4467": "0.3 0.1207", "0.6252": "0.85 0.0793",
-           "0.7396": "0.85 0.0793"}
-    p.write_text(re.sub(r"oklch\((\S+) \S+ 297\)", lambda m: f"oklch({red[m[1]]} 27)",
-                        p.read_text(encoding="utf-8")), encoding="utf-8")
+def product_colour(hue, light, dark, bar, css=None):
+    """A mutation that gives quoth-live a hue, (L, C) anchors per theme and a floor bar. With
+    `css`, the values that seed solves to in light, dark, light-more and dark-more are also
+    written into the product file as a contributor who bypassed the build would, so the second
+    instrument has to refuse them on its own."""
+    def mutate(repo):
+        def f(e):
+            e["hue"], e["floors"][0]["bar"] = hue, bar
+            e["light"], e["dark"] = ({"L": L, "C": C} for L, C in (light, dark))
+        product_edit(repo, f)
+        if css:
+            lt, dk, lt_more, dk_more = css
+            blocks = iter((lt, dk, dk, lt_more, dk_more, dk_more))  # build_extension_css order
+            p = repo / "examples" / "quoth" / "quoth.tokens.css"
+            p.write_text(re.sub(r"(--quoth-live: oklch\()[^)]*\)",
+                                lambda m: f"{m[1]}{next(blocks)} {hue})",
+                                p.read_text(encoding="utf-8")), encoding="utf-8")
+    return mutate
 
 
 case("X1 quoth-live becomes recording red: hue 27, a maroon in light and a pink in dark", "caught",
-     x1, by="contrast-extend",
-     note="both sit 9.8 or more from hw-danger in full oklab distance and 0.9 and 3.1 in hue "
-          "and chroma: lightness alone must not clear a colour of reading as a state")
+     product_colour(27, ("0.30", "0.13"), ("0.85", "0.11"), 4.5,
+                    ("0.3 0.1207", "0.85 0.0793", "0.3 0.1207", "0.85 0.0793")),
+     by="contrast-extend", says="from --hw-danger in hue and chroma",
+     note="the maroon sits 21.6 CIEDE2000 from hw-danger, past the 14, and 0.9 in hue and "
+          "chroma: lightness alone must not clear a colour of reading as a state")
 
 
 case("X2 quoth-live collides with a semantic: hue 150, beside hw-success", "caught",
      lambda r: product_edit(r, lambda e: e.__setitem__("hue", 150)), by="extend",
-     note="95-extending.md: a product colour sits 8.0 from each state colour")
+     note="95-extending.md: a product colour sits 14 CIEDE2000 and 5.0 in hue and chroma from "
+          "each state colour")
 
 
 case("X3 the product seed names its token hw-accent", "caught",
@@ -387,7 +396,7 @@ def x5(repo):
         e["floors"] = [{"bar": 3.0, "on": ["ground"]}]
         e["light"]["L"] = "0.80"
     product_edit(repo, f)
-    product_css_edit(repo, "--quoth-live: oklch(0.515 ", "--quoth-live: oklch(0.80 ")
+    product_css_edit(repo, "--quoth-live: oklch(0.55 ", "--quoth-live: oklch(0.80 ")
 
 
 case("X5 quoth-live's floors narrow to the ground and its light value moves to L 0.80, one edit",
@@ -397,7 +406,7 @@ case("X5 quoth-live's floors narrow to the ground and its light value moves to L
 
 
 case("X6 quoth.tokens.css is hand-edited to light L 0.80, under its floor", "caught",
-     lambda r: product_css_edit(r, "--quoth-live: oklch(0.515 ", "--quoth-live: oklch(0.80 "),
+     lambda r: product_css_edit(r, "--quoth-live: oklch(0.55 ", "--quoth-live: oklch(0.80 "),
      by="contrast-extend", note="the second instrument measures the file, not the seed")
 
 
@@ -505,11 +514,59 @@ case("X11 quoth.tokens.css is deleted before contrast.py --extend runs", "caught
      note="a well-formed seed with no built CSS is one FAIL line, never a traceback")
 
 
-case("X12 quoth-live's hue becomes 297.6, a fraction of a degree", "caught",
-     lambda r: product_edit(r, lambda e: e.__setitem__("hue", 297.6)), by="extend",
+case("X12 quoth-live's hue becomes 48.6, a fraction of a degree", "caught",
+     lambda r: product_edit(r, lambda e: e.__setitem__("hue", 48.6)), by="extend",
      says="which is neither a whole number of degrees",
      note="a hue is whole degrees; int() used to truncate it and ship a colour the seed never "
           "named")
+
+
+# The product-colour rule of 2026-09-28 (95-extending.md#how-a-product-colour-is-held-apart),
+# watched failing on the colours the house-live-orange audit rendered or declared: each part of
+# the two-part rule carries at least one of them alone.
+case("X13 quoth-live becomes an oxblood, hue 36 at L 0.40 and 0.70: #812101 and #FE6840", "caught",
+     product_colour(36, ("0.40", "0.30"), ("0.70", "0.30"), 3,
+                    ("0.4 0.1357", "0.7 0.1911", "0.4 0.1357", "0.7 0.1911")),
+     by=("extend", "contrast-extend"), says="sits 2.2 from hw-danger in hue and chroma in light,",
+     note="15.7 CIEDE2000 from hw-danger in light clears the 14; the hue-and-chroma guard, 2.2, "
+          "is what refuses it there")
+
+case("X14 quoth-live becomes recording red at hue 30 at 3:1: #D41101 and #FE6653", "caught",
+     product_colour(30, ("0.55", "0.30"), ("0.70", "0.30"), 3,
+                    ("0.55 0.2197", "0.7 0.1885", "0.55 0.2197", "0.7 0.1885")),
+     by=("extend", "contrast-extend"), says="CIEDE2000 from hw-danger at 8-bit in dark,",
+     note="7.9 in hue and chroma clears the guard on chroma; 10.4 CIEDE2000 from hw-danger does "
+          "not clear the 14, which keeps D-002's recording red excluded mechanically")
+
+case("X15 quoth-live becomes teal 172 at the accent's anchors, Live and Passed as one family",
+     "caught",
+     product_colour(172, ("0.515", "0.079"), ("0.619", "0.096"), 4.5,
+                    ("0.515 0.079", "0.619 0.096", "0.4249 0.079", "0.7184 0.096")),
+     by=("extend", "contrast-extend"), says=("CIEDE2000 from hw-success", "from --hw-success in hue"),
+     note="8.1 CIEDE2000 and 3.8 in hue and chroma from hw-success in dark; rejected on render as "
+          "an accent in 10-color.md")
+
+case("X16 quoth-live becomes hue 52 at the accent's anchors, sitting with Failed and Retried",
+     "caught",
+     product_colour(52, ("0.515", "0.079"), ("0.619", "0.096"), 4.5,
+                    ("0.515 0.079", "0.6232 0.096", "0.4409 0.079", "0.738 0.096")),
+     by=("extend", "contrast-extend"), says=("CIEDE2000 from hw-warning", "from --hw-warning in hue"),
+     note="11.2 CIEDE2000 and 3.9 in hue and chroma from hw-warning under more contrast; the "
+          "judged set's state at 4.58, under the 5.0 guard")
+
+case("X17 quoth-live moves onto quoth's slate accent, hue 255 at C 0.03", "caught",
+     product_colour(255, ("0.515", "0.03"), ("0.619", "0.03"), 4.5), by="extend",
+     says="from hw-accent in hue and chroma",
+     note="95-extending.md: against hw-accent a product colour is held to the guard alone")
+
+case("X18 quoth-live at the violet of 2026-09-21, 12.0 CIEDE2000 from quoth's slate accent",
+     "green",
+     lambda r: (product_colour(297, ("0.515", "0.13"), ("0.619", "0.11"), 4.5)(r),
+                run(r, "tools/build.py", "--brand", "examples/quoth/brand.seed.json", "--extend",
+                    EXAMPLE)),
+     strict=True,
+     note="the ink bar is not applied against the accent: the violet, approved on render, sits "
+          "under 14 CIEDE2000 from the slate accent and 8.8 clear of it in hue and chroma")
 
 
 # ---------------------------------------------------------------- the brand tier
@@ -597,11 +654,6 @@ case("N7 quoth's brand seed sets hw-accent directly", "caught",
                                                                "oklch(0.5 0.1 255)")),
      by="brand-quoth", says="'hw-accent' is not a brand input",
      note="95-extending.md: never redefine an hw- token, not even from a brand seed")
-
-case("N8 quoth's accentChroma rises to 0.6, which puts hw-accent 7.7 from --quoth-live", "caught",
-     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("accentChroma", 0.6)),
-     by="extend", says="sits 7.7 from hw-accent in hue and chroma",
-     note="95-extending.md: a product colour is solved against its own brand's set")
 
 case("N9 papertrace's brand seed is emptied to the house defaults and rebuilt", "caught",
      lambda r: brand_edit(r, "papertrace", lambda b: [b.pop(k) for k in list(b)

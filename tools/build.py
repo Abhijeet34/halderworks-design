@@ -231,10 +231,13 @@ LRGB_TO_XYZ = inv3(XYZ_TO_LRGB)
 WHITE = [sum(row) for row in LRGB_TO_XYZ]
 
 
-def lab_of(rgb):
-    """CIELAB, D65, of one 8-bit sRGB triple."""
+def lab_of(rgb, seen=None):
+    """CIELAB, D65, of one 8-bit sRGB triple, or of what a dichromat sees of it when `seen` is
+    one of DICHROMACY's matrices."""
     lin = [(c / 255) / 12.92 if c / 255 <= 0.04045 else ((c / 255 + 0.055) / 1.055) ** 2.4
            for c in rgb]
+    if seen:
+        lin = [min(max(sum(seen[i][j] * lin[j] for j in range(3)), 0.0), 1.0) for i in range(3)]
     f = [v ** (1 / 3) if v > (6 / 29) ** 3 else v / (3 * (6 / 29) ** 2) + 4 / 29
          for v in (sum(LRGB_TO_XYZ[i][j] * lin[j] for j in range(3)) / WHITE[i]
                    for i in range(3))]
@@ -267,6 +270,24 @@ def painted(a, b):
     receive for each. A pair that clears its bar on one rounding and not the other is not
     certified, for the reason ratio8() gives."""
     return min(ciede2000(lab_of(x), lab_of(y)) for x in rgb8(*a) for y in rgb8(*b))
+
+
+# Machado, Oliveira and Fernandes 2009 at severity 1.0, applied to linear sRGB. What a dichromat
+# sees of a product colour is reported and never refused on, because the house's own states
+# collapse under it too and are told apart by their words (10-color.md).
+DICHROMACY = {
+    "protan": ((0.152286, 1.052583, -0.204868), (0.114503, 0.786281, 0.099216),
+               (-0.003882, -0.048116, 1.051998)),
+    "deutan": ((0.367322, 0.860646, -0.227968), (0.280085, 0.672501, 0.047413),
+               (-0.011820, 0.042940, 0.968881)),
+    "tritan": ((1.255528, -0.076749, -0.178779), (-0.078411, 0.930809, 0.147602),
+               (0.004733, 0.691367, 0.303900))}
+
+
+def dichromat_painted(a, b):
+    """(CIEDE2000, kind): the closest two oklch colours come for any of the three dichromacies."""
+    return min((ciede2000(lab_of(x, m), lab_of(y, m)), kind) for kind, m in DICHROMACY.items()
+               for x in rgb8(*a) for y in rgb8(*b))
 
 
 # --- colour helpers ------------------------------------------------------------------------
@@ -1250,16 +1271,17 @@ def media_copies_differ(seed, blocks):
 PRODUCT_SURFACES = ("ground", "surface", "surface-raised", "surface-sunken", "surface-hover",
                     "surface-active")
 # The colours a product colour must never be mistaken for: the three states and the accent,
-# which is selection and focus. A seed may name more; it cannot name fewer.
+# which is selection and focus. A seed may name more; it cannot name fewer. The states are held
+# to both of the seed's product bars, everything else to the hue-and-chroma guard alone.
 PRODUCT_APART = ("hw-success", "hw-warning", "hw-danger", "hw-accent")
+PRODUCT_STATES = PRODUCT_APART[:3]
 NAMESPACE = re.compile(r"^[a-z][a-z0-9]*$")
 
 
 def hue_chroma_separation(a, b):
-    """Oklab distance times 100 with lightness left out. The accent's 8.0 was measured at the
-    semantics' own lightness, where the two readings agree; a product colour is held to the
-    stricter one, because a maroon at hue 27 clears 8.0 from hw-danger on lightness alone and
-    still reads as red."""
+    """Oklab distance times 100 with lightness left out: the guard that keeps a state shifted in
+    lightness, a maroon or a salmon at hue 27, refused after it has cleared CIEDE2000 on
+    lightness alone."""
     x, y = oklab(*a), oklab(*b)
     return 100 * math.hypot(x[1] - y[1], x[2] - y[2])
 
@@ -1422,8 +1444,9 @@ def build_extension_css(seed, ext, solved, accent, source, brand="house"):
    Generated from {source} by tools/build.py --extend, against the {brand} set at accent hue {accent % 360}.
    Do not hand-edit this file; edit the seed and rebuild.
 
-   Every token clears each of its floors on the float value and at 8-bit, and sits at least
-   {seed['seed']['productSeparation']} in hue and chroma from every house colour its seed holds it apart from,
+   Every token clears each of its floors on the float value and at 8-bit, sits at least
+   {seed['seed']['productFromState']} CIEDE2000 at 8-bit from hw-success, hw-warning and hw-danger, and at least
+   {seed['seed']['productHueChroma']} in hue and chroma from every house colour its seed holds it apart from,
    in both themes and under prefers-contrast: more. */""",
          ':root, [data-theme="light"] {', *block(ids[0], "  "), "}"]
     for theme in ids[1:]:
@@ -1442,7 +1465,8 @@ def verify_extension(house_css, ext_css, seed, ext):
     """(failures, report): every product floor and separation, re-measured on the two files as
     they will be written, the house one supplying the grounds."""
     house, prod = parse_emitted(house_css), parse_emitted(ext_css)
-    bar = seed["seed"]["productSeparation"]
+    de_bar, hc_bar = seed["seed"]["productFromState"], seed["seed"]["productHueChroma"]
+    why = "this system requires (95-extending.md#a-colour-of-the-products-own)"
     bad, report = [], []
     for block in certified_blocks(seed):
         for e in ext["color"]["tokens"]:
@@ -1454,8 +1478,11 @@ def verify_extension(house_css, ext_css, seed, ext):
                 bad.append(f"{e['name']} ({block}): oklch{fg} is outside sRGB")
             seps = sorted((hue_chroma_separation(fg, house[block][a]), a) for a in e["apart"])
             bad += [f"{e['name']} at hue {fg[2]:g} sits {d:.1f} from {a} in hue and chroma in "
-                    f"{block}, below the {bar} this system requires "
-                    f"(95-extending.md#a-colour-of-the-products-own)" for d, a in seps if d < bar]
+                    f"{block}, below the {hc_bar} {why}" for d, a in seps if d < hc_bar]
+            des = sorted((painted(fg, house[block][a]), a) for a in PRODUCT_STATES)
+            bad += [f"{e['name']} at hue {fg[2]:g} sits {d:.1f} CIEDE2000 from {a} at 8-bit in "
+                    f"{block}, below the {de_bar} {why}" for d, a in des if d < de_bar]
+            cvd = min((*dichromat_painted(fg, house[block][a]), a) for a in PRODUCT_STATES)
             lum, lum8 = luminance(*fg), luminance8(*fg)
             ratios = [(ratio_lum(lum, luminance(*house[block][f"hw-{g}"])),
                        ratio8(lum8, luminance8(*house[block][f"hw-{g}"])), g)
@@ -1463,7 +1490,9 @@ def verify_extension(house_css, ext_css, seed, ext):
             r, r8, g = min(ratios)
             report.append(f"{e['name']:14} {block:11} oklch({fg[0]:g} {fg[1]:g} {fg[2]:g})  "
                           f"worst {r:.3f}:1 on --hw-{g} ({min(x[1] for x in ratios):.3f} at "
-                          f"8-bit), worst separation {seps[0][0]:.1f} from {seps[0][1]}")
+                          f"8-bit), {des[0][0]:.1f} CIEDE2000 from {des[0][1]}, "
+                          f"{seps[0][0]:.2f} in hue and chroma from {seps[0][1]}; "
+                          f"{cvd[1]} sees {cvd[0]:.1f} from {cvd[2]}, reported")
     return bad + media_copies_differ(seed, prod), report
 
 
@@ -1512,7 +1541,8 @@ def extend(seed, accent, solvers, house_css, a):
     target.write_text(css, encoding="utf-8")
     print(f"{len(ext['color']['tokens'])} {ext['namespace']} colour token(s) solved in "
           f"{len(solved)} blocks against accent hue {accent % 360}, 0 below a floor, 0 closer "
-          f"than {seed['seed']['productSeparation']} to a state colour.\n"
+          f"than {seed['seed']['productFromState']} CIEDE2000 to a state or "
+          f"{seed['seed']['productHueChroma']} in hue and chroma to a colour held apart.\n"
           f"  {target.name} {len(css):7,d} bytes")
     return 0
 

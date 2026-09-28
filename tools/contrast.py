@@ -154,9 +154,13 @@ LIN_SRGB_TO_XYZ = tuple(tuple(float(x) for x in row) for row in (
 D65 = (0.3127 / 0.3290, 1.0, (1.0 - 0.3127 - 0.3290) / 0.3290)
 
 
-def lab(fg):
-    """CIELAB (D65) of an oklch triple as the display receives it, quantized to 8 bits."""
-    xyz = _mul(LIN_SRGB_TO_XYZ, [_lin(c) for c in quantize(oklch_to_rgb(*fg))])
+def lab(fg, seen=None):
+    """CIELAB (D65) of an oklch triple as the display receives it, quantized to 8 bits, or of
+    what a dichromat sees of it when `seen` is one of DICHROMACY's matrices."""
+    lin = [_lin(c) for c in quantize(oklch_to_rgb(*fg))]
+    if seen:
+        lin = [min(max(v, 0.0), 1.0) for v in _mul(seen, lin)]
+    xyz = _mul(LIN_SRGB_TO_XYZ, lin)
     eps, kappa = 216 / 24389, 24389 / 27
     f = [v ** (1 / 3) if v > eps else (kappa * v + 16) / 116 for v in
          (xyz[0] / D65[0], xyz[1] / D65[1], xyz[2] / D65[2])]
@@ -205,6 +209,23 @@ def de2000(lab1, lab2):
 
 def painted(a, b):
     return de2000(lab(a), lab(b))
+
+
+# Machado, Oliveira and Fernandes 2009, severity 1.0, on linear sRGB: the paper's table, copied
+# here rather than imported from build.py for the reason the converters are two. Pass 5 reports
+# what a dichromat sees of a product colour and never refuses on it (10-color.md).
+DICHROMACY = {
+    "protan": ((0.152286, 1.052583, -0.204868), (0.114503, 0.786281, 0.099216),
+               (-0.003882, -0.048116, 1.051998)),
+    "deutan": ((0.367322, 0.860646, -0.227968), (0.280085, 0.672501, 0.047413),
+               (-0.011820, 0.042940, 0.968881)),
+    "tritan": ((1.255528, -0.076749, -0.178779), (-0.078411, 0.930809, 0.147602),
+               (0.004733, 0.691367, 0.303900))}
+
+
+def dichromat_painted(a, b):
+    """(CIEDE2000, kind) for the dichromacy under which two oklch colours come closest."""
+    return min((de2000(lab(a, m), lab(b, m)), kind) for kind, m in DICHROMACY.items())
 
 
 TOKEN_RE = re.compile(r"^\s*(--[a-z][a-z0-9]*-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
@@ -609,14 +630,15 @@ def published_ratios(root):
 # --- pass 5: a product's own colour ---------------------------------------------------------
 # What every product colour is held to, declared here rather than read from the product's seed,
 # so a product cannot weaken it in the same edit as the value it guards: at least 3:1 on each of
-# the six surfaces, and PRODUCT_SEPARATION in hue and chroma from the three states and the
-# accent. The seed is read only for what it adds - a pair at a text bar, or a further colour to
-# stay clear of.
+# the six surfaces, PRODUCT_FROM_STATE CIEDE2000 at 8-bit from each of the three states, and
+# PRODUCT_HUE_CHROMA in hue and chroma from the states and the accent. The seed is read only for
+# what it adds - a pair at a text bar, or a further colour to stay clear of, held to the guard.
 PRODUCT_APART = [f"--hw-{s}" for s in SEMANTICS]
-# In hue and chroma alone, with lightness left out, because a product colour's anchors are its
-# own and a maroon clears any reading that counts lightness while still reading as red
-# (95-extending.md#why-the-separation-leaves-lightness-out).
-PRODUCT_SEPARATION = 8.0
+PRODUCT_STATES = [f"--hw-{s}" for s in SEMANTICS[1:]]
+# The accent's ink bar, and the guard that keeps a state shifted in lightness refused: a maroon at
+# hue 27 clears 14 CIEDE2000 from --hw-danger and still reads as red
+# (95-extending.md#how-a-product-colour-is-held-apart).
+PRODUCT_FROM_STATE, PRODUCT_HUE_CHROMA = 14, 5.0
 
 
 def raised(bar):
@@ -742,16 +764,23 @@ def extension(themes, ext, seed_path, css_path):
             seps = sorted((separation(fg, themes[theme][a], lightness=False), a)
                           for a in valid_apart)
             bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below "
-                    f"{PRODUCT_SEPARATION}: a product colour that reads as a house state"
-                    for d, a in seps if d < PRODUCT_SEPARATION]
-            if seps:
+                    f"{PRODUCT_HUE_CHROMA}: a product colour that reads as a house state"
+                    for d, a in seps if d < PRODUCT_HUE_CHROMA]
+            states = [a for a in PRODUCT_STATES if a in themes[theme]]
+            des = sorted((painted(fg, themes[theme][a]), a) for a in states)
+            bad += [f"{theme} {name} sits {d:.1f} CIEDE2000 from {a} at 8-bit, below "
+                    f"{PRODUCT_FROM_STATE}: a product colour that reads as a house state"
+                    for d, a in des if d < PRODUCT_FROM_STATE]
+            if not (des and seps):
                 report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
-                              f"{worst[1]:.3f}) on {worst[2]}; closest {seps[0][0]:.1f} to "
-                              f"{seps[0][1]}")
-            else:
-                report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
-                              f"{worst[1]:.3f}) on {worst[2]}; no house colour to measure "
+                              f"{worst[1]:.3f}) on {worst[2]}; no house state to measure "
                               f"separation against")
+                continue
+            cvd = min((*dichromat_painted(fg, themes[theme][a]), a) for a in states)
+            report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
+                          f"{worst[1]:.3f}) on {worst[2]}; {des[0][0]:.2f} CIEDE2000 from "
+                          f"{des[0][1]}; {seps[0][0]:.2f} in hue and chroma from {seps[0][1]}; "
+                          f"{cvd[1]} sees {cvd[0]:.1f} from {cvd[2]}, reported")
     for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
         if prod[copy] != prod[block]:
             bad.append(f"the {copy} block of {Path(css_path).name} differs from {block}")
@@ -884,9 +913,9 @@ def main(argv):
             bad, report = extension(themes, ext, seed, css)
             failures += bad
             print(f"pass 5: {Path(css).name} against this set, every token 3:1 or its "
-                  f"claimed bar on all six surfaces and {PRODUCT_SEPARATION} in hue and chroma "
-                  f"from the "
-                  f"states and the accent; {len(bad)} failed")
+                  f"claimed bar on all six surfaces, {PRODUCT_FROM_STATE} CIEDE2000 from the "
+                  f"states and {PRODUCT_HUE_CHROMA} in hue and chroma from the states and the "
+                  f"accent; {len(bad)} failed")
             print("\n".join(report))
 
     for f in failures:

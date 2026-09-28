@@ -719,6 +719,13 @@ components: a selected row, a status badge with its word, a link, a focused fiel
 field. That audit also simulated colour-vision deficiency with Machado, Oliveira and Fernandes 2009
 at full severity, and the bars do not refuse on it, because the house's own states already collapse
 under it and survive on their words.
+From 2026-09-28 both instruments carry the paper's three severity-1.0 matrices, applied to linear
+sRGB and clipped to the gamut, to report how close a product colour comes to each state under
+protanopia, deuteranopia and tritanopia
+([95-extending.md](95-extending.md#how-a-product-colour-is-held-apart)).
+Taken: the matrices, which reproduce the house-live-orange audit's deuteranopia figures to within
+0.12 CIEDE2000. Left: the paper's intermediate severities, since a report at full severity is the
+worst case and nothing refuses on it.
 
 ## The vivid tier
 

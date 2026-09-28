@@ -14,11 +14,6 @@
       250,
       310
     ],
-    "semanticHue": {
-      "success": 152,
-      "warning": 78,
-      "danger": 27
-    },
     "accentSeparation": {
       "primary": 14,
       "fill": 5,
@@ -27,7 +22,8 @@
     "ringFromBorder": 14,
     "stateFillFromGround": 6,
     "chartSeparation": 8.0,
-    "productSeparation": 8.0,
+    "productFromState": 14,
+    "productHueChroma": 5.0,
     "minChartNeighbourDeltaL": 0.12,
     "roleLadder": [
       "hw-text",

@@ -172,7 +172,7 @@ A warm accent at the house chroma is still bound by its fill: for hues 0 to 95 t
 Under simulated colour-vision deficiency the house already fails any bar like these, and survives on words: the shipped `hw-success` and `hw-danger` fills sit 0.9 apart under deuteranopia, three tan pills told apart by Passed, Retried and Failed.
 That is the book's design ([15-color-combinations.md](15-color-combinations.md)), so the bars refuse on normal vision only.
 
-A product's own colour is held to a different reading, 8.0 in hue and chroma with lightness left out, and [95-extending.md](95-extending.md#why-the-separation-leaves-lightness-out) says why.
+A product's own colour is held to the ink bar, 14 CIEDE2000 from each state, and to a guard of 5.0 in hue and chroma with lightness left out, from the states and the accent; [95-extending.md](95-extending.md#how-a-product-colour-is-held-apart) says why it takes both, and why a dichromat's reading is reported for it too.
 
 ### The vivid tier
 
