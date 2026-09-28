@@ -131,10 +131,11 @@ W3C DTCG with a `$description` on every token.
 ## What you may and may not change
 
 **A product's identity is its brand seed, and nothing else.**
-Eleven bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
-neutral hue and chroma, a shape register, an icon stroke, a display face and a text face - solved
-into the house's own token names ([design/12-brand.md](design/12-brand.md)). Take it by
-regenerating, never by hand-picking a colour:
+Eighteen bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
+neutral hue and chroma, a shape register, an icon stroke, a display face, a text face, and a vivid
+tier of seven more, opt-in by naming `brandLightness` - solved into the house's own token names
+([design/12-brand.md](design/12-brand.md#the-inputs)). Take it by regenerating, never by
+hand-picking a colour:
 
 ```bash
 python3 tools/build.py --brand examples/papertrace/brand.seed.json
@@ -145,7 +146,8 @@ The build re-solves every affected token against its contrast floor and **refuse
 does not hold. It also refuses an accent whose ink, selected-row fill or focus ring sits too close to
 a state colour in CIEDE2000, so a product cannot take a green that competes with "passed".
 The second line is not a formality and it is not a second opinion from the same head: `contrast.py` shares no arithmetic with the build and carries its own list of what must hold.
-Of the 360 integer hues at the house anchors, 127 build, and `contrast.py` accepts all 127.
+Of the 360 integer hues at the house anchors, 155 build, and `contrast.py` accepts all 155
+([design/10-color.md](design/10-color.md#the-three-bars-the-accent-is-held-to)).
 
 **Everything else goes in the product's own namespace**, `--quoth-`, `--gates-`, never by
 redefining an `hw-` token. `design/95-extending.md` is the whole procedure. A colour the house has
