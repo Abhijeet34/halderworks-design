@@ -1595,7 +1595,14 @@
         "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf",
         "licence": "OFL-1.1",
         "sha256": "d75a7dc1a27eb9e336d5b33f55489d2ecb5621bf694d5c43b2415bce2ca830a8",
-        "xHeight": 0.517
+        "xHeight": 0.517,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/OFL.txt",
+        "licenceSha256": "157a9e77f7580246e97c769490e2e977ae94399f9d30f4556015c41fe8c28bac",
+        "upstream": "https://github.com/uswds/public-sans",
+        "formats": [
+          "ttf",
+          "otf"
+        ]
       },
       "Newsreader": {
         "stack": "\"Newsreader\", \"Iowan Old Style\", \"Source Serif 4\", Georgia, \"Times New Roman\", serif",
@@ -1603,7 +1610,34 @@
         "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf",
         "licence": "OFL-1.1",
         "sha256": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1",
-        "xHeight": 0.426
+        "xHeight": 0.426,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/newsreader/OFL.txt",
+        "licenceSha256": "fdfad38143ec470553cae82a1e45320bdd1b9ec70415d37bd0171051d8a4ded8",
+        "upstream": "https://github.com/productiontype/Newsreader",
+        "formats": [
+          "ttf",
+          "woff",
+          "woff2"
+        ]
+      },
+      "IBM Plex Mono": {
+        "stack": "\"IBM Plex Mono\", ui-monospace, \"SF Mono\", \"JetBrains Mono\", Menlo, Consolas, monospace",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-Regular.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46",
+        "xHeight": 0.516,
+        "monospaced": true,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/OFL.txt",
+        "licenceSha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+        "reservedName": "Plex",
+        "upstream": "https://github.com/IBM/plex",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff",
+          "woff2"
+        ]
       },
       "Bricolage Grotesque": {
         "stack": "\"Bricolage Grotesque\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -1611,7 +1645,15 @@
         "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz,wdth,wght%5D.ttf",
         "licence": "OFL-1.1",
         "sha256": "413e7357809ddd12fd80a96a8a396de0e401638d4acd3cb3e37532f0472ac682",
-        "xHeight": 0.528
+        "xHeight": 0.528,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/OFL.txt",
+        "licenceSha256": "4b5a7d8f37f5602621c8a8d7358a6a2e71317e6c231c661e15aef0275d3e07ba",
+        "upstream": "https://github.com/ateliertriay/bricolage",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
       },
       "Instrument Sans": {
         "stack": "\"Instrument Sans\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
@@ -1619,7 +1661,161 @@
         "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/InstrumentSans%5Bwdth,wght%5D.ttf",
         "licence": "OFL-1.1",
         "sha256": "b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1",
-        "xHeight": 0.51
+        "xHeight": 0.51,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/OFL.txt",
+        "licenceSha256": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+        "upstream": "https://github.com/Instrument/instrument-sans",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Archivo": {
+        "stack": "\"Archivo\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/Archivo%5Bwdth,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "0e094a7d3c7c4c25cf1310c4b30014f1dae9332220b1c2c88f4fa996f0b05053",
+        "xHeight": 0.526,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/OFL.txt",
+        "licenceSha256": "108b4e57c9c796d3d38d0428ca7ee39de47ad93187302718d9b2d8864b9b716b",
+        "upstream": "https://github.com/Omnibus-Type/Archivo",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Archivo Expanded": {
+        "stack": "\"Archivo\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/Archivo%5Bwdth,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "0e094a7d3c7c4c25cf1310c4b30014f1dae9332220b1c2c88f4fa996f0b05053",
+        "xHeight": 0.526,
+        "stretch": "125%",
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/OFL.txt",
+        "licenceSha256": "108b4e57c9c796d3d38d0428ca7ee39de47ad93187302718d9b2d8864b9b716b",
+        "upstream": "https://github.com/Omnibus-Type/Archivo",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Figtree": {
+        "stack": "\"Figtree\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/figtree/Figtree%5Bwght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "26ad3db9b31ff7dde67a91ff515d022d2f495cd506590699cf264f0bfe6fb714",
+        "xHeight": 0.5,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/figtree/OFL.txt",
+        "licenceSha256": "140d37233e7f3ce7313798befa9600893bcceaf41a55fa0fa5ad52f7f657a268",
+        "upstream": "https://github.com/erikdkennedy/figtree",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Atkinson Hyperlegible Next": {
+        "stack": "\"Atkinson Hyperlegible Next\", \"Public Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext%5Bwght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "5a455d1cfa099b601ab70751bb9673e8fe1854dc4500c80e1a220d0d75e31745",
+        "xHeight": 0.496,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/atkinsonhyperlegiblenext/OFL.txt",
+        "licenceSha256": "aca6a428580965d2297d1b718042dd427c2a9443ece3b0d02d758e161e0c4030",
+        "upstream": "https://github.com/googlefonts/atkinson-hyperlegible-next",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Shantell Sans": {
+        "stack": "\"Shantell Sans\", ui-rounded, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/shantellsans/ShantellSans%5BBNCE,INFM,SPAC,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "d98a7913853f78d71aa0b86daf66b5eddb5a3266c07bfd51ef70632b88c41084",
+        "xHeight": 0.485,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/shantellsans/OFL.txt",
+        "licenceSha256": "ebfce7d104d597c385b71e9fbf8f0e2034e73320f857086105dc265b82c05caa",
+        "upstream": "https://github.com/arrowtype/shantell-sans",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Fraunces": {
+        "stack": "\"Fraunces\", \"Newsreader\", \"Iowan Old Style\", Georgia, \"Times New Roman\", serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces%5BSOFT,WONK,opsz,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "177ff6c0f14e5550a3c624247cd1189611d4eb65d000b14944c63d967958abbb",
+        "xHeight": 0.482,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/OFL.txt",
+        "licenceSha256": "bdf4c22802eaf804f998195871c6b8938aac2ac14b2d78a8bd66a6f1eced833b",
+        "upstream": "https://github.com/undercasetype/Fraunces",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Literata": {
+        "stack": "\"Literata\", \"Newsreader\", \"Iowan Old Style\", Georgia, \"Times New Roman\", serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/literata/Literata%5Bopsz,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "b41138c9373112f32abb589cc22e8674b06ed4048b0c513be922bdd26f274440",
+        "xHeight": 0.507,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/literata/OFL.txt",
+        "licenceSha256": "8742963604cd89dc81437811a850018fc03b2bfad686d7422c8235967c87614e",
+        "upstream": "https://github.com/googlefonts/literata",
+        "formats": [
+          "ttf",
+          "woff2"
+        ]
+      },
+      "Instrument Serif Italic": {
+        "stack": "\"Instrument Serif\", \"Newsreader\", \"Iowan Old Style\", Georgia, \"Times New Roman\", serif",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentserif/InstrumentSerif-Italic.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "08939b8bdf534afec24ae0ef5e03f948940cd9a8fe08e7fecbad040e62327385",
+        "xHeight": 0.51,
+        "style": "italic",
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentserif/OFL.txt",
+        "licenceSha256": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+        "upstream": "https://github.com/Instrument/instrument-serif",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
+      },
+      "Martian Mono": {
+        "stack": "\"Martian Mono\", ui-monospace, \"SF Mono\", Menlo, Consolas, monospace",
+        "delivery": "self-hosted",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/martianmono/MartianMono%5Bwdth,wght%5D.ttf",
+        "licence": "OFL-1.1",
+        "sha256": "c3467843ec1c2574b05fbcfd7147c7bfbcf63ddca8fc2bcb9d117f1bfb1b22e7",
+        "xHeight": 0.6,
+        "monospaced": true,
+        "licenceText": "https://raw.githubusercontent.com/google/fonts/main/ofl/martianmono/OFL.txt",
+        "licenceSha256": "ddafd2c3f37ef1d83ef284ca63e159befd3820850c5e9eded14ca52eee92c256",
+        "upstream": "https://github.com/evilmartians/mono",
+        "formats": [
+          "ttf",
+          "otf",
+          "woff2"
+        ]
       },
       "system serif": {
         "stack": "\"Iowan Old Style\", \"Palatino Linotype\", Palatino, Georgia, \"Times New Roman\", serif",
