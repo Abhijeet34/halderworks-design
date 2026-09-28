@@ -773,9 +773,9 @@ def check_separation(seed, blocks):
             for sem in states:
                 d = painted(t[ours], t[f"hw-{sem}{suffix}"])
                 if d < bars[kind]:
-                    bad.append(f"hw-accent at hue {t['hw-accent'][2]:g}: its {kind}, {ours}, sits "
-                               f"{d:.1f} from hw-{sem}{suffix} in {block}, below the "
-                               f"{bars[kind]} CIEDE2000 this system requires "
+                    bad.append(f"the {kind}, {ours} at hue {t[ours][2]:g}, sits {d:.1f} from "
+                               f"hw-{sem}{suffix} in {block}, below the {bars[kind]} CIEDE2000 "
+                               f"this system requires "
                                f"(10-color.md#the-three-bars-the-accent-is-held-to)")
         d = painted(t["hw-accent-ring"], t["hw-border-strong"])
         if d < sd["ringFromBorder"]:

@@ -94,7 +94,8 @@ def colour_difference_agrees(fails):
                              f"paper gives as {want}")
     if build.ciede2000 is contrast.de2000:
         fails.append("build.ciede2000 and contrast.de2000 are the same object")
-    files = [ROOT / "tokens" / "tokens.css", *sorted(ROOT.glob("examples/*/tokens/tokens.css"))]
+    files = [ROOT / "tokens" / "tokens.css", *sorted(ROOT.glob("examples/*/tokens/tokens.css")),
+             ROOT / "tests" / "fixtures" / "field" / "tokens" / "tokens.css"]
     n, worst = 0, (0.0, None)
     for css in files:
         themes = contrast.parse_tokens(css)

@@ -42,6 +42,8 @@ RESULTS = []
 # the three example brands CI builds and certifies on every change.
 EXAMPLE = "examples/quoth/quoth.seed.json"
 BRANDS = ("quoth", "papertrace", "pointback")
+# quoth's Field identity, the fixture every vivid-tier input is certified against.
+FIELD = "tests/fixtures/field"
 CHECKS = [("build", ("tools/build.py",)), ("--check", ("tools/build.py", "--check")),
           ("contrast", ("tools/contrast.py",)), ("export", ("tools/export.py",)),
           ("check-coverage", ("tools/check-coverage.py",)),
@@ -54,6 +56,8 @@ CHECKS = [("build", ("tools/build.py",)), ("--check", ("tools/build.py", "--chec
                             f"examples/{b}/brand.seed.json")) for b in BRANDS],
           *[(f"contrast-{b}", ("tools/contrast.py", f"examples/{b}/tokens/tokens.css"))
             for b in BRANDS],
+          ("brand-field", ("tools/build.py", "--check", "--brand", f"{FIELD}/brand.seed.json")),
+          ("contrast-field", ("tools/contrast.py", f"{FIELD}/tokens/tokens.css")),
           ("distinct", ("tools/distinct.py", "tokens/tokens.css",
                         *[f"examples/{b}/tokens/tokens.css" for b in BRANDS]))]
 
@@ -93,12 +97,15 @@ def exact_min(repo, pairs):
                for t, fg, bg in pairs)
 
 
-def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False, says=()):
+def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False, says=(),
+         strict=False):
     """`by` names a check, or a tuple of checks, that must be among those refusing, where WHICH
     tool catches it is the claim: the second instrument measuring a product file on its own,
     say. `no_traceback` asserts a clean refusal rather than an unhandled crash: a crash also
     exits non-zero, so "caught" alone does not tell the two apart. `says` names phrases the
-    refusal must contain, where WHICH rule refuses is the claim."""
+    refusal must contain, where WHICH rule refuses is the claim. `strict` makes a "green"
+    expectation a claim rather than an accepted gap: the input must build and certify, and a
+    refusal is a FAIL, not an improvement."""
     repo = clone()
     mutate(repo)
     codes, out = {}, ""
@@ -119,9 +126,10 @@ def case(name, expect, mutate, after=None, note="", by=None, no_traceback=False,
     for phrase in ((says,) if isinstance(says, str) else says):
         if phrase not in out:
             extra, ok = (extra + f" no refusal says {phrase!r}").strip(), False
-    passed = ok and (verdict == expect or (expect == "green" and verdict == "caught"))
+    passed = ok and (verdict == expect or (expect == "green" and verdict == "caught"
+                                           and not strict))
     label = ("PASS" if verdict == expect and ok
-             else "IMPROVED" if expect == "green" and ok
+             else "IMPROVED" if expect == "green" and ok and not strict
              else "FAIL")
     RESULTS.append((label, name, expect, verdict, note))
     print(f"\n=== {name}")
@@ -498,10 +506,15 @@ case("X11 quoth.tokens.css is deleted before contrast.py --extend runs", "caught
 
 
 # ---------------------------------------------------------------- the brand tier
+def brand_dir(repo, name):
+    return repo / FIELD if name == "field" else repo / "examples" / name
+
+
 def brand_edit(repo, name, fn, rebuild=False):
-    """Change one example brand's seed; with `rebuild`, regenerate its token files the way a
-    contributor following 12-brand.md would, so only a rule can refuse it, never staleness."""
-    p = repo / "examples" / name / "brand.seed.json"
+    """Change one example brand's seed, or the Field fixture's; with `rebuild`, regenerate its
+    token files the way a contributor following 12-brand.md would, so only a rule can refuse it,
+    never staleness."""
+    p = brand_dir(repo, name) / "brand.seed.json"
     brand = json.loads(p.read_text(encoding="utf-8"))
     fn(brand)
     p.write_text(json.dumps(brand, indent=2) + "\n", encoding="utf-8")
@@ -510,7 +523,7 @@ def brand_edit(repo, name, fn, rebuild=False):
 
 
 def brand_css_edit(repo, name, old, new):
-    p = repo / "examples" / name / "tokens" / "tokens.css"
+    p = brand_dir(repo, name) / "tokens" / "tokens.css"
     t = p.read_text(encoding="utf-8")
     assert old in t, old
     p.write_text(t.replace(old, new, 1), encoding="utf-8")
@@ -521,15 +534,32 @@ def seed_accent(**inputs):
                                          if k not in inputs])
 
 
-case("N1 quoth's accentChroma rises to 1.31, over the bound", "caught",
-     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("accentChroma", 1.31)),
-     by="brand-quoth", says="accentChroma 1.31 is outside 0.3 to 1.3",
-     note="12-brand.md: no brand accent is louder than an error")
+case("N1 quoth's accentChroma falls to 0.29, under its floor", "caught",
+     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("accentChroma", 0.29)),
+     by="brand-quoth", says="accentChroma 0.29 is not at least 0.3",
+     note="12-brand.md: the chroma multipliers keep their floor; the vivid tier dropped only "
+          "the ceilings")
 
-case("N2 papertrace's neutralChroma rises to 6 at hue 85, a cream ground", "caught",
-     lambda r: brand_edit(r, "papertrace", lambda b: b.__setitem__("neutralChroma", 6)),
-     by="brand-papertrace", says="neutralChroma 6 is outside 0.0 to 4.0",
-     note="12-brand.md: the ground stops reading as paper past 4 times the house chroma")
+case("N2 papertrace's neutralChroma rises to 6.7 at hue 85, a cream ground, and is rebuilt",
+     "green", lambda r: brand_edit(r, "papertrace", lambda b: b.__setitem__("neutralChroma", 6.7),
+                                   rebuild=True),
+     strict=True,
+     note="12-brand.md: with the 4.0 ceiling gone, hw-warning-quiet takes chroma until it clears "
+          "6 from the cream ground, and both instruments certify the set")
+
+
+def n2b(repo):
+    p = repo / "tools" / "build.py"
+    src = p.read_text(encoding="utf-8")
+    call = "C = self.lift_state_fill(e, L, C, h)"
+    assert call in src
+    p.write_text(src.replace(call, "pass", 1), encoding="utf-8")
+    brand_edit(repo, "papertrace", lambda b: b.__setitem__("neutralChroma", 6.7))
+
+
+case("N2b the same cream ground with the state-fill re-solve disabled", "caught", n2b,
+     by="brand-papertrace", says="hw-warning-quiet sits 5.0 from hw-ground in light",
+     note="the re-solve is what certifies N2, not a bar that stopped measuring")
 
 case("N3 papertrace's tokens.css is hand-edited to a cream ground", "caught",
      lambda r: brand_css_edit(r, "papertrace", "  --hw-ground: oklch(0.978 0.0090 85);",
@@ -577,13 +607,14 @@ case("N10 papertrace takes an oxblood accent, hue 30, deep", "caught",
      lambda r: brand_edit(r, "papertrace", seed_accent(accentHue=30, accentChroma=0.8,
                                                         accentLightness={"light": 0.38,
                                                                          "dark": 0.76})),
-     by="brand-papertrace", says=("its ink", "its fill", "its ring"),
-     note="10-color.md: a red-family accent reads as the error state on all three elements")
+     by="brand-papertrace", says=("the fill, hw-accent-quiet at hue 30", "the ring"),
+     note="10-color.md: a red-family accent's selected row and ring read as the error state; "
+          "its ink is reported, not refused, since every state carries a glyph and a word")
 
 case("N11 papertrace takes a full-chroma hue 52 accent at the house anchors", "caught",
      lambda r: brand_edit(r, "papertrace", seed_accent(accentHue=52, accentChroma=1.0,
                                                         quietChroma=1.0)),
-     by="brand-papertrace", says=("its ink", "its fill"),
+     by="brand-papertrace", says="the fill, hw-accent-quiet at hue 52",
      note="10-color.md: the peach selected row reads as a status")
 
 case("N12 papertrace takes an umber accent, hue 70, deep and quiet, with the ink ring", "green",
@@ -597,7 +628,7 @@ case("N12 papertrace takes an umber accent, hue 70, deep and quiet, with the ink
 case("N13 papertrace takes a rose accent, hue 5", "caught",
      lambda r: brand_edit(r, "papertrace", seed_accent(accentHue=5, accentChroma=0.7,
                                                         quietChroma=0.4)),
-     by="brand-papertrace", says="its fill, hw-accent-quiet, sits 3.5 from hw-danger-quiet",
+     by="brand-papertrace", says="hw-accent-quiet at hue 5, sits 3.5 from hw-danger-quiet",
      note="10-color.md: the pink-grey selected row reads as a failed row")
 
 case("N14 quoth keeps its 0.6 accent chroma's ring instead of the ink ring", "caught",
@@ -611,6 +642,94 @@ case("N15 papertrace's accentLightness asks for L 0.60 in light, past its 4.5:1 
          "light", 0.60)),
      by="brand-papertrace", says="accentLightness light 0.6 does not clear",
      note="12-brand.md: an input the build would discard is refused, not silently re-solved")
+
+
+# ---------------------------------------------------------------- the vivid tier
+# Every input the vivid tier adds, each watched failing where a rule refuses it, against the
+# Field fixture (tests/fixtures/field): quoth's identity as the house solves it.
+def field_value(repo, block_start, token):
+    """The declaration of one token in the first block whose selector line is block_start."""
+    lines = (repo / FIELD / "tokens" / "tokens.css").read_text(encoding="utf-8").splitlines()
+    i = lines.index(block_start)
+    return next(ln for ln in lines[i:] if ln.strip().startswith(f"--{token}:")).strip()
+
+
+LIGHT, DARK = ':root, [data-theme="light"] {', '[data-theme="dark"] {'
+
+
+def v1(repo):
+    paper = field_value(repo, LIGHT, "hw-ink-text").split(": ")[1]
+    brand_css_edit(repo, "field", field_value(repo, LIGHT, "hw-on-brand"),
+                   f"--hw-on-brand: {paper}")
+
+
+case("V1 the butter key's label is hand-edited to paper", "caught", v1,
+     by="contrast-field", says="--hw-on-brand on --hw-brand",
+     note="12-brand.md#the-vivid-tier: a yellow fill carries the ink label the build solves, and "
+          "the second instrument certifies it on its own")
+
+CORAL = {"brandHue": 30, "brandLightness": {"light": 0.72, "dark": 0.72}, "brandChroma": 0.16}
+
+case("V2 the key becomes coral with primary: brand", "caught",
+     lambda r: brand_edit(r, "field", lambda b: b.update(CORAL)),
+     by="brand-field", says="the primary, hw-primary at hue 30, sits 6.5 from hw-danger in dark",
+     note="10-color.md: the primary fill stays 14 CIEDE2000 from hw-danger, the one state drawn "
+          "as a filled button")
+
+case("V3 the same coral key with primary: ink, rebuilt", "green",
+     lambda r: brand_edit(r, "field", lambda b: b.update(CORAL, primary="ink"), rebuild=True),
+     strict=True,
+     note="a coral that paints no button is a highlight, and the danger bar does not hold it")
+
+case("V4 the moulded register is hand-edited to 4/7/11", "caught",
+     lambda r: brand_css_edit(r, "field", "--hw-radius-lg: 12px;", "--hw-radius-lg: 11px;"),
+     by="contrast-field", says="none of the registers",
+     note="12-brand.md: 4/7/12 is a register beside crisp, house and soft, not a free triple")
+
+case("V5 Field's ground moves to putty, L 0.925, and is rebuilt", "green",
+     lambda r: brand_edit(r, "field", lambda b: b["groundLightness"].__setitem__("light", 0.925),
+                          rebuild=True),
+     strict=True,
+     note="12-brand.md: a brand sits on putty as well as on paper, both certified")
+
+case("V6 Field asks for a light ground at L 0.90, under the putty floor", "caught",
+     lambda r: brand_edit(r, "field", lambda b: b["groundLightness"].__setitem__("light", 0.90)),
+     by="brand-field", says="groundLightness",
+     note="12-brand.md: below 0.92 the raised-contrast chart ramp closes")
+
+
+def v7(repo):
+    # the dark ground moved to putty's dark twin without the inks re-solved: every ink keeps the
+    # value it was solved to against the old ground
+    brand_css_edit(repo, "field", field_value(repo, DARK, "hw-ground"),
+                   "--hw-ground: oklch(0.2598 0.0120 95);")
+
+
+case("V7 Field's dark ground is hand-edited up to its card surface", "caught", v7,
+     by="contrast-field", says=("--hw-surface sits 1.000:1", "dark card step"),
+     note="12-brand.md#the-dark-card-step: the second instrument holds the step the header claims")
+
+case("V8 Field's header loses its dark-card line, so the step would go unmeasured", "caught",
+     lambda r: brand_css_edit(r, "field", "   Dark cards: stepped", "   Dark cards:"),
+     by="brand-field", says="is not what the seed builds",
+     note="the header is part of the artifact, and --check refuses a header that drifts")
+
+case("V9 Field's tokens.css loses --hw-select", "caught",
+     lambda r: brand_css_edit(r, "field", field_value(repo=r, block_start=LIGHT,
+                                                      token="hw-select"), ""),
+     by="contrast-field", says="declares part of the vivid tier",
+     note="a set that opens the vivid tier declares every token of it")
+
+case("V10 Field's hw-primary is hand-edited off the brand fill", "caught",
+     lambda r: brand_css_edit(r, "field", field_value(r, LIGHT, "hw-primary"),
+                              "--hw-primary: oklch(0.8 0.1836 100);"),
+     by="contrast-field", says="copy neither the ink family nor the brand's",
+     note="hw-primary is an alias, and an alias that drifts is a fifth colour")
+
+case("V11 a brand names primary: brand without a brand fill", "caught",
+     lambda r: brand_edit(r, "quoth", lambda b: b.__setitem__("primary", "brand")),
+     by="brand-quoth", says="primary is a vivid-tier input",
+     note="12-brand.md#the-vivid-tier: brandLightness and brandChroma open the tier")
 
 
 # ---------------------------------------------------------------- check-coverage.py
