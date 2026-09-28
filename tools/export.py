@@ -333,7 +333,7 @@ def emit_dtcg(tokens):
     for g in tokens["type"]["groups"]:
         for s in g["styles"]:
             node = {"$type": "typography", "$description": s.get("usage", ""),
-                    "$value": {"fontFamily": font_stack(tokens, g["family"]),
+                    "$value": {"fontFamily": font_stack(tokens, s["family"]),
                                "fontSize": as_dimension(s["fontSize"]),
                                "lineHeight": s["lineHeight"],
                                "fontWeight": s["fontWeight"]}}
@@ -462,14 +462,19 @@ def emit_design_md(tokens, compact):
     for g in tokens["type"]["groups"]:
         for s in g["styles"]:
             role = s.get("usage", "") if not compact else s.get("usage", "").split(".")[0]
-            out.append(f"| `{s['name']}` | {g['family']} | {s.get('fontSize','')} | "
+            out.append(f"| `{s['name']}` | {s['family']} | {s.get('fontSize','')} | "
                        f"{s.get('lineHeight','')} | {s.get('letterSpacing','0')} | "
                        f"{s.get('fontWeight','')} | {role} |")
     out.append("")
     if not compact:
         out += ["## Faces", ""]
+        face = tokens["type"].get("faceDeclarations", {})
         for key, stack in tokens["type"]["families"].items():
-            out.append(f"- **{key}**: `{stack}`")
+            out.append(f"- **{key}**: `{stack}`" + (f", with `{face[key]}`" if key in face else ""))
+        if tokens["type"].get("quoteSizeAdjust"):
+            out.append(f"- The quote face sets the words a person said or wrote, inside a step, "
+                       f"with `font-size-adjust: {tokens['type']['quoteSizeAdjust']}`, as the "
+                       f"`.hw-quote` class in tokens.css does.")
         if tokens["type"].get("sansSizeAdjust"):
             out.append(f"- The text face is held to the house x-height: set `font-size-adjust: "
                        f"{tokens['type']['sansSizeAdjust']}` wherever `--hw-font-sans` is set, as "

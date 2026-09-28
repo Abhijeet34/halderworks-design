@@ -668,10 +668,39 @@ Each file was fetched from its repository and its first line read.
 | Radix Icons | `radix-ui/icons/master/LICENSE`, 1063 bytes | `MIT License` |
 | Carbon | `carbon-design-system/carbon/main/LICENSE`, 11339 bytes | `Apache License` |
 
-The four self-hosted faces in [20-type.md](20-type.md#a-brands-faces)'s roster were read the same
-way, each family's `OFL.txt` under `google/fonts/main/ofl/`: `publicsans` 4390 bytes, `newsreader`
-4394, `bricolagegrotesque` 4403 and `instrumentsans` 4403, every one stating
+The thirteen self-hosted files in [20-type.md](20-type.md#a-brands-faces)'s roster were read the
+same way, each family's `OFL.txt` under `google/fonts/main/ofl/`, and the roster pins each one's
+sha256: `publicsans` 4390 bytes, `newsreader` 4394, `ibmplexmono` 4456, `bricolagegrotesque` 4403,
+`instrumentsans` 4403, `archivo` 4388, `figtree` 4388, `atkinsonhyperlegiblenext` 4431,
+`shantellsans` 4397, `fraunces` 4391, `literata` 4389, `instrumentserif` 4405 and `martianmono`
+4390, every one stating
 `This Font Software is licensed under the SIL Open Font License, Version 1.1.`
+Only `ibmplexmono`'s first line declares a Reserved Font Name, `"Plex"`.
+
+### Font licensing, per platform
+
+The product-identities scout of 2026-09-22 read each licence source from its own pages, for five
+uses: P1 a sold Mac app with woff2 in a WKWebView, P2 iOS, P3 Windows, P4 a self-hosted site under
+50,000 views a month, P5 static art and email. It is the evidence for
+[20-type.md](20-type.md#the-licence-rule)'s rule that every roster face is OFL.
+
+| source | P1 | P2 | P3 | P4 | P5 | subsetting | the clause that decides it |
+|---|---|---|---|---|---|---|---|
+| **SIL OFL 1.1** | yes | yes | yes | yes | yes | yes | "can be bundled, embedded, redistributed and/or sold with any software"; each copy carries the notice |
+| Fontshare, ITF FFL | yes, conditions | yes | yes | yes | yes | **no** | "This includes modifying or replacing glyphs, subsetting, format conversion"; no font in a user-facing picker |
+| Klim | one App licence per app title | same | same | Web licence | Desktop licence | web only | whether App fonts ship as woff2 is unpublished, and the App licence forbids reformatting |
+| Grilli Type | **not licensable as specified** | App | App | Web | Desktop | written permission | App EULA: "Embedding of the font with the CSS @font-face technology is expressly prohibited" |
+| Commercial Type | Software Embedding, quoted | App, separate | same title as P1 | Web | Desktop | webfonts only | two licences for one product, neither price published |
+| Dinamo | App/game, configurator price | included | Windows not named | Web | Desktop | conversion forbidden | woff2 ships under Web, TTF under App |
+| Pangram Pangram | App, annual for companies | unclear | unclear | Web, annual | Print plus Social | unstated | "free to try" covers no commercial use |
+| OH no Type | **no licence covers a Mac app** | App | **not covered** | Web | Desktop | conversion forbidden | App licence names "iOS, Windows Mobile, and Android" only |
+| Adobe Fonts | **forbidden** | **forbidden** | **forbidden** | **no self-hosting** | desktop only | n/a | no "including, bundling, embedding" and no "hosting ... on your own server" |
+| Monotype, MyFonts | macOS not named | App, annual | Windows Phone only | Web, pageview tiers | Desktop | n/a | the subscription "does not include desktop rights" |
+| Apple SF, New York | **bundling forbidden** | same | not available | **forbidden on a website** | mock-ups only | n/a | "You may not embed the Apple Font in any software programs or other products" |
+| Segoe UI, Segoe UI Variable | not available | not available | name it in the stack only | name it in a CSS stack only | Windows rights | n/a | "not available for licensing or use outside of Microsoft products" |
+
+What was left: prices, which most of these keep inside a cart or an email, and every paid face's
+own design merits, since no paid source cleared all five uses as published.
 
 ## The painted separation bars
 

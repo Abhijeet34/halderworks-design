@@ -698,6 +698,65 @@ def grid_stats(seed):
     return on, off
 
 
+# The one licence a roster face may carry (20-type.md#the-licence-rule): SIL OFL 1.1 is the only
+# one checked that lets a sold Mac app, iOS, Windows, a self-hosted site and static art all ship
+# the same file, subset and converted. Pinned here for GRID_SCOPE's reason.
+FACE_LICENCE = "OFL-1.1"
+FACE_FILE_FIELDS = ("source", "licence", "sha256", "xHeight", "licenceText", "licenceSha256",
+                    "upstream", "formats")
+FACE_FORMATS = ("ttf", "otf", "woff", "woff2")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+STRETCH = re.compile(r"^\d+(?:\.\d+)?%$")
+
+
+def check_roster(seed):
+    """Every roster face is either a self-hosted OFL file pinned by sha256, with its licence
+    text, its upstream and the formats that upstream ships, or a system stack that loads
+    nothing; and each house type family sets a face the roster carries."""
+    faces, bad = seed["brand"]["faces"], []
+    for name, f in faces.items():
+        if f.get("delivery") == "system":
+            extra = [k for k in FACE_FILE_FIELDS if k in f]
+            if extra:
+                bad.append(f"roster face {name!r} is a system stack and names {extra}; a system "
+                           f"face loads no file, so it pins none")
+        elif f.get("delivery") != "self-hosted":
+            bad.append(f"roster face {name!r} has delivery {f.get('delivery')!r}, not "
+                       f"'self-hosted' or 'system'")
+        else:
+            missing = [k for k in FACE_FILE_FIELDS if k not in f]
+            if missing:
+                bad.append(f"roster face {name!r} is self-hosted and names no {missing}")
+            elif f["licence"] != FACE_LICENCE:
+                bad.append(f"roster face {name!r} is licensed {f['licence']!r}; a roster face "
+                           f"is {FACE_LICENCE} and nothing else (20-type.md#the-licence-rule)")
+            elif not (SHA256.match(str(f["sha256"])) and SHA256.match(str(f["licenceSha256"]))):
+                bad.append(f"roster face {name!r} pins a sha256 that is not 64 hex digits")
+            elif not re.search(r"\.(ttf|otf)$", f["source"]):
+                bad.append(f"roster face {name!r} cites {f['source']}, which is not a TTF or "
+                           f"OTF: tools/faces.py reads metrics from an sfnt file only")
+            elif not (isinstance(f["formats"], list) and f["formats"]
+                      and set(f["formats"]) <= set(FACE_FORMATS)):
+                bad.append(f"roster face {name!r} lists formats {f['formats']!r}, not a "
+                           f"non-empty list drawn from {', '.join(FACE_FORMATS)}")
+        if "stretch" in f and not STRETCH.match(str(f["stretch"])):
+            bad.append(f"roster face {name!r} has stretch {f['stretch']!r}, not a percentage")
+        if f.get("style", "italic") != "italic":
+            bad.append(f"roster face {name!r} has style {f['style']!r}; the one style a roster "
+                       f"entry may name is italic")
+    for family, stack in seed["type"]["families"].items():
+        if not any(f["stack"] == stack for f in faces.values()):
+            bad.append(f"the house {family} family sets {stack.split(',')[0]}, which no roster "
+                       f"face carries")
+    return bad
+
+
+def face_declarations(face):
+    """The CSS a roster entry adds beside its family: a width on a width axis, an italic."""
+    return " ".join(f"{prop}: {face[k]};" for k, prop in (("stretch", "font-stretch"),
+                                                          ("style", "font-style")) if k in face)
+
+
 def check_floors(seed):
     """Every floor names a real ground, at a bar this system recognises, in an order the solver
     can actually satisfy.
@@ -1025,16 +1084,24 @@ def build_tokens_css(seed, resolved, accent, stats, brand="house"):
     o.append("  }")
     o.append("}")
     o.append(CSS_TAIL.rstrip("\n"))
+    face = seed["type"].get("faceDeclarations", {})
     for g in seed["type"]["groups"]:
         for s in g["styles"]:
-            n = s["name"]
-            o.append(f".hw-{n} {{ font-family: var(--hw-font-{g['family']}); "
+            n, fam = s["name"], s["family"]
+            o.append(f".hw-{n} {{ font-family: var(--hw-font-{fam}); "
                      f"font-size: var(--hw-text-{n});")
             o.append(f"  line-height: var(--hw-leading-{n}); "
                      f"letter-spacing: var(--hw-tracking-{n});")
-            adjust = seed["type"].get("sansSizeAdjust") if g["family"] == "sans" else None
+            adjust = seed["type"].get("sansSizeAdjust") if fam == "sans" else None
             o.append(f"  font-weight: var(--hw-weight-{n});"
+                     + (f" {face[fam]}" if fam in face else "")
                      + (f" font-size-adjust: {adjust};" if adjust else "") + " }")
+    if "quote" in seed["type"]["families"]:
+        o.append("/* The quote face sets the words a person said or wrote, inside a step class,")
+        o.append("   at the house x-height so it sits on the line beside the text face. */")
+        o.append(".hw-quote { font-family: var(--hw-font-quote);"
+                 + (f" {face['quote']}" if "quote" in face else "")
+                 + f" font-size-adjust: {seed['type']['quoteSizeAdjust']}; }}")
     o.append(CSS_MOTION.rstrip("\n"))
     return "\n".join(o) + "\n"
 
@@ -1451,7 +1518,7 @@ def extend(seed, accent, solvers, house_css, a):
 
 
 # --- the brand tier -------------------------------------------------------------------------
-# A product's identity is a brand seed: eighteen bounded inputs this build applies to a copy of
+# A product's identity is a brand seed: twenty-two bounded inputs this build applies to a copy of
 # the house seed before solving that copy with the code above, so a brand is a rebuild and never
 # a hand-pick, and every brand ships the house's token names. 12-brand.md owns the rule. The
 # numeric bounds are pinned here rather than in the seed, for GRID_SCOPE's reason: a seed that
@@ -1460,7 +1527,7 @@ def extend(seed, accent, solvers, house_css, a):
 BRAND_INPUTS = ("accentHue", "accentChroma", "accentLightness", "quietChroma", "ring",
                 "neutralHue", "neutralChroma", "shape", "iconStroke", "display", "text",
                 "brandHue", "brandLightness", "brandChroma", "primary", "selection",
-                "groundLightness", "darkCard")
+                "groundLightness", "darkCard", "mono", "quote", "displayFrom", "displayScale")
 # The chroma multipliers keep a floor and have no ceiling: the sRGB gamut clips each colour, and
 # the measured bars refuse what the gamut admits and a reader would misread
 # (12-brand.md#the-inputs). The ceilings they replace were 1.3 and 4.0, and nothing had tested
@@ -1498,6 +1565,13 @@ PRIMARY_ALIASES = ("hw-primary", "hw-primary-hover", "hw-primary-active", "hw-on
 # warm accent is pulled back onto hw-warning by the 7:1 re-solve under prefers-contrast: more.
 ACCENT_FAMILY = ("hw-accent", "hw-accent-hover", "hw-accent-ring")
 ACCENT_INK = ("hw-accent", "hw-accent-hover")
+# displayFrom: the first step set in the display face. title-1 is the step a screen names itself
+# with, so a product whose identity is its display voice carries it into the product itself
+# (20-type.md#a-brands-faces). displayScale multiplies the two display steps only, to whole px:
+# every step below them was derived from the text face's x-height and stays where it is.
+DISPLAY_FROM = ("display-2", "title-1")
+DISPLAY_SCALES = (0.9, 1.0, 1.25)
+DISPLAY_STEPS = ("display-1", "display-2")
 
 
 def brand_errors(seed, brand):
@@ -1550,9 +1624,12 @@ def brand_errors(seed, brand):
     for k, allowed in (("ring", ("accent", "ink")), ("shape", tuple(kit["registers"])),
                        ("iconStroke", tuple(kit["iconStrokes"])),
                        ("display", tuple(kit["faces"])), ("text", tuple(kit["faces"])),
+                       ("quote", tuple(kit["faces"])),
+                       ("mono", tuple(n for n, f in kit["faces"].items() if f.get("monospaced"))),
                        ("primary", ("ink", "brand")), ("selection", ("accent", "neutral")),
-                       ("darkCard", ("house", "step"))):
-        if k in brand and brand[k] not in allowed:
+                       ("darkCard", ("house", "step")), ("displayFrom", DISPLAY_FROM),
+                       ("displayScale", DISPLAY_SCALES)):
+        if k in brand and (isinstance(brand[k], bool) or brand[k] not in allowed):
             bad.append(f"{k} {brand[k]!r} is not one of {', '.join(map(repr, allowed))}")
     return bad
 
@@ -1684,12 +1761,30 @@ def apply_brand(seed, brand):
     for e in s["icon"]["tokens"]:
         if e["name"] == "hw-icon-stroke" and "iconStroke" in brand:
             e["value"] = brand["iconStroke"]
-    for family, key in (("display", "display"), ("sans", "text")):
+    declared = {}
+    for family, key in (("display", "display"), ("sans", "text"), ("mono", "mono"),
+                        ("quote", "quote")):
         if key in brand:
             s["type"]["families"][family] = kit["faces"][brand[key]]["stack"]
+            decl = face_declarations(kit["faces"][brand[key]])
+            if decl:
+                declared[family] = decl
+    if declared:
+        s["type"]["faceDeclarations"] = declared
+    house_x = kit["faces"][house_face(seed, "sans")]["xHeight"]
     if brand.get("text", house_face(seed, "sans")) != house_face(seed, "sans"):
         # 20-type.md: a text face other than the house's is held to the house x-height.
-        s["type"]["sansSizeAdjust"] = kit["faces"][house_face(seed, "sans")]["xHeight"]
+        s["type"]["sansSizeAdjust"] = house_x
+    if "quote" in brand:
+        s["type"]["quoteSizeAdjust"] = house_x
+    first = [st["name"] for g in s["type"]["groups"] for st in g["styles"]].index(
+        brand.get("displayFrom", "display-2"))
+    scale = brand.get("displayScale", 1.0)
+    for i, st in enumerate(st for g in s["type"]["groups"] for st in g["styles"]):
+        if i <= first:
+            st["family"] = "display"
+        if st["name"] in DISPLAY_STEPS and scale != 1.0:
+            st["fontSize"] = f"{round(float(st['fontSize'][:-2]) * scale)}px"
     if brand.get("darkCard") == "step":
         lift_cards(s)
     return s
@@ -1762,7 +1857,7 @@ def main(argv=None):
 
     # The floors are checked before anything is solved against them: a solver that has already
     # skipped a misnamed ground cannot report it afterwards.
-    failures = check_floors(seed) + check_grid(seed)
+    failures = check_floors(seed) + check_grid(seed) + check_roster(seed)
     if failures:
         for f in failures:
             print("FAIL  " + f, file=sys.stderr)

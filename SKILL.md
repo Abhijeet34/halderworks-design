@@ -131,9 +131,10 @@ W3C DTCG with a `$description` on every token.
 ## What you may and may not change
 
 **A product's identity is its brand seed, and nothing else.**
-Eighteen bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
-neutral hue and chroma, a shape register, an icon stroke, a display face, a text face, and a vivid
-tier of seven more, opt-in by naming `brandLightness` - solved into the house's own token names
+Twenty-two bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
+neutral hue and chroma, a shape register, an icon stroke, a display face, a text face, a vivid tier
+of seven more, opt-in by naming `brandLightness`, and four for type: a mono face, a quote face, the
+step the display face starts at and the display steps' scale - solved into the house's own token names
 ([design/12-brand.md](design/12-brand.md#the-inputs)). Take it by regenerating, never by
 hand-picking a colour:
 
