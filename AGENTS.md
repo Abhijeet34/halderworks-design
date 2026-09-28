@@ -38,7 +38,7 @@ python3 tools/check-coverage.py   # the inventory, its refusals, its claimed ent
 python3 tools/test-check-sources.py  # the source classifier, against a local server
 python3 tools/check-sources.py    # every cited source still resolves. THE ONE THAT LEAVES THE MACHINE
 python3 tests/run.py              # the checks on the tools: invariants, hue sweep, mutations
-python3 tools/faces.py --check FONT...   # a roster face's x-height and sha256, against a copy of its file
+python3 tools/faces.py --check FONT... OFL.txt...  # a roster face: x-height, pitch, sha256 and licence text, against copies of its files
 ```
 
 The build does the same for every brand in `examples/`, and CI loops over `examples/*/brand.seed.json`
@@ -78,7 +78,7 @@ certified, so `build.py` re-reads the CSS it is about to write and refuses if it
 its own numbers, and `contrast.py` measures every pair twice - on the float value and on the 8-bit
 value a display receives.
 
-A product's identity is a rebuild, never a hand-pick: a brand seed of eighteen bounded inputs
+A product's identity is a rebuild, never a hand-pick: a brand seed of twenty-two bounded inputs
 ([design/12-brand.md](design/12-brand.md)), solved by the same code as the house set, with
 `--accent-hue` kept as the one-input form:
 
@@ -113,6 +113,9 @@ Read [design/95-extending.md](design/95-extending.md) first. In short:
   and takes its identity from a brand seed, which names inputs and never a token.
 - **A new token needs four things**: a name in the scale it belongs to, a usage note saying where it
   may and may not be used, a number with a derivation, and its row in the verification.
+- **A roster face is OFL-1.1, pinned by the sha256 of its upstream TTF and of its `OFL.txt`.**
+  `build.py` refuses any other licence; after editing an entry, run `tools/faces.py --check` on
+  fresh copies of both files ([design/20-type.md](design/20-type.md#the-licence-rule)).
 - **Never hand-edit `tokens/tokens.css` or `tokens/tokens.json`.** Both are generated. Edit
   `tokens/tokens.seed.json` and rebuild.
 - **A gap is a finding, not a blocker.** Ship the screen with the nearest house value and say in
@@ -233,7 +236,7 @@ something has actually moved**, so a quiet week is silent rather than noisy.
 pull request as well; only the last row is the weekly job's own, because only a schedule can catch
 a source that went away without anyone touching this repository. That is also why this workflow
 has no `push` trigger: `ci.yml` already runs the consistency call on every push to `main`, and a
-per-push network sweep is 22 outbound requests against a field that moves in months.
+per-push network sweep is 57 outbound requests (counted on 2026-09-28) against a field that moves in months.
 
 | check | how it fails |
 |---|---|

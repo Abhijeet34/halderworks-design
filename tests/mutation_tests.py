@@ -752,6 +752,57 @@ case("V12 Field takes selection: accent, quietChroma 0.5, and hw-select is hand-
           "accent, and the second instrument holds it on its own without opening the seed")
 
 
+# ---------------------------------------------------------------- the face roster and type roles
+def face_edit(name, **fields):
+    return lambda r: seed_edit(r, lambda s: s["brand"]["faces"][name].update(fields))
+
+
+case("T1 a roster face is relicensed from the OFL", "caught",
+     face_edit("Figtree", licence="Fontshare-FFL"),
+     by="build", says="a roster face is OFL-1.1 and nothing else",
+     note="20-type.md#the-licence-rule: every roster face is OFL, from 90-evidence.md's survey")
+
+case("T2 a roster face drops its licence text", "caught",
+     lambda r: seed_edit(r, lambda s: s["brand"]["faces"]["Martian Mono"].pop("licenceText")),
+     by="build", says="'Martian Mono' is self-hosted and names no ['licenceText']",
+     note="20-type.md#a-brands-faces: a self-hosted face pins its file and the licence beside it")
+
+case("T3 Field's mono names a proportional face", "caught",
+     lambda r: brand_edit(r, "field", lambda b: b.__setitem__("mono", "Archivo")),
+     by="brand-field", says="mono 'Archivo' is not one of 'IBM Plex Mono', 'Martian Mono'",
+     note="20-type.md#a-brands-faces: the mono role takes a monospaced roster face only")
+
+case("T4 Field's quote names a face the roster does not carry", "caught",
+     lambda r: brand_edit(r, "field", lambda b: b.__setitem__("quote", "Comic Sans MS")),
+     by="brand-field", says="quote 'Comic Sans MS' is not one of",
+     note="20-type.md#a-brands-faces: a brand face is a roster entry, in every role")
+
+case("T5 Field's displayScale is 1.5, and then true", "caught",
+     lambda r: (brand_edit(r, "field", lambda b: b.__setitem__("displayScale", 1.5)),
+                brand_edit(r, "quoth", lambda b: b.__setitem__("displayScale", True))),
+     by=("brand-field", "brand-quoth"),
+     says=("displayScale 1.5 is not one of", "displayScale True is not one of"),
+     note="12-brand.md#the-inputs: displayScale is 0.9, 1.0 or 1.25, and a JSON true is not 1.0")
+
+
+def t6_after(repo):
+    css = (repo / FIELD / "tokens" / "tokens.css").read_text(encoding="utf-8")
+    want = ("--hw-text-display-1: 70px;", "--hw-text-display-2: 50px;",
+            "--hw-text-title-1: 28px;", "font-weight: var(--hw-weight-title-1); font-stretch: 125%; }",
+            ".hw-quote { font-family: var(--hw-font-quote); font-style: italic; "
+            "font-size-adjust: 0.517; }")
+    missing = [w for w in want if w not in css]
+    return (f"the rebuilt Field css lacks {missing}" if missing else ""), not missing
+
+
+case("T6 Field takes a quote face and displayScale 1.25, rebuilt", "green",
+     lambda r: brand_edit(r, "field", lambda b: b.update(quote="Instrument Serif Italic",
+                                                         displayScale=1.25), rebuild=True),
+     after=t6_after, strict=True,
+     note="20-type.md#a-brands-faces: the display steps scale to whole px and nothing below them "
+          "moves; the quote face carries its italic and the house x-height")
+
+
 # ---------------------------------------------------------------- check-coverage.py
 def cov_edit(repo, fn):
     p = repo / "design" / "05-coverage.md"

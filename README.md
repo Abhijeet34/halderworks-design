@@ -79,7 +79,7 @@ that owns it.
    form [design/95-extending.md](design/95-extending.md#reporting-a-gap) shows. Product-specific
    tokens go in the product's own namespace, `--quoth-`, never by redefining an `hw-` token.
 
-A product takes its identity from a brand seed, eighteen bounded inputs, and only by regenerating:
+A product takes its identity from a brand seed, twenty-two bounded inputs, and only by regenerating:
 `python3 tools/build.py --brand examples/papertrace/brand.seed.json` solves a full set in the
 house's own token names and refuses to write if one pair fails
 ([design/12-brand.md](design/12-brand.md)). At accent hue 150 it refuses, because that hue's

@@ -1,6 +1,6 @@
 # Brand
 
-A product's identity is a **brand seed**: eighteen bounded inputs that `tools/build.py --brand` applies to a copy of the house seed and then solves with the same code as the house set.
+A product's identity is a **brand seed**: twenty-two bounded inputs that `tools/build.py --brand` applies to a copy of the house seed and then solves with the same code as the house set.
 Every brand ships the house's token names, clears the house's contrast floors, and is certified by the same second instrument.
 A brand is a rebuild, never a hand-pick, and "never redefine an `hw-` token" does not change by a word.
 
@@ -36,7 +36,8 @@ A product may also name a default overlay or a default density for a surface; th
 ## The inputs
 
 Anything not in this table is not a brand input, and `tools/build.py` refuses a brand seed that names anything else, an `hw-` token included.
-A brand that names none of the last seven emits exactly what it emitted before they existed, byte for byte; that is how the three example brands stayed unchanged when the vivid tier landed.
+A brand that names none of the vivid tier's seven inputs, from `brandHue` to `darkCard`, emits exactly what it emitted before they existed, byte for byte; that is how the three example brands stayed unchanged when the vivid tier landed.
+The four type inputs after them hold the same way: a brand that names none of them emits the bytes it did before, and the house set is unchanged by the roster that feeds them.
 
 | input | range | default | what it moves |
 |---|---|---|---|
@@ -58,6 +59,10 @@ A brand that names none of the last seven emits exactly what it emitted before t
 | `selection` | `accent` or `neutral` | `accent` | `hw-select` |
 | `groundLightness` | a lightness per theme, 0.92 to 0.985 light, 0.13 to 0.22 dark | the house ground | [every colour of that theme](#ground-lightness) |
 | `darkCard` | `house` or `step` | `house` | [the dark card step](#the-dark-card-step) |
+| `mono` | a monospaced face in the roster | IBM Plex Mono | `--hw-font-mono` |
+| `quote` | a face in the roster | none | `--hw-font-quote` and the `.hw-quote` class, held to the house x-height |
+| `displayFrom` | `display-2` or `title-1` | `display-2` | whether `title-1` is set in the display face |
+| `displayScale` | `0.9`, `1.0` or `1.25` | `1.0` | the sizes of `display-1` and `display-2`, to whole px |
 
 The numeric bounds are pinned in `tools/build.py` rather than in the seed, so an edit to the seed cannot widen one.
 The registers, the stroke weights and the roster live in the seed's `brand` block, and `tools/contrast.py` declares the registers and the weights again on its own, so a hand-edited radius or stroke in an emitted file is refused by the second instrument too.
@@ -131,7 +136,7 @@ They are inputs because a product has a shape, and they carry no weight in telli
 
 ### Faces
 
-A face is a roster entry with its delivery, and [20-type.md](20-type.md#a-brands-faces) owns the roster, the delivery rule and the x-height the text face is held to.
+A face is a roster entry with its delivery, and [20-type.md](20-type.md#a-brands-faces) owns the roster, the delivery rule, the four roles a brand fills from it, and the x-height the text and quote faces are held to.
 
 ## The vivid tier
 
@@ -197,13 +202,15 @@ What does not vary is the floor: every colour a style brings is solved and certi
  "brandHue": 100,
  "brandLightness": {"light": 0.8844, "dark": 0.8844}, "brandChroma": 0.1838,
  "primary": "brand", "selection": "neutral",
- "groundLightness": {"light": 0.972, "dark": 0.17}, "darkCard": "step"}
+ "groundLightness": {"light": 0.972, "dark": 0.17}, "darkCard": "step",
+ "display": "Archivo Expanded", "text": "Archivo", "mono": "Martian Mono", "displayFrom": "title-1"}
 ```
 
 It solves to the sports-yellow key `#F6DA02`, C 0.1836 where the seed asks 0.1838, because the gamut clips it, one blue step off the decided `#F6DA00`, with an ink label at 11.45:1 in light and 14.09:1 in dark; a paper pane `#F7F6F1`; a dark ground `#110F09` with its cards at 1.23:1 over it; and every certified pair clears: `tools/contrast.py` checks 434 on it where it checks 398 on the house set, and the 36 more are the vivid tier's.
 It is not quoth's shipped seed.
 quoth owns that copy, adopts Field in its own task, and `examples/quoth/` takes the adopted seed then.
-Its faces wait on the type roster: Archivo and Martian Mono are not in it yet ([20-type.md](20-type.md#a-brands-faces)).
+Its faces are D-039's: Archivo at 125% width for `title-1` and the display steps, Archivo at its normal width for text, and Martian Mono as its mono, which sets the spoken and typed lines, the labels in lowercase (D-054) and the numbers ([20-type.md](20-type.md#a-brands-faces)).
+It names no `quote`, because the face its spoken line is set in is already its mono.
 
 ## The bars every brand is held to
 
@@ -302,7 +309,7 @@ What makes two of these recognisably from one maker is everything a brand seed c
 
 - **The loudest control is ink by default**, and a brand makes it its own only through `primary: brand`, solved and held off `hw-danger`. Until the vivid tier every primary button in the fleet was the same near-black.
 - **The accent does four jobs and no others**, and the three states are the same green, amber and red everywhere.
-- **One mono face**, so every hash, run id and timestamp is set identically.
+- **One mono face per product**, so every hash, run id and timestamp on a screen is set identically; the house's is IBM Plex Mono, and a brand may name another monospaced face from the roster where the mono is its identity, as Field's is.
 - **One rhythm**: the 4px unit, the ten steps, the 44px row, the 32px control, the two densities.
 - **One behaviour**: nine states, one focus geometry, one keyboard contract, one motion. Every product answers at 150ms on the same curve.
 - **Border before shadow, one hairline, nothing floats that cannot be dismissed.**
@@ -318,7 +325,6 @@ Put two products in greyscale with their names covered, and they should still di
 |---|---|
 | motion | the house curves are identity: three alternative ease-outs differ from the house curve by at most 1.5px on an 8px move. Up to four named large moments may live in a product's namespace ([40-motion.md](40-motion.md#a-products-own-moments)) |
 | the type scale below `title-1` | every size there is load-bearing for density, from the 44px row down |
-| a display-size step | no product needs one, so the input was not built |
 | a ring chroma of its own | the accent and ink rings cover every brand that fails the border bar |
 | elevation | 73 of 75 sampled elements carry no shadow; border-first is identity |
 | surface texture | a product may have one, as a tier rather than an input: a signature ground is a product token held to the two-token pattern rule ([75-spec-sheet.md](75-spec-sheet.md)) |

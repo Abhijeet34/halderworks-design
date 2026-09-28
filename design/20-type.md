@@ -1,6 +1,6 @@
 # Type
 
-Three faces with three jobs, each an open-licensed file a product hosts itself, so no screen waits on a font service.
+Three faces with three jobs in the house set, each an open-licensed file a product hosts itself, so no screen waits on a font service; a brand fills the same roles, and an optional fourth, from [the roster](#a-brands-faces).
 
 | role | face | what it does |
 |---|---|---|
@@ -84,40 +84,85 @@ Measure is a real `ch` measurement of the rendered paragraph divided by the widt
 
 ## A brand's faces
 
-A brand may name its own display face and its own text face ([12-brand.md](12-brand.md#the-inputs)); the mono face is the house's in every product, so every hash and timestamp is set alike.
+A brand fills four roles from the roster ([12-brand.md](12-brand.md#the-inputs)), and names any it leaves to the house:
+
+| role | input | house face | what it sets |
+|---|---|---|---|
+| display | `display` | Newsreader | the display steps, from `display-2` up or, with `displayFrom: title-1`, from `title-1` up |
+| text | `text` | Public Sans | every other step |
+| mono | `mono` | IBM Plex Mono | machine output, and the numbers and labels of a brand whose mono is its identity; a monospaced face only |
+| quote | `quote` | none | the words a person said or wrote, through `.hw-quote` inside a step class; optional |
+
+The mono face is one per product, so every hash and timestamp on a screen is set alike; it stopped being one for the fleet when quoth's Field identity took Martian Mono as its voice (D-039 in quoth's record), and the roster refuses a proportional face in the role: an entry says `monospaced`, `tools/faces.py --check` holds that claim to the file's own `post.isFixedPitch`, and the build takes nothing else as `mono`.
+`displayScale` multiplies `display-1` and `display-2` by 0.9, 1.0 or 1.25, to whole px, 70px and 50px at the top; every step below them was derived from the text face's x-height and does not move.
+
 A face is an entry in the roster in `tokens/tokens.seed.json`, and an entry is a face **plus its delivery**:
 
-- **self-hosted**: the product ships the file. The roster cites the upstream file by URL and pins its sha256, so the metrics below were read from a file a reader can fetch and check.
+- **self-hosted**: the product ships the file. The roster cites the upstream file by URL and pins its sha256, and cites the family's `OFL.txt` and pins that too, so the metrics below were read from a file a reader can fetch and check and the licence that ships beside it is the one the roster read.
 - **system**: a named stack that loads nothing, for a product that makes no network request and ships no font, which is what papertrace's report and pointback's chrome both promise.
 
-| roster entry | delivery | x-height, read from the file | upstream file |
-|---|---|---:|---|
-| Public Sans | self-hosted | 0.517 | [PublicSans[wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf) |
-| Newsreader | self-hosted | 0.426 | [Newsreader[opsz,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf) |
-| Bricolage Grotesque | self-hosted | 0.528 | [BricolageGrotesque[opsz,wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz,wdth,wght%5D.ttf) |
-| Instrument Sans | self-hosted | 0.510 | [InstrumentSans[wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/InstrumentSans%5Bwdth,wght%5D.ttf) |
-| system serif | system | | `"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif` |
-| system sans | system | | `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
+An entry may also carry a width or a style, which the build writes beside the family in every class that sets it: **Archivo Expanded** is Archivo's own file at `font-stretch: 125%`, the named instance at the end of its width axis, and **Instrument Serif Italic** sets `font-style: italic`.
+Field's renders set its screen title at 110%, its welcome headline at 112% and, after the refresh that followed D-039, its site headline at 125%; the roster carries the one wide width, and a product that needs a narrower one for titles has found a gap, not a value to set by hand.
 
-All four files are under the SIL Open Font License 1.1, read from each family's `OFL.txt` upstream; the repository vendors none of them.
-The x-heights are the fonts' own `OS/2` values at their default instance: Newsreader reads 0.426 from its file against 44.0 in the browser table above, a variable face whose optical-size axis the browser sets per size, and the build uses no x-height but Public Sans's.
+| roster entry | delivery | x-height, read from the file | upstream ships | upstream file |
+|---|---|---:|---|---|
+| Public Sans | self-hosted | 0.517 | ttf, otf | [PublicSans[wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/publicsans/PublicSans%5Bwght%5D.ttf) |
+| Newsreader | self-hosted | 0.426 | ttf, woff, woff2 | [Newsreader[opsz,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf) |
+| IBM Plex Mono | self-hosted, monospaced | 0.516 | ttf, otf, woff, woff2 | [IBMPlexMono-Regular.ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/IBMPlexMono-Regular.ttf) |
+| Bricolage Grotesque | self-hosted | 0.528 | ttf, otf, woff2 | [BricolageGrotesque[opsz,wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/bricolagegrotesque/BricolageGrotesque%5Bopsz,wdth,wght%5D.ttf) |
+| Instrument Sans | self-hosted | 0.510 | ttf, otf, woff2 | [InstrumentSans[wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/InstrumentSans%5Bwdth,wght%5D.ttf) |
+| Archivo | self-hosted | 0.526 | ttf, otf, woff2 | [Archivo[wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/archivo/Archivo%5Bwdth,wght%5D.ttf) |
+| Archivo Expanded | self-hosted, at 125% | 0.526 | ttf, otf, woff2 | the same file |
+| Figtree | self-hosted | 0.500 | ttf, otf, woff2 | [Figtree[wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/figtree/Figtree%5Bwght%5D.ttf) |
+| Atkinson Hyperlegible Next | self-hosted | 0.496 | ttf, otf, woff2 | [AtkinsonHyperlegibleNext[wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/atkinsonhyperlegiblenext/AtkinsonHyperlegibleNext%5Bwght%5D.ttf) |
+| Shantell Sans | self-hosted | 0.485 | ttf, otf, woff2 | [ShantellSans[BNCE,INFM,SPAC,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/shantellsans/ShantellSans%5BBNCE,INFM,SPAC,wght%5D.ttf) |
+| Fraunces | self-hosted | 0.482 | ttf, otf, woff2 | [Fraunces[SOFT,WONK,opsz,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/fraunces/Fraunces%5BSOFT,WONK,opsz,wght%5D.ttf) |
+| Literata | self-hosted | 0.507 | ttf, woff2 | [Literata[opsz,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/literata/Literata%5Bopsz,wght%5D.ttf) |
+| Instrument Serif Italic | self-hosted, italic | 0.510 | ttf, otf, woff2 | [InstrumentSerif-Italic.ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentserif/InstrumentSerif-Italic.ttf) |
+| Martian Mono | self-hosted, monospaced | 0.600 | ttf, otf, woff2 | [MartianMono[wdth,wght].ttf](https://raw.githubusercontent.com/google/fonts/main/ofl/martianmono/MartianMono%5Bwdth,wght%5D.ttf) |
+| system serif | system | | | `"Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif` |
+| system sans | system | | | `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
+
+"Upstream ships" is what each family's own repository, named in the entry's `upstream`, publishes, read from its file tree on 2026-09-28; the file the roster pins is always a TTF from `google/fonts`, because `tools/faces.py` reads metrics from an sfnt file and not from a compressed web font.
+A native app takes the TTF or OTF: quoth's pill registers Martian Mono with CoreText, which the woff2 a webview loads does not serve, and the pinned `MartianMono[wdth,wght].ttf` is that file with both axes.
+A webview or a site takes woff2, converted from the pinned file or taken from upstream, which the OFL permits for every face here with one exception, below.
+
+The x-heights are the fonts' own `OS/2` values at their default instance, and eleven of the thirteen files draw their `x` to that height to three places; Instrument Serif Italic draws it at 0.516 and Shantell Sans at 0.497, an italic's and a hand's overshoot, and the roster keeps the header value the browser's `font-size-adjust` reads. Newsreader reads 0.426 from its file against 44.0 in the browser table above, a variable face whose optical-size axis the browser sets per size.
 Public Sans reads 0.517 from its file and 51.7 in the browser, the same number two ways, which is what makes the file reading trustworthy.
+Martian Mono's is the outlier, 0.600, with a 0.750em advance against Plex Mono's 0.600em, and its fallbacks are narrower: macOS's own files measure 0.618em for SF Mono and 0.602em for Menlo. A column of its digits reflows by a fifth if the file fails to load, so a product that sets Martian Mono self-hosts it rather than relying on the stack.
 
 **A text face other than Public Sans is held to Public Sans's x-height.**
 Every size in the scale above was derived from that x-height, so a text face with a smaller one would set every row half a step small.
 A brand whose text face differs gets `font-size-adjust: 0.517` on every `.hw-*` type class of the text family in its `tokens.css`, which scales whatever face renders, a system face included, until its x-height is the house's.
-A product that sets `--hw-font-sans` outside those classes sets the same declaration beside it.
+The quote face is held the same way on `.hw-quote`, always, because it sits on a line beside the text face: Instrument Serif's 0.510 and Shantell Sans's 0.485 would otherwise set a spoken line visibly smaller than the typed one beside it.
+A product that sets `--hw-font-sans` or `--hw-font-quote` outside those classes sets the same declaration beside it.
 
 ```bash
-python3 tools/faces.py --check PublicSans[wght].ttf    # the file's x-height and sha256 against its roster entry
+python3 tools/faces.py --check PublicSans[wght].ttf    # the file's x-height, pitch and sha256 against its roster entry
+python3 tools/faces.py --check OFL.txt                 # the licence text's sha256 and Reserved Font Name
 ```
 
 The display face is a brand's to choose because it is the one face the brand is recognised by; the text face is a brand's too, because quoth already ships Instrument Sans as its interface and papertrace sets its report in a serif, and a tier that took either away would delete an identity each product already has.
+
+### The licence rule
+
+**Every roster face is under the SIL Open Font License 1.1.**
+`tools/build.py` refuses a roster entry whose `licence` is anything else, and one that pins no licence text, before it solves anything.
+The reason is the product-identities scout's licensing survey of 2026-09-22, in [90-evidence.md](90-evidence.md#font-licensing-per-platform): of twelve licence sources read from their own pages, the OFL is the only one that lets the same file ship in a sold Mac app with woff2 in a WKWebView, on iOS, on Windows, on a self-hosted site and in static art, subset and converted, with no fee and no per-app licence.
+Adobe Fonts forbids embedding and self-hosting outright, Grilli Type's app licence prohibits `@font-face`, and Apple's and Microsoft's system faces may be named in a stack and never shipped, which is what the two system entries do.
+No face is bought: the one paid display face the scout weighed, Klim's, does not publish whether its App licence ships woff2 and forbids reformatting, so the WKWebView path needs the foundry's written answer before it could be considered.
+
+**IBM Plex Mono carries a Reserved Font Name, "Plex", and it is the only roster face that does.**
+Its `OFL.txt` opens `Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"`, and the OFL forbids a Modified Version to use a Reserved Font Name without IBM's written permission.
+A subset is a Modified Version, so a product that subsets Plex Mono renames the family, in the file's `name` table and in its `@font-face`, to a name without "Plex", and keeps "IBM Plex Mono" in the stack only for the unmodified file.
+The roster records the name as `reservedName`, and `tools/faces.py --check OFL.txt` reads it from the licence's first paragraph and refuses a roster that disagrees, so a face that gains a Reserved Font Name upstream is caught when its licence is next checked.
+The other twelve licence texts declare none, which `tools/faces.py` reports for each.
 
 ## Rules
 
 - **Weight carries hierarchy before size does.** 400 for text, 500 for a label or a control, 600 for a heading. 700 exists in the variable font and this system does not use it.
 - **Uppercase is only for `micro`**, and only for a column head or an eyebrow. An uppercase button label is shouting.
+- **A mono `micro` is lowercase.** A brand whose mono is its identity may set `micro` in it, as Field's labels are, and then sets it in lowercase: mono capitals are one product's signature, 53.8% of Nothing's labels against 0% on eleven other sites measured for quoth's D-054, and mixed case keeps word shape at 11px.
 - **Italic is for a term being defined or a quoted title**, never for emphasis. Emphasis is weight. In a mixed-face headline the face does the italic's job, and the term is not also italic.
 - **Headings get `text-wrap: balance`.** Long body text does not; balancing a paragraph makes its last lines ragged.
 - **Never letterspace lowercase text positively**, except `label` at 0.01em, which is there to keep 12px from closing up.
