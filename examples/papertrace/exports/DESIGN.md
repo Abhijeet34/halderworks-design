@@ -231,3 +231,5 @@ A `-` is a stage size, set by `clamp()` against the viewport as well.
 ## What this file does not carry
 
 The ramp steps themselves (`--hw-<hue>-1` to `-12`, in `variables.css`, named only through a role), the reasoning, the measurements every value was solved against, the component anatomies, the anti-pattern list and the spec sheet of named assets. Those are the numbered files beside this one; `README.md` says which answers what.
+
+Chart colours have no role yet and are a stated gap, followed up in house-chart-roles-r8: `--hw-chart-1` to `-6` stay in `tokens/tokens.json` and `tokens/tokens.css` but carry no name in `ramps/roles.css`, so this export does not carry them either.

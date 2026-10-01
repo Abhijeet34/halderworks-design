@@ -571,6 +571,8 @@ A system that exists only as prose is a system every agent re-interprets, so the
 | `variables.css` | plain CSS custom properties: both themes, `prefers-contrast: more`, compact density, the 44px touch floor, reduced motion and `html[data-text-size]` | anything else |
 | `exports/design-tokens.json` | W3C DTCG, with `$value`, `$type` and `$description` on every token | a design tool or a token pipeline |
 
+Chart colours have no role yet and are a stated gap, followed up in house-chart-roles-r8: `--hw-chart-1` to `-6` stay in `tokens/tokens.json` and `tokens/tokens.css` but carry no name in `ramps/roles.css`, so none of the five exports above carry them either.
+
 **This is not `tools/build.py`.**
 That one solves colour against a contrast target and emits both token files; this one only re-expresses values it has already solved.
 The exporter only re-expresses values that are already solved, so it cannot invent one, and it proves that twice on every run: it re-derives all 33 colour tokens against `tokens/tokens.css` before it writes anything, and after writing it compares all 180 custom properties the export declares against the ones `tokens/tokens.css` declares and exits non-zero on any divergence.

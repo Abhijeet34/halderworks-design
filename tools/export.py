@@ -38,6 +38,25 @@ CARRIED = ("radius", "shadow", "layout", "icon", "zIndex", "stroke")
 SUPERSEDED = ("color", "spacing", "duration", "easing", "density")
 TYPE_PARTS = ("text", "leading", "tracking", "weight")
 
+# Every "color" name ramps/roles.css replaces, each under a name of its own (surface -> bg,
+# border -> line, quiet -> fill, ring -> focus...): no literal match is expected for one of
+# these, so membership here stands in for one. UNROLED is the opposite case: six categorical
+# steps ramps/roles.css gives no role to at all, a stated gap (design/75-spec-sheet.md,
+# follow-up house-chart-roles-r8). A colour tokens.json declares in neither set is new and
+# unaccounted for, so check_sources refuses it by name instead of folding it in by family.
+RENAMED_COLOR = frozenset({
+    "hw-accent", "hw-accent-hover", "hw-accent-quiet", "hw-accent-ring",
+    "hw-border", "hw-border-strong", "hw-danger", "hw-danger-quiet", "hw-ground",
+    "hw-ink", "hw-ink-active", "hw-ink-hover", "hw-ink-text", "hw-scrim",
+    "hw-success", "hw-success-quiet", "hw-surface", "hw-surface-active",
+    "hw-surface-hover", "hw-surface-raised", "hw-surface-sunken", "hw-text",
+    "hw-text-disabled", "hw-text-muted", "hw-text-secondary", "hw-warning",
+    "hw-warning-quiet",
+})
+UNROLED = frozenset({
+    "hw-chart-1", "hw-chart-2", "hw-chart-3", "hw-chart-4", "hw-chart-5", "hw-chart-6",
+})
+
 TEXT_SIZES = ("s", "m", "l", "xl", "xxl")
 # Every condition a product needs answered. Without one, a product that loads the export loses
 # dark mode, the high-contrast set, a density, the touch floor, reduced motion or a text size.
@@ -294,7 +313,12 @@ def check_sources(src, root):
         if media is None:
             theme = BASE_SELECTORS[sel]
             mine.setdefault(theme, {}).update(decls)
-    owned = {"--" + e["name"] for fam in SUPERSEDED for e in tokens[fam]["tokens"]}
+    owned = {"--" + e["name"] for fam in SUPERSEDED for e in tokens[fam]["tokens"]
+             if fam != "color"}
+    colors = {e["name"] for e in tokens["color"]["tokens"]}
+    owned |= {"--" + n for n in colors & (RENAMED_COLOR | UNROLED)}
+    bad += [f"--{n} is a colour token ramps/roles.css neither renames nor declares UNROLED"
+            for n in sorted(colors - RENAMED_COLOR - UNROLED)]
     owned |= {f"--hw-{part}-{s['name']}" for g in tokens["type"]["groups"]
               for s in g["styles"] for part in TYPE_PARTS}
     for theme, props in css.items():
@@ -711,7 +735,11 @@ def emit_design_md(src, compact):
                 "only through a role), the reasoning, the measurements every value was solved "
                 "against, the component anatomies, the anti-pattern list and the spec sheet of "
                 "named assets. Those are the numbered files beside this one; `README.md` says "
-                "which answers what.", ""]
+                "which answers what.", "",
+                "Chart colours have no role yet and are a stated gap, followed up in "
+                "house-chart-roles-r8: `--hw-chart-1` to `-6` stay in `tokens/tokens.json` and "
+                "`tokens/tokens.css` but carry no name in `ramps/roles.css`, so this export "
+                "does not carry them either.", ""]
     return "\n".join(out)
 
 
