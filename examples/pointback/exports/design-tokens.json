@@ -2294,7 +2294,12 @@
         "value": 1.6,
         "unit": "rem"
       },
-      "$description": "24: a compact control"
+      "$extensions": {
+        "halderworks": {
+          "css": "max(24px, 1.6rem)"
+        }
+      },
+      "$description": "24: a compact control; never under the 2.5.8 target"
     },
     "control-h": {
       "$type": "dimension",

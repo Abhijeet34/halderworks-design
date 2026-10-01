@@ -124,7 +124,7 @@ A `-` is a stage size, set by `clamp()` against the viewport as well.
 
 | token | value | px at M | role |
 |---|---|---|---|
-| `--hw-control-h-sm` | `1.6rem` | 24 | 24: a compact control |
+| `--hw-control-h-sm` | `max(24px, 1.6rem)` | 24 | 24: a compact control; never under the 2.5.8 target |
 | `--hw-control-h` | `2.1333rem` | 32 | 32: button, select, input outer height |
 | `--hw-control-h-lg` | `2.6667rem` | 40 | 40: one call to action on a marketing surface |
 | `--hw-row-h` | `2.9333rem` | 44 | 44: a table or list row |

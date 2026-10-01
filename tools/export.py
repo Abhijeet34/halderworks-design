@@ -68,7 +68,7 @@ RGBA = re.compile(
 HEX = re.compile(r"^#([0-9a-fA-F]{6})$")
 CHARS = re.compile(rf"^({NUM})ch$")
 BARE = re.compile(rf"^{NUM}$")
-LENGTH_FN = re.compile(rf"^(?:max|min|clamp)\(\s*({NUM})rem\b")
+LENGTH_FN = re.compile(rf"^(?:max|min|clamp)\(.*?(?<![\d.])({NUM})rem\b")
 PERCENT = re.compile(rf"^({NUM})%$")
 VAR = re.compile(r"var\((--[a-z0-9-]+)\)")
 RELATIVE = re.compile(rf"^oklch\(from (oklch\([^)]*\)) calc\(l - ({NUM})\) c h\)$")
@@ -471,7 +471,7 @@ def dtcg_node(fam, value):
         return {"$type": "dimension", "$value": as_dimension(value)}
     m = LENGTH_FN.match(value)
     if m:
-        # The module has no expression type, so max() and clamp() ship their rem floor as the
+        # The module has no expression type, so max() and clamp() ship their rem term as the
         # value and the CSS a product must use beside it, as a measure in ch does below.
         return {"$type": "dimension", "$value": {"value": num(m.group(1)), "unit": "rem"},
                 "$extensions": {"halderworks": {"css": value}}}

@@ -100,7 +100,7 @@ A `-` is a stage size, set by `clamp()` against the viewport as well.
 
 ## density
 
-`--hw-control-h-sm` 1.6rem  `--hw-control-h` 2.1333rem  `--hw-control-h-lg` 2.6667rem  `--hw-row-h` 2.9333rem  `--hw-row-h-compact` 2.1333rem  `--hw-cell-pad-x` 1.0667rem  `--hw-cell-pad-y` 0.8rem  `--hw-cell-pad-y-compact` 0.4rem  `--hw-field-pad-x` 0.8rem  `--hw-field-pad-y` 0.4667rem  `--hw-field-pad-y-compact` 0.2rem
+`--hw-control-h-sm` max(24px, 1.6rem)  `--hw-control-h` 2.1333rem  `--hw-control-h-lg` 2.6667rem  `--hw-row-h` 2.9333rem  `--hw-row-h-compact` 2.1333rem  `--hw-cell-pad-x` 1.0667rem  `--hw-cell-pad-y` 0.8rem  `--hw-cell-pad-y-compact` 0.4rem  `--hw-field-pad-x` 0.8rem  `--hw-field-pad-y` 0.4667rem  `--hw-field-pad-y-compact` 0.2rem
 
 ## duration
 
