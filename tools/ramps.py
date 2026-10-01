@@ -24,7 +24,8 @@ The steps, per theme:
 muted gray text on an accent fill by construction, not by luck of lightness.
 
 Every value is quantized to the form it is written in before it is measured, every ratio is
-taken on the 8-bit value a display receives, and the written CSS is parsed back and measured
+the lower of the float value and the 8-bit value a display receives (the 8-bit alone let the
+float miss by 0.016, which tools/contrast.py reads), and the written CSS is parsed back and measured
 again before anything reaches disk: MEASURE THE ARTIFACT, NEVER THE INTENT, as build.py does.
 The converter is Ottosson's published Oklab constants, a third path beside build.py's inverted
 matrices and contrast.py's CSS Color 4 one, so neither existing instrument checks itself here.
@@ -86,13 +87,20 @@ def rgb8(L, C, h):
 
 
 def luminance(L, C, h):
-    """WCAG relative luminance of the 8-bit value a display receives."""
-    r, g, b = (decode(v / 255) for v in rgb8(L, C, h))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    """WCAG relative luminance on the float value and on the 8-bit value a display receives. A
+    pair can clear its floor on one and miss on the other, and the house certifies both."""
+    def y(r, g, b):
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return (y(*(min(max(c, 0.0), 1.0) for c in oklch_to_lin(L, C, h))),
+            y(*(decode(v / 255) for v in rgb8(L, C, h))))
+
+
+WHITE_Y = (1.0, 1.0)
 
 
 def ratio(y1, y2):
-    return (max(y1, y2) + 0.05) / (min(y1, y2) + 0.05)
+    """The lower of the float and the 8-bit contrast ratio between two luminance pairs."""
+    return min((max(a, b) + 0.05) / (min(a, b) + 0.05) for a, b in zip(y1, y2))
 
 
 def colour(L, C, h):
@@ -204,28 +212,38 @@ def brand_errors(brand):
 
 # ---- the solve -----------------------------------------------------------------------------
 
-def far_side(theme):
-    """Lightness candidates walking away from the grounds: down in light, up in dark."""
-    grid = range(999, 0, -1) if theme == "light" else range(1, 1000)
-    return (i / 1000 for i in grid)
+def nearest(theme, passes):
+    """The lightness nearest the grounds at which passes(L) holds, walking away from them (down in
+    light, up in dark) by 0.01 and then back over the last stride by 0.001. A pass window
+    narrower than 0.01 can be stepped over; it only moves the answer further out, and verify()
+    measures whatever is written either way."""
+    sign = -1 if theme == "light" else 1
+    start, end = (999, 1) if theme == "light" else (1, 999)
+    for coarse in [*range(start, end, 10 * sign), end]:
+        if passes(coarse / 1000):
+            for fine in range(coarse - 10 * sign, coarse + sign, sign):
+                if 0 < fine < 1000 and passes(fine / 1000):
+                    return fine / 1000
+    raise BrandError("no lightness passes")
 
 
 def solve(floor, grounds, h, C, theme):
-    """The candidate nearest the grounds that clears floor + MARGIN against every one of them."""
-    for L in far_side(theme):
-        t = colour(L, C, h)
-        y = luminance(*t)
-        if min(ratio(y, g) for g in grounds) >= floor + MARGIN:
-            return t
-    raise BrandError(f"no lightness at hue {h} clears {floor}:1 against its grounds")
+    """The step nearest the grounds that clears floor + MARGIN against every one of them."""
+    def passes(L):
+        y = luminance(*colour(L, C, h))
+        return min(ratio(y, g) for g in grounds) >= floor + MARGIN
+    try:
+        return colour(nearest(theme, passes), C, h)
+    except BrandError:
+        raise BrandError(f"no lightness at hue {h} clears {floor}:1 against its grounds") from None
 
 
 def brightest_white_solid(h, C):
-    for L in far_side("light"):
-        t = colour(L, C, h)
-        if ratio(luminance(*t), 1.0) >= LABEL + MARGIN:
-            return L
-    raise BrandError(f"no solid at hue {h} carries a white label")
+    try:
+        return nearest("light", lambda L: ratio(luminance(*colour(L, C, h)), WHITE_Y)
+                       >= LABEL + MARGIN)
+    except BrandError:
+        raise BrandError(f"no solid at hue {h} carries a white label") from None
 
 
 def ramp_specs(brand):
@@ -248,7 +266,7 @@ def step_chroma(spec, step):
 def label_for(theme, steps, ink):
     """White if it reads better on step 9 than the theme's dark ink, else that ink."""
     y9 = luminance(*steps[9])
-    return WHITE if ratio(y9, 1.0) >= ratio(y9, luminance(*ink)) else "ink"
+    return WHITE if ratio(y9, WHITE_Y) >= ratio(y9, luminance(*ink)) else "ink"
 
 
 def build(brand):
@@ -354,7 +372,7 @@ def verify(css):
                                  f"under its {floor}:1 floor")
         ink = ramps["gray"][12 if theme == "light" else 1]
         for name, r in ramps.items():
-            y = 1.0 if r["on-solid"] == WHITE else luminance(*ink)
+            y = WHITE_Y if r["on-solid"] == WHITE else luminance(*ink)
             for i in (9, 10):
                 got = ratio(y, luminance(*r[i]))
                 lowest["label"] = min(lowest.get("label", (99, "")), (got, f"{theme} {name}-{i}"))
@@ -383,7 +401,8 @@ def summary(name, lowest):
 
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("brands", nargs="*", type=Path, help="brand files (default ramps/brands/*.json)")
+    ap.add_argument("brands", nargs="*", type=Path,
+                    help="brand files (default ramps/brands/*.json)")
     ap.add_argument("--out", type=Path, default=OUT, help="directory for <name>.tokens.css")
     ap.add_argument("--check", action="store_true", help="emit nothing; fail if stale or refused")
     a = ap.parse_args(argv)
@@ -407,7 +426,8 @@ def main(argv):
             if not out.is_file() or out.read_text(encoding="utf-8") != css:
                 fails.append(f"{out} is stale; run python3 tools/ramps.py")
         if not a.brands:
-            fails += [f"{p} has no brand file in {BRANDS}" for p in sorted(a.out.glob("*.tokens.css"))
+            fails += [f"{p} has no brand file in {BRANDS}"
+                      for p in sorted(a.out.glob("*.tokens.css"))
                       if p not in written and not (BRANDS / f"{p.name[:-11]}.json").is_file()]
     if fails:
         for x in fails:

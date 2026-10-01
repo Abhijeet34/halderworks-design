@@ -12,7 +12,8 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 | `tokens/tokens.css`, `tokens/tokens.json` | generated from the seed by `tools/build.py`; never edited by hand |
 | `exports/` | generated from `tokens/tokens.json` by `tools/export.py`; never edited by hand |
 | `examples/` | one directory per product brand: its `brand.seed.json`, and the `tokens/` and `exports/` that `tools/build.py --brand` and `tools/export.py` write from it; `examples/quoth/` also holds quoth's own colour seed and the `quoth.tokens.css` that `--extend` solves against quoth's set. `examples/specimen.html` draws one product screen from any brand's files, for the render a release needs. The worked examples for [design/12-brand.md](design/12-brand.md) and [design/95-extending.md](design/95-extending.md#a-colour-of-the-products-own), and the fixtures CI builds and certifies on every change; each product owns the copy it ships |
-| `tools/` | eight standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
+| `ramps/` | the twelve-step ramps proposed to replace the solver, landing beside it and read by nothing yet: `brands/<name>.json` (a neutral and five to eight hues), `tokens/<name>.tokens.css` generated from them by `tools/ramps.py` and never edited by hand, and `roles.css`, the colour roles every brand shares. Do not load `roles.css` beside `tokens/tokens.css`: the names overlap |
+| `tools/` | nine standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
 | `tests/` | the suite that checks the tools rather than the tokens, adopted from the 2026-09-21 audit; `tests/run.py` is the one command. `tests/fixtures/field/` is quoth's Field identity as a brand seed, the fixture every vivid-tier input is certified against |
 | `.github/rulesets/`, `.github/settings/` | what this repository enforces on the forge, as files. Nothing applies them on its own; see "The settings that are not files" below |
 | `scripts/apply-repo-settings.sh` | the one command that sends those files to GitHub |
@@ -36,8 +37,9 @@ python3 tools/export.py           # regenerate exports/ and refuse if it diverge
 python3 tools/export.py examples/papertrace   # the same, per brand
 python3 tools/check-coverage.py   # the inventory, its refusals, its claimed entries, its manifest, every link
 python3 tools/test-check-sources.py  # the source classifier, against a local server
+python3 tools/ramps.py --check    # every ramps/brands/*.json still builds, holds its floors, and matches ramps/tokens/
 python3 tools/check-sources.py    # every cited source still resolves. THE ONE THAT LEAVES THE MACHINE
-python3 tests/run.py              # the checks on the tools: invariants, hue sweep, mutations
+python3 tests/run.py              # the checks on the tools: invariants, hue sweep, mutations, ramps
 python3 tools/faces.py --check FONT... OFL.txt...  # a roster face: x-height, pitch, sha256 and licence text, against copies of its files
 ```
 
