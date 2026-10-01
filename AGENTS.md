@@ -64,7 +64,9 @@ over all 360 accent hues, every fifth hue at four brand corners and as a vivid k
 failing when no vivid key builds or either buildable arc moves, `tests/mutation_tests.py` over a set of deliberately wrong inputs (its
 own run prints "N cases: N as expected, 0 improved, 0 failed" for the current count) - and two
 further diagnostics, `tests/coverage_probe.py` and `tests/ident_sweep.py`, print rather than
-refuse and are run on demand.
+refuse and are run on demand. A fourth suite, `tests/ramps.py` (70.6 seconds on 2026-10-02),
+checks `tools/ramps.py` from outside: every floor re-measured by `contrast.py`'s converter on the
+float and the 8-bit value, every accent hue building, and malformed brand files refused by name.
 
 `build.py` and `contrast.py` are deliberately two instruments rather than one, and two things make
 them two. They share no arithmetic: `build.py` inverts the original Oklab matrices, `contrast.py`
