@@ -24,7 +24,6 @@ must be refused, so a green run cannot be a suite that checks nothing.
 """
 import itertools
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -216,12 +215,19 @@ def main():
         '[data-density="compact"] {',
         "@media (pointer: coarse) {\n  :root { --hw-control-h: max(44px, 2.1333rem); }\n}\n"
         '[data-density="compact"] {', 1)
-    shipped = subprocess.run(["git", "show", "1250209:tokens/tokens.css"], cwd=ROOT,
-                             capture_output=True, text=True).stdout
+    # The touch block exactly as tokens/tokens.css shipped it at 1250209, put back in its old
+    # place ahead of the compact block. Rebuilt from today's file rather than read from git
+    # history, because CI checks out one commit deep and that history is not there.
+    tokens = (ROOT / "tokens" / "tokens.css").read_text(encoding="utf-8")
+    touch = re.search(r"@media \(pointer: coarse\) \{.*?\n\}\n", tokens, re.S).group(0)
+    shipped = tokens.replace(touch, "").replace(
+        '[data-density="compact"] {',
+        "@media (pointer: coarse) {\n  :root { --hw-control-h: var(--hw-row-h); }\n}\n\n"
+        '[data-density="compact"] {', 1)
     cases = [
         ("the touch block before the compact one, as tokens.css shipped it",
          before_fix, False),
-        ("tokens/tokens.css at 1250209, before this fix", shipped, True),
+        ("tokens/tokens.css with its touch block as shipped at 1250209", shipped, True),
         ("no prefers-color-scheme copy",
          re.sub(r"@media \(prefers-color-scheme: dark\) \{.*?\n\}\n", "", house, flags=re.S), False),
         ("text size S left at the M root",

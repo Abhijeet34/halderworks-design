@@ -49,10 +49,17 @@ jobs:
           set -uo pipefail
           report=$(mktemp)
           failed=0
+          # Full output of every failing check, uploaded as the consistency-logs artifact. The
+          # report carries counts and failing rows only: a full tests/run.py transcript is about
+          # 1 MB, past the 1024k a job summary accepts, and the upload then fails and shows nothing.
+          logs="${RUNNER_TEMP:-$(mktemp -d)}/consistency-logs"
+          mkdir -p "$logs"
+          echo "logs=$logs" >> "$GITHUB_OUTPUT"
+          n=0
 
           run() {
             local title="$1"; shift
-            local out rc=0
+            local out rc=0 log rows
             # `|| rc=$?` rather than a bare assignment: the runner's default shell is
             # `bash -e`, and there errexit kills the whole step on the first failing check -
             # before the report, the outputs or the summary are written, so the issue job
@@ -60,8 +67,16 @@ jobs:
             out=$("$@" 2>&1) || rc=$?
             if [ "$rc" -ne 0 ]; then
               failed=1
+              n=$((n + 1))
+              log="$n-$(printf '%s' "$title" | tr -cs 'A-Za-z0-9' '-' | cut -c1-60).log"
+              printf '%s\n' "$out" > "$logs/$log"
+              # The failing rows, or the tail when no row says FAIL, each cut to one line's worth.
+              rows=$(printf '%s\n' "$out" | grep -E 'FAIL|Error|Traceback|refus|: exit [1-9]' | head -n 40)
+              [ -n "$rows" ] || rows=$(printf '%s\n' "$out" | tail -n 20)
               # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
-              { printf '### %s\n\n```text\n%s\n```\n\n' "$title" "$out"; } >> "$report"
+              { printf '### %s\n\nexit %s, %s lines of output; full output in the `consistency-logs` artifact as `%s`.\n\n```text\n%s\n```\n\n' \
+                  "$title" "$rc" "$(printf '%s\n' "$out" | wc -l | tr -d ' ')" "$log" \
+                  "$(printf '%s\n' "$rows" | cut -c1-300)"; } >> "$report"
               printf '::error title=%s::%s\n' "$title" "check failed, see the job summary"
             fi
             printf '%s: exit %s\n' "$title" "$rc"
@@ -133,6 +148,14 @@ jobs:
           fi
           git checkout -- exports/ examples/ 2>/dev/null || true
 
+          # 48,000 bytes keeps the summary far under its 1024k limit and leaves room in the issue
+          # body maintenance.yml builds from this report, which GitHub caps at 65,536 characters.
+          if [ "$(wc -c < "$report")" -gt 48000 ]; then
+            head -c 48000 "$report" > "$report.cut"
+            # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
+            printf '\n\n```\n\n**Report cut at 48,000 bytes; every failing check is in the `consistency-logs` artifact.**\n' >> "$report.cut"
+            mv "$report.cut" "$report"
+          fi
           {
             echo "report<<REPORT_EOF"
             cat "$report"
@@ -141,3 +164,12 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           cat "$report" >> "$GITHUB_STEP_SUMMARY" || true
           exit "$failed"
+
+      - name: keep the full output of every failing check
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: consistency-logs
+          path: ${{ steps.collect.outputs.logs }}
+          if-no-files-found: ignore
+          retention-days: 30
