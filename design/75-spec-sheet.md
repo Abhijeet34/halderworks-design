@@ -575,7 +575,7 @@ Chart colours have no role yet and are a stated gap, followed up in house-chart-
 
 **This is not `tools/build.py`.**
 That one solves colour against a contrast target and emits both token files; this one only re-expresses values it has already solved.
-The exporter only re-expresses values that are already solved, so it cannot invent one, and it proves that twice on every run: it re-derives all 33 colour tokens against `tokens/tokens.css` before it writes anything, and after writing it compares all 180 custom properties the export declares against the ones `tokens/tokens.css` declares and exits non-zero on any divergence.
+The exporter only re-expresses values that are already solved, so it cannot invent one, and it proves that twice on every run: before it writes anything, every name `tokens/tokens.css` carries in a carried family (`radius`, `shadow`, `layout`, `icon`, `zIndex`, `stroke`) is compared value for value against it, and every other name is checked by presence instead - declared by `ramps/roles.css` under its own name or a renamed one, unroled (the chart colours, and per-step letter-spacing and weight) or retired (`hw-space-2`, `hw-space-96`, `hw-duration-instant`, `hw-ease-in`, `hw-ease-standard`), with anything in none of those refused by name. After writing it compares all 180 custom properties the export declares against the ones `tokens/tokens.css` declares and exits non-zero on any divergence.
 
 That second check is not decoration.
 It found three real omissions the first time it ran: the per-step `--hw-leading-*`, `--hw-tracking-*` and `--hw-weight-*` properties, the `prefers-reduced-motion` block, and the `[data-density="compact"]` block.

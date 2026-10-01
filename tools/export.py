@@ -57,6 +57,24 @@ UNROLED = frozenset({
     "hw-chart-1", "hw-chart-2", "hw-chart-3", "hw-chart-4", "hw-chart-5", "hw-chart-6",
 })
 
+# spacing, duration and easing names ramps/roles.css declares under the same name tokens.json
+# uses, so these are checked by literal presence rather than an allowlist; RETIRED is what is
+# left over once that check runs - the decided scales are 8 rem space steps and 3 durations
+# with one ease-out, and no product uses these five (quoth only re-defines them in its own
+# vendored copy).
+RETIRED = frozenset({
+    "hw-space-2", "hw-space-96", "hw-duration-instant", "hw-ease-in", "hw-ease-standard",
+})
+
+# The per-style type tokens, same renaming as colour: ten per-component steps (body, title-1,
+# display-1...) become eight abstract sizes and four leadings under the rem ramp's own names, so
+# text and leading are checked the way colour is. tracking and weight carry no role at all: the
+# rem ramp ships size and leading only, a stated gap (design/75-spec-sheet.md).
+TYPE_STYLES = ("body", "body-lg", "body-sm", "display-1", "display-2", "label", "micro",
+               "title-1", "title-2", "title-3")
+RENAMED_TYPE = frozenset(f"hw-{part}-{s}" for part in ("text", "leading") for s in TYPE_STYLES)
+TYPE_UNROLED = frozenset(f"hw-{part}-{s}" for part in ("tracking", "weight") for s in TYPE_STYLES)
+
 TEXT_SIZES = ("s", "m", "l", "xl", "xxl")
 # Every condition a product needs answered. Without one, a product that loads the export loses
 # dark mode, the high-contrast set, a density, the touch floor, reduced motion or a text size.
@@ -313,14 +331,22 @@ def check_sources(src, root):
         if media is None:
             theme = BASE_SELECTORS[sel]
             mine.setdefault(theme, {}).update(decls)
-    owned = {"--" + e["name"] for fam in SUPERSEDED for e in tokens[fam]["tokens"]
-             if fam != "color"}
+    role_names = {k for k, _ in roles(src)}
+    owned = set()
     colors = {e["name"] for e in tokens["color"]["tokens"]}
     owned |= {"--" + n for n in colors & (RENAMED_COLOR | UNROLED)}
     bad += [f"--{n} is a colour token ramps/roles.css neither renames nor declares UNROLED"
             for n in sorted(colors - RENAMED_COLOR - UNROLED)]
-    owned |= {f"--hw-{part}-{s['name']}" for g in tokens["type"]["groups"]
-              for s in g["styles"] for part in TYPE_PARTS}
+    for fam in (f for f in SUPERSEDED if f != "color"):
+        names = {e["name"] for e in tokens[fam]["tokens"]}
+        accounted = {n for n in names if f"--{n}" in role_names} | (names & RETIRED)
+        owned |= {"--" + n for n in accounted}
+        bad += [f"--{n} is a {fam} token ramps/roles.css neither declares nor lists RETIRED"
+                for n in sorted(names - accounted)]
+    type_names = {f"hw-{part}-{s}" for part in TYPE_PARTS for s in TYPE_STYLES}
+    owned |= {"--" + n for n in type_names & (RENAMED_TYPE | TYPE_UNROLED)}
+    bad += [f"--{n} is a type token ramps/roles.css neither renames nor declares TYPE_UNROLED"
+            for n in sorted(type_names - RENAMED_TYPE - TYPE_UNROLED)]
     for theme, props in css.items():
         for k, v in props.items():
             if k in owned:
@@ -739,7 +765,10 @@ def emit_design_md(src, compact):
                 "Chart colours have no role yet and are a stated gap, followed up in "
                 "house-chart-roles-r8: `--hw-chart-1` to `-6` stay in `tokens/tokens.json` and "
                 "`tokens/tokens.css` but carry no name in `ramps/roles.css`, so this export "
-                "does not carry them either.", ""]
+                "does not carry them either.", "",
+                "Per-step letter-spacing and weight are the same kind of gap: the rem type ramp "
+                "ships a size and a leading for each step and nothing for `--hw-tracking-*` or "
+                "`--hw-weight-*`, so this export carries neither.", ""]
     return "\n".join(out)
 
 
