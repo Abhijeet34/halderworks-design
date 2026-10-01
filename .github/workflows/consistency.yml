@@ -71,9 +71,11 @@ jobs:
               log="$n-$(printf '%s' "$title" | tr -cs 'A-Za-z0-9' '-' | cut -c1-60).log"
               printf '%s\n' "$out" > "$logs/$log"
               # The failing rows, or the tail when no row says FAIL, each cut to one line's worth.
+              # Anchored at the line start: the mutation suite prints the FAILs it expects
+              # indented, and the hue sweep's refusal counts are not failures.
               # `|| true`: past 40 rows head closes the pipe, grep dies of SIGPIPE, and under
               # pipefail and errexit that alone would end the step before anything is reported.
-              rows=$(printf '%s\n' "$out" | grep -E 'FAIL|Error|Traceback|refus|: exit [1-9]' | head -n 40) || true
+              rows=$(printf '%s\n' "$out" | grep -E '^FAIL|^-- .*: exit [1-9]|^Traceback|^[A-Za-z]*Error' | head -n 40) || true
               [ -n "$rows" ] || rows=$(printf '%s\n' "$out" | tail -n 20) || true
               # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
               { printf '### %s\n\nexit %s, %s lines of output; full output in the `consistency-logs` artifact as `%s`.\n\n```text\n%s\n```\n\n' \
