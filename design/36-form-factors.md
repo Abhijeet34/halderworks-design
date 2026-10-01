@@ -175,9 +175,11 @@ On a coarse pointer the control **is** the target, so the height rebinds rather 
 
 ```css
 @media (pointer: coarse) {
-  :root { --hw-control-h: var(--hw-row-h); }   /* 32px becomes 44px */
+  :root, [data-density="compact"] { --hw-control-h: max(44px, var(--hw-row-h)); }   /* 32px or 24px becomes 44px */
 }
 ```
+
+The block follows `[data-density="compact"]` at the same specificity, because a compact ancestor rebinds `--hw-control-h` to 24px on its own element, and a touch rule set only on `:root` loses to it.
 
 This composes with density rather than fighting it: a compact list on a touch screen keeps its 32px rows for reading, and its controls are still 44px, because a row is scanned and a control is hit.
 
