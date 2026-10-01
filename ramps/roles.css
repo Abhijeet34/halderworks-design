@@ -88,6 +88,7 @@
     --hw-line: var(--hw-gray-8);
     --hw-line-strong: var(--hw-gray-11);
     --hw-focus: var(--hw-gray-12);
+    --hw-ink-hover: var(--hw-gray-12);
     --hw-accent-text: var(--hw-accent-12);
     --hw-accent: var(--hw-accent-12);
     --hw-accent-hover: var(--hw-accent-12);

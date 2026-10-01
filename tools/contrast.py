@@ -793,13 +793,288 @@ def extension(themes, ext, seed_path, css_path):
     return bad, report
 
 
+# --- the ramps: tools/ramps.py's files and ramps/roles.css ----------------------------------
+# What the ramps claim, declared again here rather than imported from tools/ramps.py, for the
+# reason the pairs above are declared here: a floor cannot be weakened in the same edit as the
+# step it guards. Floors are those of ramps.py's docstring; a role is held to the floor of the
+# step it names, and under prefers-contrast: more to raised() of it.
+
+RAMPS_DIR = ROOT / "ramps"
+STEP_FLOORS = {8: (NON_TEXT, (1, 2, 3)), 11: (AA, (1, 2, 3, 4, 5)), 12: (13.0, (1, 2, 3, 4, 5))}
+SOLIDS = (9, 10)
+RAMP_BLOCKS = {(None, ':root, [data-theme="light"]'): "light", (None, '[data-theme="dark"]'): "dark",
+               ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
+               "media-dark"}
+ROLE_BLOCKS = {(None, ":root"): "base", (None, '[data-theme="dark"]'): "dark",
+               ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
+               "media-dark", ("@media (prefers-contrast: more)", ":root"): "more"}
+# A step-8 role holds 3:1 on steps 1 to 3 only, so it is certified on the grounds at or beyond them.
+ROLE_GROUNDS = ["--hw-bg", "--hw-bg-subtle", "--hw-surface", "--hw-surface-raised", "--hw-fill"]
+ROLE_FILLS = ["--hw-fill-hover", "--hw-fill-active"]
+ROLE_TINTS = ["--hw-accent-fill", "--hw-success-fill", "--hw-warning-fill", "--hw-danger-fill",
+              "--hw-insert-fill", "--hw-delete-fill", "--hw-mark-quiet"]
+ROLE_TEXT = {"--hw-text": 13.0, "--hw-text-muted": AA, "--hw-accent-text": AA,
+             "--hw-success": AA, "--hw-warning": AA, "--hw-danger": AA, "--hw-insert": AA,
+             "--hw-delete": AA}
+ROLE_EDGES = ["--hw-line-strong", "--hw-focus", "--hw-ink"]
+# Disabled text is exempt from 1.4.3 and held to 3:1 in both tiers rather than raised.
+ROLE_DISABLED = "--hw-text-disabled"
+ROLE_LABELS = {"--hw-on-ink": ("--hw-ink", "--hw-ink-hover"),
+               "--hw-on-accent": ("--hw-accent", "--hw-accent-hover"),
+               "--hw-on-danger": ("--hw-danger-solid", "--hw-danger-hover"),
+               "--hw-on-mark": ("--hw-mark",)}
+# Roles no pair reads as a foreground, each with why. A role in neither list is refused, so a new
+# role cannot land certified by nothing.
+ROLE_EXEMPT = {"--hw-line": "a divider, never a control boundary",
+               "--hw-accent-line": "a tint's edge, beside a word", "--hw-success-line": "same",
+               "--hw-warning-line": "same", "--hw-danger-line": "same",
+               "--hw-scrim": "translucent, never read on"}
+
+# The CIEDE2000 bars of pass 3, carried onto the roles: (what, ours, theirs, bar, what it reads
+# as below the bar). The accent fill is the old selected-row bar, the one an accent at a state's
+# hue fails first. The primary bar holds --hw-ink, the primary action, and not the accent solid,
+# as pass 3 holds --hw-ink and not --hw-brand.
+STATE_FILLS = ("--hw-success-fill", "--hw-warning-fill", "--hw-danger-fill")
+ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill that reads as a state")
+             for s in STATE_FILLS] + [
+    ("primary", "--hw-ink", "--hw-danger-solid", ACCENT_BARS[0][4], "a primary that reads as danger"),
+    ("ring", "--hw-focus", "--hw-danger", ACCENT_BARS[2][4], "a focus ring that reads as an error"),
+    ("ring-border", "--hw-focus", "--hw-line-strong", RING_FROM_BORDER,
+     "a focused control that reads as a bordered one")] + [
+    ("fill-ground", s, "--hw-bg", FILL_FROM_GROUND, "a status fill that sinks into the ground")
+    for s in STATE_FILLS]
+# Under prefers-contrast: more, roles.css raises the danger solid and every state ink to step 12,
+# and in dark every step 12 is near white, so they land on the ink and the ring. No step holds a
+# 7:1 label and a hue at once there; until roles.css chooses, these pairs are reported as gaps,
+# by name, and every other bar in that tier still refuses.
+ROLE_GAPS = {("dark-more", "--hw-ink", "--hw-danger-solid"),
+             ("dark-more", "--hw-focus", "--hw-danger")}
+ROLE_INK_REPORTED = ("--hw-accent-text", ("--hw-success", "--hw-warning", "--hw-danger"))
+
+WHITE_OKLCH = (1.0, 0.0, 0.0)   # the reference path returns #FFFFFF from this exactly
+RAMP_DECL = re.compile(r"^(--hw-[a-z][a-z0-9-]*):\s*(.+?);$")
+RAMP_STEP = re.compile(r"^--hw-([a-z][a-z0-9]*)-(\d+|on-solid)$")
+OKLCH = re.compile(r"^oklch\(([0-9.]+) ([0-9.]+) ([0-9.]+)(?: / [0-9.]+)?\)$")
+RELATIVE = re.compile(r"^oklch\(from var\((--[a-z0-9-]+)\) calc\(l ([+-]) ([0-9.]+)\) c h\)$")
+VAR = re.compile(r"^var\((--[a-z0-9-]+)\)$")
+
+
+def declarations(path, known):
+    """({block: {name: raw value}}, failures) for a CSS file whose every block is in `known`.
+    Anything else inside a block, a repeated name or an unknown block is a failure: these files
+    are generated or hand-held to one shape, and a line this cannot read is one it did not measure."""
+    text = re.sub(r"/\*.*?\*/", "", Path(path).read_text(encoding="utf-8"), flags=re.S)
+    blocks, bad, stack, name = {}, [], [], Path(path).name
+    for n, line in enumerate(text.splitlines(), 1):
+        s = line.strip()
+        if not s:
+            continue
+        if s.endswith("{"):
+            stack.append(s[:-1].strip())
+            if not s.startswith("@media"):
+                media = stack[-2] if len(stack) > 1 else None
+                if (media, stack[-1]) not in known:
+                    bad.append(f"{name}:{n}: a block this does not certify: {media or ''} {s}")
+            continue
+        if s == "}":
+            if stack:
+                stack.pop()
+            continue
+        key = known.get((stack[-2] if len(stack) > 1 else None, stack[-1])) if stack else None
+        m = RAMP_DECL.match(s)
+        if key is None or not m:
+            bad.append(f"{name}:{n}: cannot read {s!r}")
+            continue
+        block = blocks.setdefault(key, {})
+        if m[1] in block:
+            bad.append(f"{name}:{n}: {m[1]} declared twice in one block")
+        block[m[1]] = m[2]
+    return blocks, bad
+
+
+def resolve(name, env, seen=()):
+    """An oklch triple for `name` in env, following var() and the one relative form roles.css
+    uses, or ValueError saying why it cannot be measured."""
+    if name in seen:
+        raise ValueError(f"{name} refers to itself through {' -> '.join(seen)}")
+    if name not in env:
+        raise ValueError(f"{name} is not declared")
+    v = env[name]
+    if m := OKLCH.match(v):
+        return tuple(float(x) for x in m.groups())
+    if v.upper() in ("#FFFFFF", "#FFF"):
+        return WHITE_OKLCH
+    if m := VAR.match(v):
+        return resolve(m[1], env, (*seen, name))
+    if m := RELATIVE.match(v):
+        L, C, h = resolve(m[1], env, (*seen, name))
+        return (L - float(m[3]) if m[2] == "-" else L + float(m[3]), C, h)
+    raise ValueError(f"{name} is {v!r}, a form this instrument does not convert")
+
+
+def ramp_steps(block):
+    """{ramp: {step: raw}} and the failures of shape: every ramp twelve steps and a label."""
+    ramps, bad = {}, []
+    for name, value in block.items():
+        m = RAMP_STEP.match(name)
+        if not m:
+            bad.append(f"{name} is not a ramp step")
+            continue
+        ramps.setdefault(m[1], {})[m[2]] = value
+    want = {str(i) for i in range(1, 13)} | {"on-solid"}
+    bad += [f"--hw-{r} declares {sorted(s, key=lambda k: (len(k), k))}, not steps 1 to 12 and "
+            f"on-solid" for r, s in ramps.items() if set(s) != want]
+    if "gray" not in ramps:
+        bad.append("no gray ramp")
+    return ramps, bad
+
+
+def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
+    """(failures, report lines) for one tools/ramps.py file and ramps/roles.css over it."""
+    rb, bad = declarations(tokens_path, RAMP_BLOCKS)
+    lb, rbad = declarations(roles_path, ROLE_BLOCKS)
+    bad += rbad
+    for b in ("light", "dark", "media-dark"):
+        if b not in rb:
+            bad.append(f"{Path(tokens_path).name} has no {b} block")
+    if bad or "base" not in lb:
+        return bad + ([] if "base" in lb else ["roles.css has no :root block"]), []
+    if rb["media-dark"] != rb["dark"]:
+        bad.append("the prefers-color-scheme: dark block of the ramps differs from "
+                   "[data-theme=\"dark\"]")
+    if lb.get("media-dark") != lb.get("dark"):
+        bad.append("roles.css's prefers-color-scheme: dark overrides differ from "
+                   "[data-theme=\"dark\"]'s")
+    report, lowest = [], {}
+    used = {*ROLE_GROUNDS, *ROLE_FILLS, *ROLE_TINTS, *ROLE_EDGES, *ROLE_TEXT, ROLE_DISABLED,
+            *ROLE_LABELS, *(f for fs in ROLE_LABELS.values() for f in fs),
+            *(n for bar in ROLE_BARS for n in bar[1:3])}
+
+    def low(key, got, where):
+        if key not in lowest or got < lowest[key][0]:
+            lowest[key] = (got, where)
+
+    def measure(fg, bg, bar, key, where, a, b):
+        got, got8 = ratio(a, b)
+        low(key, min(got, got8), where)
+        if got < bar or got8 < bar:
+            bad.append(f"{where}: {fg} on {bg} is {got:.3f} ({got8:.3f} at 8-bit), below {bar}, "
+                       f"{hexof(*a)} on {hexof(*b)}")
+
+    for theme in ("light", "dark"):
+        ramps, shape = ramp_steps(rb[theme])
+        bad += [f"{theme} {x}" for x in shape]
+        if shape:
+            continue
+        env = dict(rb[theme])
+        steps = {}
+        for r, s in ramps.items():
+            for k in s:
+                try:
+                    steps[(r, k)] = resolve(f"--hw-{r}-{k}", env)
+                except ValueError as e:
+                    bad.append(f"{theme} {e}")
+        if len(steps) != 13 * len(ramps):
+            continue
+        for (r, k), c in steps.items():
+            if not in_gamut(*c):
+                bad.append(f"{theme} --hw-{r}-{k} oklch{c} falls outside sRGB")
+        for step, (floor, span) in STEP_FLOORS.items():
+            for r in ramps:
+                for g in ramps:
+                    for i in span:
+                        measure(f"{r}-{step}", f"{g}-{i}", floor, step, f"{theme} step {step}",
+                                steps[(r, str(step))], steps[(g, str(i))])
+        for r in ramps:
+            for i in SOLIDS:
+                measure(f"{r}-on-solid", f"{r}-{i}", AA, "label", f"{theme} solid label",
+                        steps[(r, "on-solid")], steps[(r, str(i))])
+        for more in (False, True):
+            tier = theme + ("-more" if more else "")
+            roles = {**lb["base"], **(lb.get("dark", {}) if theme == "dark" else {}),
+                     **(lb.get("more", {}) if more else {})}
+            env = {**rb[theme], **roles}
+            bad += [f"{tier} {r} is in roles.css and certified by nothing; certify it or name it "
+                    f"in ROLE_EXEMPT" for r in sorted(roles) if r not in used | set(ROLE_EXEMPT)]
+            col = {}
+            for r in sorted(used | set(roles)):
+                try:
+                    col[r] = resolve(r, env)
+                except ValueError as e:
+                    bad.append(f"{tier} {e}")
+                    continue
+                if not in_gamut(*col[r]):
+                    bad.append(f"{tier} {r} oklch{col[r]} falls outside sRGB")
+            if not used <= set(col):
+                continue
+
+            def bar_of(b):
+                return raised(b) if more else b
+            for fg, floor in ROLE_TEXT.items():
+                for bg in ROLE_GROUNDS + ROLE_FILLS + ROLE_TINTS:
+                    measure(fg, bg, bar_of(floor), "role text", tier, col[fg], col[bg])
+            for fg in ROLE_EDGES:
+                for bg in ROLE_GROUNDS:
+                    measure(fg, bg, bar_of(NON_TEXT), "role edge", tier, col[fg], col[bg])
+            for bg in ROLE_GROUNDS:
+                measure(ROLE_DISABLED, bg, NON_TEXT, "role edge", tier, col[ROLE_DISABLED], col[bg])
+            for fg, fills in ROLE_LABELS.items():
+                for bg in fills:
+                    measure(fg, bg, bar_of(AA), "role label", tier, col[fg], col[bg])
+            for what, a, b, bar, reads in ROLE_BARS:
+                d = painted(col[a], col[b])
+                if d < bar and (tier, a, b) in ROLE_GAPS:
+                    report.append(f"  gap {tier}: {a} sits {d:.1f} from {b}, below {bar}: {reads}")
+                elif d < bar:
+                    bad.append(f"{tier}: {a} sits {d:.1f} CIEDE2000 from {b} at 8-bit, below "
+                               f"{bar}: {reads}")
+                else:
+                    low(what, d, tier)
+            ink, states = ROLE_INK_REPORTED
+            low("ink, reported", min(painted(col[ink], col[s]) for s in states), tier)
+            step = abs(col["--hw-text"][0] - col["--hw-text-muted"][0])
+            if not more and step < ROLE_STEP:
+                bad.append(f"{tier} --hw-text and --hw-text-muted are {step:.4f} apart in "
+                           f"lightness, below the {ROLE_STEP} that keeps them two roles")
+            elif more:
+                low("ladder under more, reported", step, tier)
+    report.insert(0, "  lowest: " + "; ".join(f"{k} {v[0]:.2f} ({v[1]})" for k, v in lowest.items()))
+    return bad, report
+
+
+def main_ramps(paths):
+    paths = [Path(p) for p in paths] or sorted((RAMPS_DIR / "tokens").glob("*.tokens.css"))
+    failures = []
+    if not paths:
+        failures.append(f"no *.tokens.css in {RAMPS_DIR / 'tokens'}")
+    for path in paths:
+        if not path.is_file():
+            failures.append(f"{path} does not exist; build it with tools/ramps.py first")
+            continue
+        bad, report = certify_ramps(path)
+        failures += [f"{path.stem.removesuffix('.tokens')}: {f}" for f in bad]
+        print(f"ramps {path.name}: every step floor and solid label, every role in "
+              f"roles.css in light, dark and both under prefers-contrast: more, float and "
+              f"8-bit; {len(bad)} failed")
+        print("\n".join(report))
+    for f in failures:
+        print("FAIL  " + f, file=sys.stderr)
+    print(f"\n{len(failures)} failures")
+    return 1 if failures else 0
+
+
 def main(argv):
     ap = argparse.ArgumentParser(prog="contrast.py", description=__doc__.split("\n")[0])
     ap.add_argument("css", nargs="?", default=str(ROOT / "tokens" / "tokens.css"))
+    ap.add_argument("--ramps", nargs="*", metavar="TOKENS",
+                    help="certify tools/ramps.py output and ramps/roles.css instead (default "
+                         "every ramps/tokens/*.tokens.css)")
     ap.add_argument("--extend", metavar="SEED", help="also verify this product seed's tokens")
     ap.add_argument("--extend-css", metavar="FILE",
                     help="the product's built CSS, if not <namespace>.tokens.css beside the seed")
     opts = ap.parse_args(argv[1:])
+    if opts.ramps is not None:
+        return main_ramps(opts.ramps)
     path = opts.css
     if not Path(path).is_file():
         print(f"FAIL  {path} does not exist; build it with tools/build.py first", file=sys.stderr)
