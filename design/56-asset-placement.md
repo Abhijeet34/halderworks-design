@@ -31,9 +31,10 @@ It is the field's second use, beside display copy and one action.
 - **The object is real.** It is the shipped component in a demonstration state, never a drawing of it, because a drawing can show a feature that does not ship.
 - **Everything on the field is `--hw-on-field`.** Corner labels, annotation labels and leader lines all take the field's solved label, and nothing in `hw-text-secondary` or a state colour is set on the field.
 - **The object keeps its own surfaces.** Its text sits on its own surfaces, in pairs the permission table already certifies, and the field ends at the object's edge, so the field still carries no data text.
-- **Corner labels are the slide frame's.** Each corner carries a fact that is true of the object, and a corner with nothing true to carry stays empty ([75-spec-sheet.md](75-spec-sheet.md#slide-sequence)).
+- **Corner labels are the slide frame's.** Each corner carries a fact that is true of the object, and a corner with nothing true to carry stays empty ([75-spec-sheet.md](75-spec-sheet.md#slide-sequence)). On a screen a corner label is text and never the mark set again, because the screen already carries its one mark ([80-anti-patterns.md](80-anti-patterns.md#the-checklist), question 33).
 - **Annotations are the house component**, [65-components.md](65-components.md#annotation), and they never move; whatever the object itself plays is held to [40-motion.md](40-motion.md#a-products-own-moments).
-- **Never the live instrument.** A staged object is a demonstration and takes no input, because the first row of the never-together table keeps everything off an instrument in use.
+- **No action on a staged field.** The screen's one primary action sits beside the field, on the ground, so the field's only text is labels.
+- **Never the live instrument.** A staged object is a demonstration: it takes no input and no focus and adds no tab stop. So it is not the working control that checklist question 35 keeps off a first-run screen until its task, and the field never sits beside an instrument in use, which the first row of the never-together table refuses.
 
 Measured on quoth's Field identity: `--hw-on-field` on `--hw-field` is 12.29:1 in light and 14.09:1 in dark, unchanged under `prefers-contrast: more`, from the same values quoth ships and `tests/fixtures/field/` builds.
 
