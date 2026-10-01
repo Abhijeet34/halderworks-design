@@ -36,7 +36,7 @@ A row is a claim, and the script is what makes it a checkable one.
 
 Counts, which are what a reader should look at first, and which the script verifies against the
 table so they cannot drift - here and in every other live copy, `README.md` and `SKILL.md` included:
-**160 surfaces, 127 covered, 8 partial, 25 excluded.**
+**161 surfaces, 128 covered, 8 partial, 25 excluded.**
 
 ## The cross-check manifest
 
@@ -173,6 +173,7 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Link | covered | `65-components.md#link` | the accent's first job, spent on "a link" that this book never specified. `visited` and `external link` both returned 0. There is no visited style and the row says why |
 | Accordion and disclosure | covered | `65-components.md#accordion-and-disclosure` | three matches before this entry, all of them one token's `usage` string and its two export copies |
 | Callout or summary box | covered | `65-components.md#callout` | 0 as a component, in a book that covers documentation pages. A neutral callout is the Framed style rather than a second component |
+| Annotation: leader line and label | covered | `65-components.md#annotation` | one ink for line and label, `hw-on-field` on a field and `hw-text` elsewhere, so it adds no pair and no token; hidden from assistive tech when its labels repeat the object's caption. The staged object it names is `56-asset-placement.md#a-field-as-a-stage` |
 | Key-value pair list | covered | `65-components.md#key-value-pair-list` | a sweep for description list, key-value and definition list returned 0. An instrument of record displays a single record's fields constantly |
 | Inline destructive confirm | covered | `65-components.md#inline-destructive-confirm` | 13 matches for `confirm` and none a pattern, which made the dialog the only place a confirmation could live and therefore made every delete a modal |
 | Data display, alignment, numeric formatting, dates | covered | `70-data-display.md#numeric-formatting` | |

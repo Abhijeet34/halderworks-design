@@ -348,7 +348,8 @@ def vivid_required():
     """(bar, foreground, background, what relies on it), every pair of the vivid tier."""
     for fill in ("--hw-brand", "--hw-brand-hover", "--hw-brand-active"):
         yield AA, "--hw-on-brand", fill, "a label on the brand fill, at rest, hovered and pressed"
-    yield AA, "--hw-on-field", "--hw-field", "display copy and its one action on a vivid field"
+    yield AA, "--hw-on-field", "--hw-field", ("display copy, its one action, and a staged object's "
+                                              "labels and leaders on a vivid field")
     for fill in PRIMARY_ALIASES[:3]:
         yield AA, "--hw-on-primary", fill, "the primary button's label, at rest, hovered and pressed"
     # 7:1 in both tiers: a selected row and a brand tint are read at length, so the default tier

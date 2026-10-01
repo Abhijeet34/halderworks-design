@@ -1,8 +1,11 @@
 # Components
 
-Fifteen components. The first ten are what these products were already building; the five after
+Sixteen components. The first ten are what these products were already building; the five after
 Empty state were found missing by the coverage cross-check in [90-evidence.md](90-evidence.md),
-each carried by at least one external component library and most by three.
+each carried by at least one external component library and most by three. The sixteenth,
+Annotation, came from quoth's staged welcome; papertrace's hero, the report as a proof panel on a
+seal field ([56-asset-placement.md](56-asset-placement.md#per-product)), is the same staging, and a
+second product is what [95-extending.md](95-extending.md#adding-a-component) asks of a house component.
 
 Each card is a rule plus the tokens it uses, not an implementation: the markup and the accessibility
 wiring stay in the product.
@@ -416,6 +419,47 @@ no pair.
 Whether the block is announced. A caveat is prose and takes no role; a consequence the reader must
 not miss takes `role="note"` with a label. Nothing here is a live region -
 [65-components.md](65-components.md#toast) owns those.
+
+## Annotation
+
+A leader line and a short label that name one part of a staged object: the glass, the grille, the
+key. It is for an object staged on a field ([56-asset-placement.md](56-asset-placement.md#a-field-as-a-stage))
+or shown on the ground in documentation. It is not a tooltip, which answers a pointer, and not a
+Callout, which carries a statement about the prose around it.
+
+### Annotation: anatomy
+
+| part | token |
+|---|---|
+| the leader | a straight line, horizontal or vertical, `--hw-border-w` thick, from the object's edge to the label |
+| the gap | `--hw-space-4` between the leader's end and the label |
+| the label | one or two words at `label` (`.hw-label`), lowercase as the product's own noun; a product whose mono face is its voice sets it in `mono` at the same step |
+| the ink | one colour for leader and label: `--hw-on-field` on a field, `--hw-text` on a ground or a surface |
+
+**Contrast:** `--hw-on-field` on `--hw-field` is certified at 4.5:1 and 7:1 under more contrast,
+and measures 12.29 light and 14.09 dark on quoth's Field identity; `--hw-text` on every ground and
+surface is in [15-color-combinations.md](15-color-combinations.md). The leader is non-text and its
+bar is 3:1, which the same ink already clears, so leader and label are one pair. The card adds no
+pair and no token.
+
+### Annotation: rules
+
+- **One ink for line and label.** A lighter leader is a second pair to certify, and `--hw-text-secondary`
+  is refused on a field ([12-brand.md](12-brand.md#the-vivid-tier)).
+- **Leaders never cross each other or the object's content**, and end at its edge. A leader that
+  reaches inside the object covers the thing it names.
+- **No arrowhead and no dot.** The line touching the edge is the pointer; a terminal is a second
+  shape to read.
+- **Each label is a noun the product already uses** for that part, so the annotation teaches the
+  name the rest of the product will say ([25-content.md](25-content.md)).
+- **Static.** An annotation never animates, appears on hover or takes focus.
+
+### Annotation: what the consumer provides
+
+Whether the annotation is decorative. When the labels repeat what the object's caption already
+says, the whole layer takes `aria-hidden="true"` and the object keeps its `figcaption`; when a
+label says something nowhere else on the screen, it is text in reading order after the object and
+nothing is hidden. Placement of each leader, because only the product knows where its parts are.
 
 ## Key-value pair list
 

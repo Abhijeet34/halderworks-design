@@ -3,7 +3,7 @@
 A design system for instruments of record: software whose job is to be trusted about a number, a
 state or a record rather than to be admired.
 
-One token set, two themes, two densities, fifteen components, and **160 inventoried surfaces** each
+One token set, two themes, two densities, sixteen components, and **161 inventoried surfaces** each
 marked covered, partial or excluded. Every value traces to a measurement, and the repository carries
 the tools that prove it.
 
@@ -61,11 +61,11 @@ that owns it.
    project takes [exports/theme.css](exports/theme.css) instead. Dark theme is
    `data-theme="dark"` on the root, compact density is `data-density="compact"` on any ancestor, and
    with neither set the page follows `prefers-color-scheme`.
-2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 160 surfaces, each
+2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 161 surfaces, each
    `covered` with the section to read, `partial` with what is missing, or `excluded` with the
    reason. No row at all is a gap to report, not permission to invent.
 3. **Build from the component card**, not from a screenshot:
-   [design/65-components.md](design/65-components.md) has fifteen, and
+   [design/65-components.md](design/65-components.md) has sixteen, and
    [design/66-forms.md](design/66-forms.md) every form control. Every colour, size, radius,
    duration, breakpoint and z-index is a `var(--hw-*)`; a literal is off-system.
 4. **Pair an ink with a ground only from the table** in

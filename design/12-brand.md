@@ -160,7 +160,7 @@ The fill has no floor of its own on purpose: a butter key is not text, and a lab
 When a label cannot clear, the fill moves rather than the label, because the fill is the brand's and the label is the reader's.
 `tools/contrast.py` checks the forms as well as the ratios: a set that declares one of the twelve declares all twelve, each label is exactly `hw-text` or `hw-ink-text`, and the four primary tokens copy one family whole.
 
-**A field is never under data.** It carries display copy and one action, in `hw-on-field`, and no `hw-text-secondary` is ever placed on it.
+**A field is never under data.** It carries display copy and one action, or stages one of the product's own objects ([56-asset-placement.md](56-asset-placement.md#a-field-as-a-stage)), in `hw-on-field`, and no `hw-text-secondary` is ever placed on it.
 
 **`primary: brand` makes the loudest control the brand's.** The key is then held 14 CIEDE2000 from `hw-danger`, in all four blocks, because a destructive confirm is the one state drawn as a filled button ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)).
 A coral at hue 30, L 0.72, C 0.16 as the primary sits 6.5 from the dark `hw-danger` and is refused; the same coral with `primary: ink` paints no button and builds.

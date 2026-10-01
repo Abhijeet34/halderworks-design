@@ -1953,7 +1953,7 @@
             "C": "0"
           },
           "role": "fill",
-          "usage": "A large vivid area: a welcome, an empty state, a hero or a carousel cover. It carries display copy and one action, in hw-on-field.",
+          "usage": "A large vivid area: a welcome, an empty state, a hero or a carousel cover. It carries display copy and one action, or stages one of the product's own objects with corner labels and annotations, all in hw-on-field.",
           "notFor": "Data, a table, a list of rows, or hw-text-secondary. A field is never under data.",
           "state": "active",
           "introduced": "3.1.0"

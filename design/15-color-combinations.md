@@ -103,17 +103,17 @@ Measured on quoth's Field identity, `tests/fixtures/field/`, the one set in this
 
 | pair | floor | light | dark |
 |---|---|---:|---:|
-| label on the brand fill, `hw-on-brand` on `hw-brand` | 4.5:1, 7:1 more | 11.45 | 14.09 |
-| the same label hovered and pressed, on `hw-brand-hover` and `hw-brand-active` | 4.5:1, 7:1 more | 10.40 and 9.42 | 12.80 and 11.59 |
-| display copy on a field, `hw-on-field` on `hw-field` | 4.5:1, 7:1 more | 11.45 | 14.09 |
-| body copy on the brand tint, `hw-text` on `hw-brand-quiet` | 7:1 in both tiers | 13.30 | 12.00 |
-| body copy in a selected row, `hw-text` on `hw-select` | 7:1 in both tiers | 12.85 | 11.57 |
+| label on the brand fill, `hw-on-brand` on `hw-brand` | 4.5:1, 7:1 more | 12.29 | 14.09 |
+| the same label hovered and pressed, on `hw-brand-hover` and `hw-brand-active` | 4.5:1, 7:1 more | 11.16 and 10.11 | 12.80 and 11.59 |
+| display copy, a staged object's corner labels and annotations on a field, `hw-on-field` on `hw-field` | 4.5:1, 7:1 more | 12.29 | 14.09 |
+| body copy on the brand tint, `hw-text` on `hw-brand-quiet` | 7:1 in both tiers | 13.15 | 12.00 |
+| body copy in a selected row, `hw-text` on `hw-select` | 7:1 in both tiers | 12.69 | 11.57 |
 
 `hw-on-primary` on `hw-primary` and its two states is the ink pair above or the brand pair above, because the four primary tokens are copies of one family.
 The brand tint and the selected row are held at 7:1 even in the default tier, because both are read at length, and a row is read for as long as it stays selected.
 
 **No other ink sits on a vivid fill.** `hw-text-secondary` on a field, `hw-accent` on the brand fill, or a state ink on either is not in this table, so it is not permitted.
-A vivid fill is never under data, and a field carries display copy and one action.
+A vivid fill is never under data, and a field carries display copy and one action, or stages one of the product's own objects.
 
 ## What must never sit on what
 
