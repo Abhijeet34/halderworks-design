@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Twelve-step OKLCH ramps with a contrast floor per step, one ramp per hue per theme.
 
-The replacement proposed for build.py's solver, landing beside it: nothing here is read by
-tokens/, exports/ or examples/ yet. A brand is a neutral and five to eight named hues
+The replacement proposed for build.py's solver, landing beside it: tools/export.py composes
+exports/ from these files and ramps/roles.css, and tokens/ and examples/*/tokens/ do not read
+them yet. A brand is a neutral and five to eight named hues
 (ramps/brands/<name>.json); every role in ramps/roles.css names a step of one of these ramps, so
 a role inherits that step's floor and a new role is a choice of step, never a new solve.
 

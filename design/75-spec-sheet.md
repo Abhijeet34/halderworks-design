@@ -113,7 +113,7 @@ The chart and separation rules of [10-color.md](10-color.md) hold in this block 
 `--hw-border-strong` and `--hw-text-disabled` share one lightness here, 0.5348 in light, and that is not a merge this block introduced: they share `oklch(0.6350 0.006 198)` in the default light theme too, because a boundary and a disabled glyph are different forms at one weight.
 
 **What it does not answer.** `forced-colors: active` throws this palette away, and the answer there is the filled level's transparent border, which the user agent can repaint: [50-surface-texture.md](50-surface-texture.md#under-forced-colours).
-The files in `exports/` carry the default themes only; `tokens/tokens.css` is the one file that carries this block.
+The files in `exports/` carry the ramp roles set rather than this solved block: under `prefers-contrast: more` its muted text, lines, focus ring, solids and state text move to ramp step 12, which `tools/ramps.py` floors at 13:1 on steps 1 to 5.
 
 ## 2. Surface and texture styles
 
@@ -561,14 +561,14 @@ What a scheme fixes is which four colours a surface actually uses, so a project 
 **The requirement is that this book is usable irrespective of which model reads it.**
 A system that exists only as prose is a system every agent re-interprets, so the book emits itself in the four forms agents actually consume.
 
-`tools/export.py` reads `tokens/tokens.json` and writes all four into `exports/`:
+`tools/export.py` composes the brand's `ramps/tokens/<brand>.tokens.css`, the shared `ramps/roles.css` and the faces, shape and layout from `tokens/tokens.json`, and writes all four into `exports/`:
 
 | file | what it is | for |
 |---|---|---|
 | `DESIGN.md` | every token with its role, plus the eleven rules that are not negotiable | an agent with room for the long brief |
 | `DESIGN.compact.md` | the same rules, colours and type ramp; every other family as one line per scale | a context window that cannot take the long one |
-| `theme.css` | a Tailwind v4 `@theme` block, mapped to Tailwind's own namespaces so utilities generate | a Tailwind product |
-| `variables.css` | plain CSS custom properties, both themes, compact density and reduced motion | anything else |
+| `theme.css` | the runtime variables plus a Tailwind v4 `@theme inline` map, so a utility follows every block `variables.css` answers | a Tailwind product |
+| `variables.css` | plain CSS custom properties: both themes, `prefers-contrast: more`, compact density, the 44px touch floor, reduced motion and `html[data-text-size]` | anything else |
 | `exports/design-tokens.json` | W3C DTCG, with `$value`, `$type` and `$description` on every token | a design tool or a token pipeline |
 
 **This is not `tools/build.py`.**
