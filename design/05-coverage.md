@@ -36,7 +36,7 @@ A row is a claim, and the script is what makes it a checkable one.
 
 Counts, which are what a reader should look at first, and which the script verifies against the
 table so they cannot drift - here and in every other live copy, `README.md` and `SKILL.md` included:
-**160 surfaces, 127 covered, 8 partial, 25 excluded.**
+**163 surfaces, 138 covered, 3 partial, 22 excluded.**
 
 ## The cross-check manifest
 
@@ -180,13 +180,17 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Charts | covered | `70-data-display.md#charts` | |
 | Bulk selection and select-all | covered | `70-data-display.md#bulk-selection-and-select-all` | a sweep for bulk, select all and multi-select returned 0, while this file requires a table to handle hundreds of rows |
 | Skeleton and loading | covered | `60-states.md#loading-holds-the-width` | |
-| Menu, dropdown and context menu | partial | `35-layout.md#layering` | `--hw-z-dropdown` names "menu, select, popover, tooltip" and only the select and the two form popovers in `66-forms.md` have an anatomy. A menu has none: no item height, no separator, no submenu rule, no destructive item treatment |
-| Tooltip | partial | `55-iconography.md#alignment-against-text` | required by the icon-only control rule and by the truncation rule in `25-content.md`, and specified nowhere: no delay, no placement, no max width, no touch behaviour |
-| Popover | partial | `66-forms.md#combobox-with-type-ahead` | the combobox and calendar popovers now fix the surface, border, radius, shadow and layer, which is the first popover anatomy in the system. A general popover still has no placement, flip or arrow rule |
+| Menu, dropdown and context menu | covered | `64-component-sheets.md#menu` | was partial: a z-index and no anatomy. the component layer, decided by the system's owner on 2026-10-02, gives it an item height, a separator, a checked and a disabled item, and the destructive item last. A submenu is still refused, one level only |
+| Tooltip | covered | `64-component-sheets.md#tooltip` | was partial: required and specified nowhere. the component layer, decided by the system's owner on 2026-10-02, fixes a 500ms delay in, none out, placement above with a below variant, an 18rem width, and showing on keyboard focus from CSS alone. On touch it is unreachable, which is why it never carries anything needed to act |
+| Popover | covered | `64-component-sheets.md#popover` | was partial: the form popovers had an anatomy and a general one had no placement. the component layer, decided by the system's owner on 2026-10-02, opens it with the popover attribute and places it by anchor positioning, flipping at the edge where the engine supports it. It has no arrow |
 | Banner and inline alert | partial | `67-validation.md#the-form-level-error-summary` | the form error summary is specified, and `70-data-display.md` requires a banner for a partial load, which has no anatomy: no dismissibility rule, no placement, no relation to the toast |
 | Breadcrumb, pagination, command palette | partial | `05-coverage.md#other-components` | none is specified. Pagination is the one that bites first, because `70-data-display.md` requires a table to handle hundreds of rows and says nothing about how a reader moves through them |
-| Avatar | partial | `30-space-radius-elevation.md#radius` | `--hw-radius-full` is reserved for "avatars and count pills", so the radius is decided and nothing else is: no sizes, no fallback initials, no group or stacking rule |
-| Progress indicator | partial | `40-motion.md#what-may-animate` | a determinate indicator is the only thing in the system allowed to loop, which is a permission rather than a specification: no height, no track colour, no indeterminate fallback, and `66-forms.md` needs one for upload |
+| Avatar | covered | `64-component-sheets.md#avatar` | was partial: a radius and nothing else. the component layer, decided by the system's owner on 2026-10-02, gives it three sizes, initials under the image as the fallback, an 11px type floor and an overlapping group |
+| Progress indicator | covered | `64-component-sheets.md#progress` | was partial: a permission to loop and no anatomy. the component layer, decided by the system's owner on 2026-10-02, gives it a track, an ink fill, an indeterminate sweep and the still bar that replaces it under reduced motion |
+| Meter | covered | `64-component-sheets.md#level-meter` | was excluded as a static measurement no product takes. quoth ships a live input level, and the component layer, decided by the system's owner on 2026-10-02 admits it as the level meter, the one thing in the house that moves on its own |
+| Sheet or drawer as a general surface | covered | `64-component-sheets.md#sheet` | was excluded as a dialog that slides, while quoth ships one. the component layer, decided by the system's owner on 2026-10-02, makes it a native modal dialog on the inline end, full height, which slides in and appears in place under reduced motion |
+| Keycap | covered | `64-component-sheets.md#keycap` | had no row while quoth drew four with three paddings. the component layer, decided by the system's owner on 2026-10-02, gives it one anatomy with an 11px floor |
+| Hotkey field | covered | `64-component-sheets.md#hotkey-field` | had no row while quoth records a shortcut in settings. the component layer, decided by the system's owner on 2026-10-02, draws its set, recording, clash and disabled states; capturing the chord stays the product's |
 
 ## Form factors
 
@@ -196,7 +200,8 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Menu-bar utility and its floating panel | covered | `36-form-factors.md#2-the-menu-bar-utility-and-its-floating-panel` | |
 | Marketing and documentation page | covered | `36-form-factors.md#3-the-marketing-or-documentation-page` | the form factor was covered while naming no sections within it, so an agent had five typographic devices and no idea what a marketing page is made of. The fourteen-name checklist is there now |
 | Small viewports and the coarse pointer | covered | `36-form-factors.md#4-small-viewports-and-the-coarse-pointer-that-usually-comes-with-one` | the section was named for two axes and now owns the viewport half. The pointer is one rebind and the keyboard is `72-keyboard.md` |
-| Native mobile, email, print, terminal, and the rest | excluded | `36-form-factors.md#deliberately-out-of-scope` | each is listed there with its reason and what adding it would cost |
+| Print | covered | `64-component-sheets.md#print` | was excluded with native mobile and email. the component layer, decided by the system's owner on 2026-10-02, answers it with one print block in the layer: nothing that floats, shadows replaced by an edge, marks and diff rows printed in colour, no break inside a row, external links printed with their address |
+| Native mobile, email, terminal, and the rest | excluded | `36-form-factors.md#deliberately-out-of-scope` | each is listed there with its reason and what adding it would cost |
 
 ## Governance
 
@@ -216,7 +221,7 @@ inline alert - produced nothing, which is how the audit stayed short.
 | Dark cards a product separates by a lighter step | covered | `12-brand.md#the-dark-card-step` | `darkCard: "step"` lifts the dark surfaces until each card clears 1.2:1 over the ground, float and 8-bit, and both instruments refuse a set that loses the step or its header line |
 | Telling two product brands apart | covered | `12-brand.md#telling-brands-apart` | `tools/distinct.py` reports the painted distances between brands and refuses one brand built twice; whether two brands read as two is a render, which is a release step |
 | A brand's faces and how they are delivered | covered | `20-type.md#a-brands-faces` | a roster of faces, each with its delivery, its upstream file and sha256, and the text face held to the house x-height with `font-size-adjust`; `tools/faces.py` reads the metrics from the file |
-| A shipped component library | excluded | `95-extending.md#loading-the-system-in-a-product` | there is no build step and no runtime by design: the system is a token file, a set of rules, and the discipline to report a gap rather than invent a value |
+| A shipped component library | covered | `64-component-sheets.md#the-component-layer` | was excluded: no build step and no runtime. the component layer, decided by the system's owner on 2026-10-02, reverses it without giving that up: plain CSS over the roles and scales, one script for a radio group's arrow keys, and sheets generated from the same source as their renders by `tools/components.py` |
 
 ## The spec sheet
 
@@ -261,7 +266,7 @@ answered until the cross-check found them. [37-navigation.md](37-navigation.md) 
 
 ## Ruled out, with the reason
 
-Eighteen rows the field carries that nothing here needs.
+Sixteen rows the field carries that nothing here needs.
 **An exclusion that is written down is coverage and an exclusion that lives in someone's head is a
 gap** - which is the whole lesson of the splitter, and the reason these cost one line each rather
 than being left out.
@@ -276,7 +281,6 @@ needs one reports the gap.
 | Window splitter | excluded | `35-layout.md#the-two-shapes-we-build` | neither a half-width rail nor a resizable splitter: a splitter is a per-user layout the product then has to store, migrate and support, and a half-width rail is a splitter with one position. The reason already existed in the rule file for three rounds and had no row here, which is the leak this inventory was audited to find |
 | Tree view | excluded | `05-coverage.md#ruled-out-with-the-reason` | no product displays a hierarchy. A flat list plus a filter is the house answer, and `65-components.md#accordion-and-disclosure` refuses nesting for the same reason |
 | Treegrid | excluded | `05-coverage.md#ruled-out-with-the-reason` | a tree crossed with a grid is the most expensive widget in the external pattern set at 43 keyboard rows, and nothing here needs one |
-| Meter | excluded | `05-coverage.md#ruled-out-with-the-reason` | distinct from a progress indicator: a static measurement rather than a task, and no product measures one |
 | Range slider with two thumbs | excluded | `05-coverage.md#ruled-out-with-the-reason` | one thumb is specified in `66-forms.md#slider`; a second is a different interaction and no product filters a range |
 | Feed and infinite scroll | excluded | `05-coverage.md#ruled-out-with-the-reason` | pagination is the house answer once the breadcrumb and pagination row is finished. Infinite scroll loses the footer and loses the reader's position |
 | Notification centre | excluded | `05-coverage.md#ruled-out-with-the-reason` | a toast is transient and a centre is durable state a product must store, expire and mark read. No product has an inbox |
@@ -287,10 +291,9 @@ needs one reports the gap.
 | Multi-level select and transfer list | excluded | `05-coverage.md#ruled-out-with-the-reason` | a combobox with a filter is the house answer to both, and it is specified in `66-forms.md#combobox-with-type-ahead` |
 | Image lightbox and media viewer | excluded | `05-coverage.md#ruled-out-with-the-reason` | photography in product surfaces is already excluded above, and this is its component |
 | Mentions | excluded | `05-coverage.md#ruled-out-with-the-reason` | these are single-operator instruments with no second user to mention |
-| Account and profile page | excluded | `05-coverage.md#ruled-out-with-the-reason` | single-operator instruments with no account model. The settings page above is the surface that would otherwise absorb this |
-| Product tour and coachmarks | excluded | `05-coverage.md#ruled-out-with-the-reason` | a coachmark layer points at controls the reader cannot use yet, and is a product decision none of these has taken. A first-run screen is not this row: it is `First run and setup` above, a page |
+| Account and profile page | excluded | `05-coverage.md#ruled-out-with-the-reason` | single-operator instruments with no account model. The settings page above is the surface that would otherwise absorb this. Kept out of the house by the system's owner on 2026-10-02: a product that needs one owns it |
+| Product tour and coachmarks | excluded | `05-coverage.md#ruled-out-with-the-reason` | a coachmark layer points at controls the reader cannot use yet, and is a product decision none of these has taken. A first-run screen is not this row: it is `First run and setup` above, a page. Kept out of the house by the system's owner on 2026-10-02: a product that takes this decision owns the surface |
 | Drag-to-reorder list | excluded | `05-coverage.md#ruled-out-with-the-reason` | `66-forms.md` already rules that drag is never the only route, and no product orders anything by hand |
-| Sheet or drawer as a general surface | excluded | `05-coverage.md#ruled-out-with-the-reason` | the one sheet in this system is the rail below `--hw-bp-lg`, specified in `36-form-factors.md`. A general drawer is a dialog that slides |
 
 ## Covered by composition
 
@@ -337,7 +340,7 @@ three rested on a premise the book does not support; those three are retitled he
 | Whether quoth's live-microphone state gets its own hue | yes, decided by the system's owner on 2026-09-21, and [solved](95-extending.md#the-worked-example-quoths-live-colour) as `--quoth-live`, the hue-48 orange of quoth's D-062 since 2026-09-28 | the accent already means selection and focus, and recording red sits on `--hw-danger`'s hue. The bar was recalibrated by the system's owner on 2026-09-28: 14 CIEDE2000 from each state and 5.0 in hue and chroma from each state and the accent, because the 8.0 in hue and chroma it replaced was never calibrated and a maroon at hue 27 clears any reading that counts lightness. The floor is 3:1, because quoth's D-059 took the word out of the colour. The orange keeps 15.6 CIEDE2000 and 5.43 in hue and chroma at its closest to a state |
 | Whether an illustration set inherits the accent hue or carries its own | dissolved | a `currentColor` set takes the surrounding text colour, and a figurative one would bring its own through a product namespace |
 | **Slide sequences are in scope because the owner asked for them**, retitled from "yes, on the precedent of the 404 page and the link-preview card" | yes, [specified](75-spec-sheet.md#slide-sequence) | the old ground cited two entries that did not exist when it was written. The real one is the owner's request for carousel art, and the frame is measured on three independent accounts |
-| **The eighteen exclusions are not waiting on a roadmap**, retitled from "which, if any, is about to be needed" | not pending | all eighteen are written down, and the one product read forbids the riskiest in its own source. [The section above](#ruled-out-with-the-reason) says so |
+| **The sixteen exclusions are not waiting on a roadmap**, retitled from "which, if any, is about to be needed" | not pending | all sixteen are written down, and the one product read forbids the riskiest in its own source. [The section above](#ruled-out-with-the-reason) says so |
 | **The high-contrast theme answers two questions, and both are answered**, retitled from "the high-contrast theme waits on role separation", itself retitled from "which question the high-contrast theme answers" | [specified](75-spec-sheet.md#high-contrast-which-answers-prefers-contrast-more-and-nothing-else) | `forced-colors: active` is [the filled level's transparent border](50-surface-texture.md#under-forced-colours), and `prefers-contrast: more` is the per-role re-solve in `tokens/tokens.css`. Raising the floors alone put `--hw-text-secondary` 0.033 from `--hw-text-muted` in light and 0.047 in dark; per-role targets in the seed and a 0.06 minimum step, refused by both instruments, keep them two roles |
 | **The mixed-face headline marks a term, not emphasis**, retitled from "whether face may carry emphasis within a line" | [specified](75-spec-sheet.md#the-mixed-face-headline) | the collision was with "emphasis is weight", and a span naming a term does the job [20-type.md](20-type.md#rules) already gives italic, so both rules stand |
 | Right-to-left text inside a product | [specified](35-layout.md#direction-and-text-in-another-script) | a correctness rule: quoth's transcripts can arrive in a right-to-left script today |

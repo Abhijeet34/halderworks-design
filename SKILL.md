@@ -5,7 +5,7 @@ description: >-
   interface - a screen, a route, a component, a form, a table, a landing page, an email sign-in,
   a first-run setup screen, a settings page, a chart, an icon row, a piece of UI copy - and before
   proposing a colour, a size, a radius, a duration, a breakpoint or a z-index. It carries one token
-  set, two themes, two densities, 160 inventoried surfaces, and a rule that no value is invented: a value the system
+  set, two themes, two densities, 163 inventoried surfaces, and a rule that no value is invented: a value the system
   lacks is a gap to report, not a number to guess. Also load it when asked whether this system
   covers a surface at all, when a contrast ratio or an accessibility keyboard behaviour is in
   question, or when extending the system.
@@ -16,8 +16,9 @@ description: >-
 You are about to build or change a user interface for a Halderworks product.
 This system is what you build it from.
 
-**It is plain files and plain Markdown by design.** There is nothing to install, no runtime, no
-component library, and no dependency on which model or tool is reading it. Read the files.
+**It is plain files and plain Markdown by design.** There is nothing to install and nothing to build,
+and no dependency on which model or tool is reading it. Read the files. The component layer is
+plain CSS, `components/components.css`, loaded after the variables.
 
 ## The four rules, which do not have exceptions
 
@@ -36,7 +37,7 @@ component library, and no dependency on which model or tool is reading it. Read 
 
 **Before you build a surface, check whether this system already answers it.**
 
-`design/05-coverage.md` lists **160 surfaces**, each marked `covered`, `partial` or `excluded`, and
+`design/05-coverage.md` lists **163 surfaces**, each marked `covered`, `partial` or `excluded`, and
 it was audited against six external component and accessibility taxonomies so that it can report
 what it does not have. Searching it takes one read and returns one of four answers:
 
@@ -56,7 +57,7 @@ invent. That is why the inventory exists and why it is checked by a script.
 |---|---|
 | find out whether this system covers a thing at all | `design/05-coverage.md` |
 | understand what these products are and why the system looks like this | `design/00-brand-book.md` |
-| build or restyle any screen | `design/00-brand-book.md`, `design/35-layout.md`, then the component's section in `design/65-components.md` |
+| build or restyle any screen | `design/00-brand-book.md`, `design/35-layout.md`, then the component's sheet in `design/64-component-sheets.md` |
 | pick a colour | `design/10-color.md` for the token, `design/15-color-combinations.md` for what it may sit on. **The pairing table is permission, not documentation** |
 | build a screen for quoth, papertrace or pointback, or give a product its own identity | `design/12-brand.md`, then load `examples/<product>/tokens/tokens.css` in place of `tokens/tokens.css`. A brand changes values, never token names |
 | set type | `design/20-type.md`. The tabular-figures rule is the one most often missed |
@@ -73,7 +74,7 @@ invent. That is why the inventory exists and why it is checked by a script.
 | draw or choose an icon | `design/55-iconography.md` |
 | place art, a hero, a slide or a texture, or decide what may sit beside what | `design/56-asset-placement.md`, then `design/55-iconography.md` for how art is built |
 | give a control its hover, focus, disabled or loading behaviour | `design/60-states.md` |
-| build any of fifteen components | `design/65-components.md` |
+| build any of forty-one components | `design/64-component-sheets.md` for the sheet and `components/components.css` for the CSS, then `design/65-components.md` for the older rules it has not replaced |
 | build a form, or any single control in one | `design/66-forms.md`, then `design/67-validation.md` |
 | build a sign-in, first-run or settings page | `design/68-page-patterns.md` |
 | make anything reachable by keyboard | `design/72-keyboard.md` |
@@ -98,7 +99,7 @@ source as everything else, and it is about a tenth of the size of the book.
 **When it is not enough, and reading it alone will produce off-system work:**
 
 - **You are building a component or a surface for the first time.** The compact brief carries
-  values, not anatomy. `design/65-components.md` and `design/66-forms.md` are the anatomy, and a
+  values, not anatomy. `design/64-component-sheets.md`, `design/65-components.md` and `design/66-forms.md` are the anatomy, and a
   button with correct colours and wrong padding is the exact failure.
 - **You are pairing an ink with a ground.** Permission lives in `design/15-color-combinations.md`
   and nowhere else. Two tokens both existing does not make them a pair.

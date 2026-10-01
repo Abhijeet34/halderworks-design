@@ -120,6 +120,7 @@ jobs:
           # The proposed ramps and roles: nothing ships them yet, and the second instrument
           # certifies them anyway so the replacement lands already held.
           run "The ramps or their roles no longer hold" python3 tools/contrast.py --ramps
+          run "The component sheets or their renders are stale" python3 tools/components.py --check
           run "The coverage inventory, its refusals, its manifest or a link" \
             python3 tools/check-coverage.py
           run "The source classifier no longer agrees with its fixtures" \
