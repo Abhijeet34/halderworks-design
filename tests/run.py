@@ -3,11 +3,11 @@
 
     python3 tests/run.py
 
-The four tools in tools/ check the token set. These three check the tools: that the two
-instruments are still two, that every hue the build accepts survives the second one, and that a
-wrong input is actually refused rather than merely believed to be. They are adopted from the
+The four tools in tools/ check the token set. The first three suites here check the tools: that
+the two instruments are still two, that every hue the build accepts survives the second one, and
+that a wrong input is actually refused rather than merely believed to be. They are adopted from the
 2026-09-21 audit, which ran them against this repository and found 17 of 21 wrong inputs leaving
-every tool green.
+every tool green. The fourth checks tools/ramps.py, which lands beside the build.
 
 A test file nobody runs is not a check, which is the only reason this file exists: nothing in a
 shell-driven repository discovers tests, so the gate has to name them. .github/workflows/
@@ -30,6 +30,7 @@ SUITES = [
     ("invariants", "the two instruments are independent and still agree", "invariants.py"),
     ("hue sweep", "every hue the build accepts survives tools/contrast.py", "hue_sweep.py"),
     ("mutations", "a wrong input is refused by something", "mutation_tests.py"),
+    ("ramps", "the twelve-step ramps hold every floor, every hue open", "ramps.py"),
 ]
 
 
