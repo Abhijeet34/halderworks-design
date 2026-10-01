@@ -1074,7 +1074,7 @@ def wf(name, expect, mutate, note=""):
 def e1(repo):
     p = repo / "tools" / "export.py"
     p.write_text(p.read_text(encoding="utf-8").replace(
-        "    tokens = load(root)\n", "    raise RuntimeError('exporter is broken')\n", 1),
+        "        src = sources(root)\n", "        raise RuntimeError('exporter is broken')\n", 1),
         encoding="utf-8")
 
 
