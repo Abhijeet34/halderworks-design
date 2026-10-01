@@ -1,0 +1,12 @@
+{
+  "neutral": {"hue": 90, "chroma": 0.004},
+  "hues": {
+    "accent": {"hue": 262, "chroma": 0.15},
+    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.90, "dark": 0.88}},
+    "red": {"hue": 27, "chroma": 0.19},
+    "amber": {"hue": 70, "chroma": 0.16},
+    "green": {"hue": 150, "chroma": 0.14},
+    "pencil": {"hue": 230, "chroma": 0.12, "solid": {"light": 0.78, "dark": 0.78}},
+    "live": {"hue": 48, "chroma": 0.19}
+  }
+}
