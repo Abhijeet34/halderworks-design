@@ -1102,9 +1102,9 @@
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.004,
-                90
+                0.674,
+                0.15,
+                262
               ]
             }
           }
@@ -1952,8 +1952,8 @@
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.006,
+                0.4,
+                0.112,
                 27
               ]
             }
@@ -2002,8 +2002,8 @@
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.006,
+                0.4,
+                0.112,
                 27
               ]
             }
@@ -2055,7 +2055,7 @@
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.165,
+                0.987,
                 0.004,
                 90
               ]

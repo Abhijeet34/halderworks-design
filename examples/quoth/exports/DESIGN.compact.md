@@ -23,7 +23,7 @@ A house design system: 42 colour roles, each naming a step of a twelve-step ramp
 | when | what moves |
 |---|---|
 | `[data-theme="dark"]`, or `prefers-color-scheme: dark` when the page names no theme | the dark set |
-| `prefers-contrast: more` | muted text, lines, the focus ring, solids and state text move to step 12, which clears 7:1 |
+| `prefers-contrast: more` | muted text, lines, the focus ring, solids and state text move to step 12, which clears 7:1; in dark the ring moves to accent 11 and the danger solid to red 7 under a light label, off the ink |
 | `data-text-size="s|m|l|xl|xxl"` on `html` | the root size, so every rem step moves |
 | `data-density="compact"` on any ancestor | control height, row height and vertical cell and field padding |
 | `pointer: coarse` | a control never measures under 44px, compact or not, at any text size |
