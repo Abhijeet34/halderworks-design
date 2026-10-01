@@ -58,7 +58,8 @@ that owns it.
 1. **Load the tokens.** Copy [tokens/tokens.css](tokens/tokens.css) into the product and import it
    before the product's own stylesheet, with the font link in
    [design/95-extending.md](design/95-extending.md#loading-the-system-in-a-product). A Tailwind v4
-   project takes [exports/theme.css](exports/theme.css) instead. Dark theme is
+   project takes [exports/theme.css](exports/theme.css) instead, which is the ramp roles set
+   (`ramps/roles.css`) with the five-step `data-text-size` setting and rem sizes of `ramps/scales.css`. Dark theme is
    `data-theme="dark"` on the root, compact density is `data-density="compact"` on any ancestor, and
    with neither set the page follows `prefers-color-scheme`.
 2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 160 surfaces, each
@@ -109,8 +110,8 @@ Other forms of the same values, for a tool that wants one:
 | [tokens/tokens.css](tokens/tokens.css) | the custom properties a browser loads. Copy-pasteable into any product |
 | [tokens/tokens.json](tokens/tokens.json) | the machine-readable set, with a role, a lifecycle state and an introduced version on every token |
 | [tokens/tokens.seed.json](tokens/tokens.seed.json) | the **source** the two above are generated from: a hue seed, per-token lightness and chroma anchors, and the contrast floor each token must hold |
-| [exports/theme.css](exports/theme.css) | a Tailwind v4 `@theme` block, mapped to Tailwind's namespaces so utilities generate |
-| [exports/variables.css](exports/variables.css) | plain CSS custom properties, both themes, compact density and reduced motion |
+| [exports/theme.css](exports/theme.css) | the runtime variables plus a Tailwind v4 `@theme inline` map, so every utility follows each block below |
+| [exports/variables.css](exports/variables.css) | plain CSS custom properties from `ramps/` and the brand's faces and shape: both themes, `prefers-contrast: more`, compact density, the 44px touch floor, reduced motion and `html[data-text-size]` |
 | [exports/design-tokens.json](exports/design-tokens.json) | W3C DTCG, with `$value`, `$type` and `$description` per token |
 | [exports/DESIGN.md](exports/DESIGN.md) | the long brief: every token with its role, plus the rules |
 | [exports/DESIGN.compact.md](exports/DESIGN.compact.md) | the short brief, for a small context window |
