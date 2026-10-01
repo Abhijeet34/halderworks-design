@@ -12,8 +12,9 @@
   6. A malformed brand file is refused with a sentence, never a traceback.
   7. verify() refuses a written file that breaks a floor, a label, a fixed step or the two dark
      blocks' agreement, so the re-measure is a check rather than a formality.
-  8. tools/contrast.py --ramps refuses a floor missed by under 0.01, a role on the wrong step, an
-     accent equal to the success green, and malformed files, each by name and without a traceback.
+  8. tools/contrast.py --ramps refuses a floor missed by under 0.01, a role on the wrong step, a
+     dark danger solid or ring back beside the ink under more, an accent equal to the success
+     green, and malformed files, each by name and without a traceback.
   9. ramps.py's floors and contrast.py's are the same set, declared in each file.
   10. Every fifth accent hue through contrast.py's separation bars: hue 150 refused, 262 not.
       Every hue builds (4); this is how many of them read as a state once built.
@@ -123,7 +124,6 @@ def contrast_refuses(fails):
          "not steps 1 to 12"),
         ("an unreadable line", tampered(house, "  --hw-red-12:", "  red twelve\n  --hw-red-12:"),
          "cannot read 'red twelve'"),
-        ("a new brand with the house's dark-more gap", house, "--hw-ink sits"),
         ("a step written twice", tampered(house, "  --hw-red-12:", "  --hw-red-11: oklch(0.5 0.1 "
                                           "27);\n  --hw-red-12:"), "declared twice"),
         ("a hex the instrument does not convert",
@@ -152,6 +152,21 @@ def contrast_refuses(fails):
         ("a dark override left out of the media copy",
          "    --hw-mark-quiet: var(--hw-mark-5);\n    --hw-scrim: oklch(0 0 0 / 0.6);\n  }\n}",
          "    --hw-scrim: oklch(0 0 0 / 0.6);\n  }\n}", "dark overrides differ"),
+        ("the dark danger solid back on step 12 under more",
+         '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n    --hw-danger-solid: '
+         'var(--hw-red-7);\n    --hw-danger-hover: var(--hw-red-7);\n    --hw-on-danger: '
+         'var(--hw-gray-12);\n', '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n',
+         "--hw-ink sits"),
+        ("the dark ring back near white under more",
+         '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);',
+         '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-12);', "--hw-focus sits"),
+        ("the dark solid one step too bright for its label under more",
+         '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n    --hw-danger-solid: '
+         'var(--hw-red-7);', '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n'
+         '    --hw-danger-solid: var(--hw-red-8);', "--hw-on-danger on --hw-danger-solid"),
+        ("a dark override under more left out of the media copy",
+         ':root:not([data-theme="light"]) {\n    --hw-focus: var(--hw-accent-11);\n',
+         ':root:not([data-theme="light"]) {\n', "overrides under more differ"),
     ]
     with tempfile.TemporaryDirectory() as tmp:
         cases = []
@@ -189,7 +204,7 @@ def separation_sweep(fails):
         for hue in range(0, 360, 5):
             b = copy.deepcopy(HOUSE)
             b["hues"]["accent"] = {"hue": hue, "chroma": 0.15}
-            # The house file with its accent moved: the house's named gaps, and only those, apply.
+            # The house file with its accent moved: only a separation bar may refuse it.
             bad, _ = contrast.certify_ramps(brand_css(tmp, "house", b))
             if bad:
                 refused.append(hue)
