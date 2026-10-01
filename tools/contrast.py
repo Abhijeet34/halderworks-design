@@ -855,9 +855,11 @@ ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill th
 # Under prefers-contrast: more, roles.css raises the danger solid and every state ink to step 12,
 # and in dark every step 12 is near white, so they land on the ink and the ring. No step holds a
 # 7:1 label and a hue at once there; until roles.css chooses, these pairs are reported as gaps,
-# by name, and every other bar in that tier still refuses.
-ROLE_GAPS = {("dark-more", "--hw-ink", "--hw-danger-solid"),
-             ("dark-more", "--hw-focus", "--hw-danger")}
+# by exact brand and pair (maintainer decision, 2026-10-02), and any other failure still refuses,
+# a new brand's included.
+ROLE_GAPS = {(brand, "dark-more", a, b)
+             for brand in ("house", "papertrace", "pointback", "quoth")
+             for a, b in (("--hw-ink", "--hw-danger-solid"), ("--hw-focus", "--hw-danger"))}
 ROLE_INK_REPORTED = ("--hw-accent-text", ("--hw-success", "--hw-warning", "--hw-danger"))
 
 WHITE_OKLCH = (1.0, 0.0, 0.0)   # the reference path returns #FFFFFF from this exactly
@@ -940,6 +942,7 @@ def ramp_steps(block):
 
 def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
     """(failures, report lines) for one tools/ramps.py file and ramps/roles.css over it."""
+    brand = Path(tokens_path).name.removesuffix(".tokens.css")
     rb, bad = declarations(tokens_path, RAMP_BLOCKS)
     lb, rbad = declarations(roles_path, ROLE_BLOCKS)
     bad += rbad
@@ -1032,7 +1035,7 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
                     measure(fg, bg, bar_of(AA), "role label", tier, col[fg], col[bg])
             for what, a, b, bar, reads in ROLE_BARS:
                 d = painted(col[a], col[b])
-                if d < bar and (tier, a, b) in ROLE_GAPS:
+                if d < bar and (brand, tier, a, b) in ROLE_GAPS:
                     report.append(f"  gap {tier}: {a} sits {d:.1f} from {b}, below {bar}: {reads}")
                 elif d < bar:
                     bad.append(f"{tier}: {a} sits {d:.1f} CIEDE2000 from {b} at 8-bit, below "
@@ -1066,7 +1069,7 @@ def main_ramps(paths):
         except (OSError, UnicodeDecodeError) as e:
             failures.append(f"{path} could not be read: {e}")
             continue
-        failures += [f"{path.stem.removesuffix('.tokens')}: {f}" for f in bad]
+        failures += [f"{path.name.removesuffix('.tokens.css')}: {f}" for f in bad]
         print(f"ramps {path.name}: every step floor and solid label, every role in "
               f"roles.css in light, dark and both under prefers-contrast: more, float and "
               f"8-bit; {len(bad)} failed")

@@ -83,7 +83,7 @@
 /* Step 12 holds 13:1 on steps 1-5 of every ramp, gray-1 among them, so a step-12 solid carries a
    gray-1 label and step-12 text clears 7:1 everywhere step 11 cleared 4.5:1. In dark every step 12
    is near white, so the danger solid and text land on the ink and the ring: tools/contrast.py
-   --ramps reports those three pairs as gaps until this block chooses. */
+   --ramps reports those two pairs as gaps, per brand, until this block chooses. */
 @media (prefers-contrast: more) {
   :root {
     --hw-text-muted: var(--hw-gray-12);

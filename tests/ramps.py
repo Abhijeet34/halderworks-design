@@ -123,6 +123,7 @@ def contrast_refuses(fails):
          "not steps 1 to 12"),
         ("an unreadable line", tampered(house, "  --hw-red-12:", "  red twelve\n  --hw-red-12:"),
          "cannot read 'red twelve'"),
+        ("a new brand with the house's dark-more gap", house, "--hw-ink sits"),
         ("a step written twice", tampered(house, "  --hw-red-12:", "  --hw-red-11: oklch(0.5 0.1 "
                                           "27);\n  --hw-red-12:"), "declared twice"),
         ("a hex the instrument does not convert",
@@ -188,7 +189,8 @@ def separation_sweep(fails):
         for hue in range(0, 360, 5):
             b = copy.deepcopy(HOUSE)
             b["hues"]["accent"] = {"hue": hue, "chroma": 0.15}
-            bad, _ = contrast.certify_ramps(brand_css(tmp, "sweep", b))
+            # The house file with its accent moved: the house's named gaps, and only those, apply.
+            bad, _ = contrast.certify_ramps(brand_css(tmp, "house", b))
             if bad:
                 refused.append(hue)
                 if not all("CIEDE2000" in x for x in bad):
