@@ -1036,8 +1036,11 @@ def wf(name, expect, mutate, note=""):
     mutate(repo)
     subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam",
                     "mutation", "--no-verify"], cwd=repo, check=True)
+    # RUNNER_TEMP too: the step keeps every failing check's full output under it, and in CI
+    # the runner's own would collect this deliberately broken clone's logs into the real
+    # consistency-logs artifact.
     env = dict(os.environ, GITHUB_OUTPUT=str(repo.parent / "out"),
-               GITHUB_STEP_SUMMARY=str(repo.parent / "sum"))
+               GITHUB_STEP_SUMMARY=str(repo.parent / "sum"), RUNNER_TEMP=str(repo.parent))
     direct, dout = run(repo, "tools/export.py")
     subprocess.run(["git", "checkout", "-q", "--", "."], cwd=repo)
     # The extracted body calls tests/run.py, which calls this file, which would clone and run the
@@ -1068,6 +1071,12 @@ def wf(name, expect, mutate, note=""):
     else:
         print("    GITHUB_OUTPUT: the step wrote no `failed` output at all")
         RESULTS[-1] = ("FAIL", name, expect, verdict + " (no output written)", note)
+    # GitHub refuses a job summary past 1024k and then shows none of it.
+    summary = repo.parent / "sum"
+    size = summary.stat().st_size if summary.exists() else 0
+    print(f"    GITHUB_STEP_SUMMARY: {size:,d} bytes")
+    if size > 100_000:
+        RESULTS[-1] = ("FAIL", name, expect, f"{verdict} (summary {size:,d} bytes)", note)
     shutil.rmtree(repo.parent)
 
 
@@ -1097,7 +1106,17 @@ wf("E2 tokens.css carries a property exports/variables.css lacks; export.py repo
    "caught", e2, note="AGENTS.md: export.py refuses if it diverges from the CSS")
 
 
-print("\n\n==== summary")
+
+def e3(repo):
+    # A check whose failure prints more rows than the report keeps: tests/run.py's own failure
+    # was 1 MB. Its report must still be written, with failed=1, and stay a summary.
+    p = repo / "tools" / "distinct.py"
+    p.write_text("import sys\nfor i in range(5000):\n    print(f'FAIL  row {i}')\nsys.exit(1)\n",
+                 encoding="utf-8")
+
+
+wf("E3 a check fails with 5,000 FAIL rows; the step still reports it and writes failed=1",
+   "caught", e3, note="past 40 rows, grep | head under pipefail used to end the step unreported")
 for label, name, expect, verdict, note in RESULTS:
     print(f"{label:9} expected {expect:6} got {verdict:6}  {name}")
 bad = [r for r in RESULTS if r[0] == "FAIL"]
