@@ -953,13 +953,6 @@ THEMED_FAMILIES = ["shadow"]
 LAYOUT_FAMILIES = ["layout", "density", "icon", "zIndex", "stroke"]
 
 CSS_TAIL = '''
-/* Touch. On a coarse pointer the control IS the target, so --hw-control-h rebinds to the 44px
-   pointer floor. This composes with density: a compact list keeps 32px rows for reading while
-   its controls stay hittable, because a row is scanned and a control is hit. */
-@media (pointer: coarse) {
-  :root { --hw-control-h: var(--hw-row-h); }
-}
-
 /* Compact density. One attribute, and it moves vertical rhythm and control height only:
    type size, colour, alignment and horizontal padding are identical in both settings, so a
    column of numbers still lines up against the same column in the other density. */
@@ -968,6 +961,14 @@ CSS_TAIL = '''
   --hw-row-h: var(--hw-row-h-compact);
   --hw-cell-pad-y: var(--hw-cell-pad-y-compact);
   --hw-field-pad-y: var(--hw-field-pad-y-compact);
+}
+
+/* Touch. On a coarse pointer the control IS the target, so --hw-control-h never measures under
+   the 44px pointer floor. This composes with density: a compact list keeps 32px rows for reading
+   while its controls stay hittable, because a row is scanned and a control is hit. It follows
+   the compact block at the same specificity, so a compact ancestor cannot pull it back to 24px. */
+@media (pointer: coarse) {
+  :root, [data-density="compact"] { --hw-control-h: max(44px, var(--hw-row-h)); }
 }
 
 /* Type styles as classes, so a screen names a step rather than restating four properties. */
