@@ -5,7 +5,7 @@ A DIAGNOSTIC, not a gate: it prints and never refuses, because what it measures 
 finding 8 - rule 4 resolves a refusal to a row by a content word, and two of the 23 live
 refusals resolve to an unrelated row - and that finding belongs to another task. Asserting on
 its output here would fix the shape of a fix somebody else is still choosing, which is why
-tests/run.py runs the three suites that refuse, and leaves this one to be read.
+tests/run.py runs the four suites that refuse, and leaves this one to be read.
 
     python3 tests/coverage_probe.py [repo-root]
 """
