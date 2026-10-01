@@ -741,16 +741,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.495,
-                0.008,
+                0.212,
+                0.004,
                 90
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.67,
-                0.008,
+                0.987,
+                0.004,
                 90
               ]
             }

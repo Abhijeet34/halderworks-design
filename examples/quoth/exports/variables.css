@@ -349,7 +349,7 @@
   }
 }
 
-/* ---- roles and scales, with every media block, from ramps/roles.css ---- */
+/* ---- roles and scales, with every media block, from ramps/roles.css and ramps/scales.css ---- */
 :root {
   /* ---- neutral ---- */
   --hw-bg: var(--hw-gray-1);                 /* the page ground behind every surface */
@@ -400,7 +400,53 @@
   --hw-danger-hover: var(--hw-red-10);       /* the destructive solid under the pointer */
   --hw-on-danger: var(--hw-red-on-solid);    /* the label on a destructive solid */
   --hw-scrim: oklch(0.2 0 0 / 0.42);         /* behind a modal dialog; never read on */
+}
 
+[data-theme="dark"] {
+  --hw-surface: var(--hw-gray-2);
+  --hw-surface-raised: var(--hw-gray-3);
+  --hw-bg-subtle: oklch(from var(--hw-gray-1) calc(l - 0.03) c h);
+  --hw-mark-quiet: var(--hw-mark-5);
+  --hw-scrim: oklch(0 0 0 / 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --hw-surface: var(--hw-gray-2);
+    --hw-surface-raised: var(--hw-gray-3);
+    --hw-bg-subtle: oklch(from var(--hw-gray-1) calc(l - 0.03) c h);
+    --hw-mark-quiet: var(--hw-mark-5);
+    --hw-scrim: oklch(0 0 0 / 0.6);
+  }
+}
+
+/* Step 12 holds 13:1 on steps 1-5 of every ramp, gray-1 among them, so a step-12 solid carries a
+   gray-1 label and step-12 text clears 7:1 everywhere step 11 cleared 4.5:1. In dark every step 12
+   is near white, so the danger solid and text land on the ink and the ring: tools/contrast.py
+   --ramps reports those two pairs as gaps, per brand, until this block chooses. */
+@media (prefers-contrast: more) {
+  :root {
+    --hw-text-muted: var(--hw-gray-12);
+    --hw-line: var(--hw-gray-8);
+    --hw-line-strong: var(--hw-gray-11);
+    --hw-focus: var(--hw-gray-12);
+    --hw-ink-hover: var(--hw-gray-12);
+    --hw-accent-text: var(--hw-accent-12);
+    --hw-accent: var(--hw-accent-12);
+    --hw-accent-hover: var(--hw-accent-12);
+    --hw-on-accent: var(--hw-gray-1);
+    --hw-danger-solid: var(--hw-red-12);
+    --hw-danger-hover: var(--hw-red-12);
+    --hw-on-danger: var(--hw-gray-1);
+    --hw-insert: var(--hw-green-12);
+    --hw-delete: var(--hw-red-12);
+    --hw-success: var(--hw-green-12);
+    --hw-warning: var(--hw-amber-12);
+    --hw-danger: var(--hw-red-12);
+  }
+}
+
+:root {
   /* ---- type: one ramp in rem; px at the default size M ---- */
   --hw-text-xs: max(0.8rem, 11px);           /* 12: labels, captions; never under 11px */
   --hw-text-sm: 0.8667rem;                   /* 13: secondary lines, controls */
@@ -445,24 +491,6 @@
   --hw-ease-out: cubic-bezier(0.22, 1, 0.36, 1);  /* every entrance and every move */
 }
 
-[data-theme="dark"] {
-  --hw-surface: var(--hw-gray-2);
-  --hw-surface-raised: var(--hw-gray-3);
-  --hw-bg-subtle: oklch(from var(--hw-gray-1) calc(l - 0.03) c h);
-  --hw-mark-quiet: var(--hw-mark-5);
-  --hw-scrim: oklch(0 0 0 / 0.6);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --hw-surface: var(--hw-gray-2);
-    --hw-surface-raised: var(--hw-gray-3);
-    --hw-bg-subtle: oklch(from var(--hw-gray-1) calc(l - 0.03) c h);
-    --hw-mark-quiet: var(--hw-mark-5);
-    --hw-scrim: oklch(0 0 0 / 0.6);
-  }
-}
-
 /* The viewer's text size, five steps on the root: 13, 15, 17, 19 and 22px at the browser's
    default 16px. A percentage rather than px, so a reader who raised the browser's own default
    keeps that raise on top of this setting. M is the default. */
@@ -487,29 +515,6 @@ html[data-text-size="xxl"] { font-size: 137.5%; }
 @media (pointer: coarse) {
   :root { --hw-control-h: max(44px, 2.1333rem); }
   [data-density="compact"] { --hw-control-h: max(44px, var(--hw-control-h-sm)); }
-}
-
-/* Step 12 holds 13:1 on steps 1-5 of every ramp, gray-1 among them, so a step-12 solid carries a
-   gray-1 label and step-12 text clears 7:1 everywhere step 11 cleared 4.5:1. */
-@media (prefers-contrast: more) {
-  :root {
-    --hw-text-muted: var(--hw-gray-12);
-    --hw-line: var(--hw-gray-8);
-    --hw-line-strong: var(--hw-gray-11);
-    --hw-focus: var(--hw-gray-12);
-    --hw-accent-text: var(--hw-accent-12);
-    --hw-accent: var(--hw-accent-12);
-    --hw-accent-hover: var(--hw-accent-12);
-    --hw-on-accent: var(--hw-gray-1);
-    --hw-danger-solid: var(--hw-red-12);
-    --hw-danger-hover: var(--hw-red-12);
-    --hw-on-danger: var(--hw-gray-1);
-    --hw-insert: var(--hw-green-12);
-    --hw-delete: var(--hw-red-12);
-    --hw-success: var(--hw-green-12);
-    --hw-warning: var(--hw-amber-12);
-    --hw-danger: var(--hw-red-12);
-  }
 }
 
 /* Reduced motion removes movement, not feedback (design/40-motion.md). */

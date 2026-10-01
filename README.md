@@ -59,7 +59,7 @@ that owns it.
    before the product's own stylesheet, with the font link in
    [design/95-extending.md](design/95-extending.md#loading-the-system-in-a-product). A Tailwind v4
    project takes [exports/theme.css](exports/theme.css) instead, which is the ramp roles set
-   (`ramps/roles.css`) with the five-step `data-text-size` setting and rem sizes. Dark theme is
+   (`ramps/roles.css`) with the five-step `data-text-size` setting and rem sizes of `ramps/scales.css`. Dark theme is
    `data-theme="dark"` on the root, compact density is `data-density="compact"` on any ancestor, and
    with neither set the page follows `prefers-color-scheme`.
 2. **Find the surface's row** in [design/05-coverage.md](design/05-coverage.md): it lists 160 surfaces, each

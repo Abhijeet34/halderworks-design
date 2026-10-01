@@ -124,7 +124,7 @@ Every token is prefixed `hw-`, so it cannot collide with a framework's variables
 Dark theme is `[data-theme="dark"]`, and the system follows `prefers-color-scheme` when the page
 has made no explicit choice. Compact density is `data-density="compact"` on any ancestor.
 
-The exports are the ramp roles set that replaces the solver's (`ramps/roles.css`, whose names
+The exports are the ramp roles set that replaces the solver's (`ramps/roles.css` and `ramps/scales.css`, whose names
 overlap `tokens.css`, so load one set, never both): `exports/variables.css` is plain custom
 properties with every theme and media block, `exports/theme.css` is the same plus a Tailwind v4
 `@theme inline` map, `exports/design-tokens.json` is W3C DTCG. Type, space and control sizes are

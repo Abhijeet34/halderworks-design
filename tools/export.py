@@ -11,15 +11,17 @@ are the forms agents actually consume:
   exports/variables.css        plain CSS custom properties, with every theme and media block
   exports/design-tokens.json   W3C DTCG format, $value / $type / $description per token
 
-Three sources, composed and never re-solved:
+Four files, composed and never re-solved:
 
   ramps/tokens/<brand>.tokens.css   the twelve-step ramps, generated and floored by tools/ramps.py
-  ramps/roles.css                   the roles and scales every brand shares, with every media block
+  ramps/roles.css                   the colour roles every brand shares, with their theme blocks
+  ramps/scales.css                  the type, space, control and motion scales, the text-size
+                                    setting, and the density, touch and reduced-motion blocks
   <dir>/tokens/tokens.json          the brand's faces, shape and layout, which ramps/ does not carry
 
 This is NOT tools/build.py or tools/ramps.py: it only re-expresses values that are already
 solved, so it can never invent one. It proves that by parsing back what it wrote and refusing
-if any block, condition or value differs from the three sources.
+if any block, condition or value differs from them.
 
     python3 tools/export.py [design-system-dir]
     python3 tools/export.py examples/quoth      # quoth's set, into examples/quoth/exports/
@@ -30,10 +32,14 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+# The pairs tools/contrast.py --ramps reports as gaps rather than refusing. Read from there, not
+# copied, so the brief a product reads names exactly the gaps the instrument tolerates.
+from contrast import ROLE_GAPS  # noqa: E402
 
 # Families tokens.json still owns and the export carries unchanged. Everything in SUPERSEDED
-# (and the per-style type tokens) now comes from ramps/roles.css, so tokens.css declaring a
-# property in neither list is a token this export would silently drop.
+# (and the per-style type tokens) now comes from ramps/roles.css or ramps/scales.css, so a
+# tokens.css property in neither list is a token this export would silently drop.
 CARRIED = ("radius", "shadow", "layout", "icon", "zIndex", "stroke")
 SUPERSEDED = ("color", "spacing", "duration", "easing", "density")
 TYPE_PARTS = ("text", "leading", "tracking", "weight")
@@ -57,7 +63,7 @@ UNROLED = frozenset({
     "hw-chart-1", "hw-chart-2", "hw-chart-3", "hw-chart-4", "hw-chart-5", "hw-chart-6",
 })
 
-# spacing, duration and easing names ramps/roles.css declares under the same name tokens.json
+# spacing, duration and easing names ramps/scales.css declares under the same name tokens.json
 # uses, so these are checked by literal presence rather than an allowlist; RETIRED is what is
 # left over once that check runs - the decided scales are 8 rem space steps and 3 durations
 # with one ease-out, and no product uses these five (quoth only re-defines them in its own
@@ -207,10 +213,13 @@ def sources(root):
         raise ValueError(f"no ramps for brand {brand!r}: {ramp.relative_to(ROOT)} does not exist; "
                          f"add ramps/brands/{brand}.json and run tools/ramps.py")
     tokens = json.loads((root / "tokens" / "tokens.json").read_text(encoding="utf-8"))
-    roles = (ROOT / "ramps" / "roles.css").read_text(encoding="utf-8")
+    # roles.css is colour only, which tools/contrast.py --ramps certifies block by block;
+    # scales.css carries every size, the text-size setting and the blocks that move them.
+    # Both are shared by every brand, so they are one source here, roles first.
+    shared = [(ROOT / "ramps" / f).read_text(encoding="utf-8") for f in ("roles.css", "scales.css")]
     return {"brand": brand, "tokens": tokens, "ramp": body(ramp.read_text(encoding="utf-8")),
-            "carried": carried_css(tokens), "roles": body(roles),
-            "describe": dict(DESCRIBED.findall(roles))}
+            "carried": carried_css(tokens), "roles": "\n".join(body(t) for t in shared),
+            "describe": {k: v for t in shared for k, v in DESCRIBED.findall(t)}}
 
 
 def carried(tokens):
@@ -244,7 +253,7 @@ def runtime_css(src):
         src["ramp"],
         "/* ---- faces, shape and layout, from tokens/tokens.json ---- */",
         src["carried"],
-        "/* ---- roles and scales, with every media block, from ramps/roles.css ---- */",
+        "/* ---- roles and scales, with every media block, from ramps/roles.css and ramps/scales.css ---- */",
         src["roles"]])
 
 
@@ -253,9 +262,12 @@ def expected_blocks(src):
 
 
 def roles(src):
-    """[(name, raw value)] declared by ramps/roles.css on :root, in its order."""
-    first = next(d for m, s, d in blocks(src["roles"]) if m is None and s == ":root")
-    return list(first.items())
+    """[(name, raw value)] declared on :root by ramps/roles.css then ramps/scales.css, in order."""
+    out = {}
+    for m, s, d in blocks(src["roles"]):
+        if m is None and s == ":root":
+            out.update(d)
+    return list(out.items())
 
 
 def modes(src):
@@ -341,11 +353,11 @@ def check_sources(src, root):
         names = {e["name"] for e in tokens[fam]["tokens"]}
         accounted = {n for n in names if f"--{n}" in role_names} | (names & RETIRED)
         owned |= {"--" + n for n in accounted}
-        bad += [f"--{n} is a {fam} token ramps/roles.css neither declares nor lists RETIRED"
+        bad += [f"--{n} is a {fam} token ramps/scales.css neither declares nor lists RETIRED"
                 for n in sorted(names - accounted)]
     type_names = {f"hw-{part}-{s}" for part in TYPE_PARTS for s in TYPE_STYLES}
     owned |= {"--" + n for n in type_names & (RENAMED_TYPE | TYPE_UNROLED)}
-    bad += [f"--{n} is a type token ramps/roles.css neither renames nor declares TYPE_UNROLED"
+    bad += [f"--{n} is a type token ramps/scales.css neither renames nor declares TYPE_UNROLED"
             for n in sorted(type_names - RENAMED_TYPE - TYPE_UNROLED)]
     for theme, props in css.items():
         for k, v in props.items():
@@ -354,7 +366,7 @@ def check_sources(src, root):
             got = mine.get(theme, {}).get(k)
             if got is None:
                 bad.append(f"{k} [{theme}] is in tokens.css and neither carried by the export nor "
-                           f"owned by ramps/roles.css")
+                           f"owned by ramps/roles.css or ramps/scales.css")
             elif got != v:
                 bad.append(f"{k} [{theme}]: tokens.css {v!r} != export {got!r}")
     # 2. The three sources are disjoint: a name declared on :root by two of them would let load
@@ -373,6 +385,11 @@ def check_sources(src, root):
                 resolve(env[k], env)
             except KeyError as exc:
                 bad.append(f"{k} [{mode}] names {exc.args[0]}, which no source declares")
+    gap_roles = {r for brand, _, a, b in ROLE_GAPS if brand == src["brand"] for r in (a, b)}
+    bad += [f"tools/contrast.py ROLE_GAPS names {r}, which ramps/roles.css does not declare"
+            for r in sorted(gap_roles - role_names)]
+    bad += [f"--{n} is UNROLED but ramps/roles.css declares it" for n in sorted(UNROLED)
+            if f"--{n}" in role_names]
     return bad
 
 
@@ -383,7 +400,7 @@ def check_written(src, written):
         got = [b for b in blocks(written[name]) if not b[1].startswith("@theme")]
         if got != want:
             bad.append(f"exports/{name}: its {len(got)} blocks are not the {len(want)} of "
-                       f"ramps, tokens.json and ramps/roles.css, in that order")
+                       f"ramps, tokens.json, ramps/roles.css and ramps/scales.css, in that order")
         present = {(m, s) for m, s, _ in got}
         bad += [f"exports/{name} has no {s} block{' under ' + m if m else ''}"
                 for m, s in REQUIRED if (m, s) not in present]
@@ -769,6 +786,14 @@ def emit_design_md(src, compact):
                 "Per-step letter-spacing and weight are the same kind of gap: the rem type ramp "
                 "ships a size and a leading for each step and nothing for `--hw-tracking-*` or "
                 "`--hw-weight-*`, so this export carries neither.", ""]
+        gaps = sorted({(tier, a, b) for brand, tier, a, b in ROLE_GAPS if brand == src["brand"]})
+        if gaps:
+            out += ["Two role pairs fall under their separation bar and are reported, not "
+                    "refused, by `tools/contrast.py --ramps` until `ramps/roles.css` chooses "
+                    "(house-contrast-more-danger-r7): in dark under `prefers-contrast: more` every "
+                    "step 12 is near white, so the danger solid and danger text land on the ink "
+                    "and the focus ring.", ""]
+            out += [f"- {tier}: `{a}` against `{b}`" for tier, a, b in gaps] + [""]
     return "\n".join(out)
 
 
@@ -817,7 +842,7 @@ def main() -> int:
         return 1
 
     n_blocks = len(expected_blocks(src))
-    print(f"brand {src['brand']}: {len(roles(src))} roles and scales from ramps/roles.css, "
+    print(f"brand {src['brand']}: {len(roles(src))} roles and scales from ramps/roles.css and ramps/scales.css, "
           f"resolved in {len(MODES)} modes; {sum(1 for _ in carried(tokens))} carried from "
           f"tokens.json.")
     for name in written:

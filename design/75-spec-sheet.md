@@ -561,7 +561,7 @@ What a scheme fixes is which four colours a surface actually uses, so a project 
 **The requirement is that this book is usable irrespective of which model reads it.**
 A system that exists only as prose is a system every agent re-interprets, so the book emits itself in the four forms agents actually consume.
 
-`tools/export.py` composes the brand's `ramps/tokens/<brand>.tokens.css`, the shared `ramps/roles.css` and the faces, shape and layout from `tokens/tokens.json`, and writes all four into `exports/`:
+`tools/export.py` composes the brand's `ramps/tokens/<brand>.tokens.css`, the shared `ramps/roles.css` and `ramps/scales.css`, and the faces, shape and layout from `tokens/tokens.json`, and writes all four into `exports/`:
 
 | file | what it is | for |
 |---|---|---|

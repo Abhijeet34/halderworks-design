@@ -47,7 +47,7 @@ A house design system: 42 colour roles, each naming a step of a twelve-step ramp
 | `--hw-text-disabled` | `oklch(0.625 0.008 90)` | `oklch(0.520 0.008 90)` | `oklch(0.625 0.008 90)` | `oklch(0.520 0.008 90)` | exempt from 1.4.3; 3:1 on steps 1-3 |
 | `--hw-ink` | `oklch(0.212 0.004 90)` | `oklch(0.987 0.004 90)` | `oklch(0.212 0.004 90)` | `oklch(0.987 0.004 90)` | primary action: ink, not colour |
 | `--hw-on-ink` | `oklch(0.985 0.004 90)` | `oklch(0.165 0.004 90)` | `oklch(0.985 0.004 90)` | `oklch(0.165 0.004 90)` | the label on an ink solid |
-| `--hw-ink-hover` | `oklch(0.495 0.008 90)` | `oklch(0.670 0.008 90)` | `oklch(0.495 0.008 90)` | `oklch(0.670 0.008 90)` | the ink solid under the pointer |
+| `--hw-ink-hover` | `oklch(0.495 0.008 90)` | `oklch(0.670 0.008 90)` | `oklch(0.212 0.004 90)` | `oklch(0.987 0.004 90)` | the ink solid under the pointer |
 | `--hw-accent` | `oklch(0.571 0.150 262)` | `oklch(0.571 0.150 262)` | `oklch(0.219 0.101 262)` | `oklch(0.987 0.006 262)` | a solid: brand button, selected switch |
 | `--hw-accent-hover` | `oklch(0.531 0.150 262)` | `oklch(0.531 0.150 262)` | `oklch(0.219 0.101 262)` | `oklch(0.987 0.006 262)` | the accent solid under the pointer |
 | `--hw-on-accent` | `#FFFFFF` | `#FFFFFF` | `oklch(0.985 0.004 90)` | `oklch(0.165 0.004 90)` | the label on an accent solid |
@@ -234,3 +234,8 @@ The ramp steps themselves (`--hw-<hue>-1` to `-12`, in `variables.css`, named on
 Chart colours have no role yet and are a stated gap, followed up in house-chart-roles-r8: `--hw-chart-1` to `-6` stay in `tokens/tokens.json` and `tokens/tokens.css` but carry no name in `ramps/roles.css`, so this export does not carry them either.
 
 Per-step letter-spacing and weight are the same kind of gap: the rem type ramp ships a size and a leading for each step and nothing for `--hw-tracking-*` or `--hw-weight-*`, so this export carries neither.
+
+Two role pairs fall under their separation bar and are reported, not refused, by `tools/contrast.py --ramps` until `ramps/roles.css` chooses (house-contrast-more-danger-r7): in dark under `prefers-contrast: more` every step 12 is near white, so the danger solid and danger text land on the ink and the focus ring.
+
+- dark-more: `--hw-focus` against `--hw-danger`
+- dark-more: `--hw-ink` against `--hw-danger-solid`
