@@ -10,7 +10,8 @@ delete the floor that would have caught it.
 
 Seven invariants, each failing loudly rather than warning:
 
-  1. The two converters share no code, and neither file imports the other.
+  1. The two converters share no code, and neither file imports the other; nor does contrast.py
+     import tools/ramps.py, which it certifies with --ramps, or ramps.py import it.
   2. They still agree numerically, to a bound stated here rather than assumed.
   2a. Their two CIEDE2000 paths reproduce the published test pairs, and on every painted pair
       the house and the example brands certify, the build never reads a pair as further apart
@@ -45,7 +46,9 @@ def converters_are_independent(fails):
     """A shared converter is a second opinion from the same head."""
     b = (ROOT / "tools" / "build.py").read_text(encoding="utf-8")
     c = (ROOT / "tools" / "contrast.py").read_text(encoding="utf-8")
-    for src, name, other in ((b, "build.py", "contrast"), (c, "contrast.py", "build")):
+    r = (ROOT / "tools" / "ramps.py").read_text(encoding="utf-8")
+    for src, name, other in ((b, "build.py", "contrast"), (c, "contrast.py", "build"),
+                             (c, "contrast.py", "ramps"), (r, "ramps.py", "contrast")):
         if re.search(rf"^\s*(from {other} import|import {other})\b", src, re.M):
             fails.append(f"tools/{name} imports {other}; the two instruments must share no code")
     for fn in ("oklch_to_rgb", "luminance", "ratio_lum", "in_gamut"):
@@ -54,7 +57,7 @@ def converters_are_independent(fails):
     if build.oklch_to_rgb.__code__.co_consts == contrast.oklch_to_rgb.__code__.co_consts:
         fails.append("the two oklch_to_rgb implementations carry identical constants, so they "
                      "are one implementation in two files rather than two implementations")
-    print("  independence: neither file imports the other, and 4 converter functions differ")
+    print("  independence: no instrument imports another, and 4 converter functions differ")
 
 
 def converters_agree(css, fails):

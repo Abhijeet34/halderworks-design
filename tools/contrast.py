@@ -52,7 +52,16 @@ It runs four passes and exits non-zero if any fails:
   --extend wrote beside the product's seed, held to what this file requires of any product
   colour and to any higher bar the seed claims.
 
+  --ramps certifies tools/ramps.py's files instead, which nothing ships yet, and runs none of
+  the passes above. Per brand and theme: every step floor (8 at 3:1 on steps 1-3 of every ramp,
+  11 at 4.5:1 and 12 at 13:1 on steps 1-5) and the label on solids 9 and 10 at 4.5:1; every role
+  in ramps/roles.css on the grounds it is read on, at its step's floor and under prefers-contrast:
+  more at the raised bar; pass 3's CIEDE2000 bars carried onto the roles; sRGB and the two dark
+  blocks' agreement. Its floors are declared below, not imported, and a line it cannot read,
+  or a role certified by nothing and exempted nowhere, is a failure.
+
     python3 tools/contrast.py [tokens.css] [--extend product.seed.json [--extend-css file]]
+    python3 tools/contrast.py --ramps [ramps/tokens/NAME.tokens.css ...]
 """
 import argparse
 import json
@@ -1032,6 +1041,7 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
                     low(what, d, tier)
             ink, states = ROLE_INK_REPORTED
             low("ink, reported", min(painted(col[ink], col[s]) for s in states), tier)
+            # roles.css raises muted text to step 12 under more, so the ladder is reported there.
             step = abs(col["--hw-text"][0] - col["--hw-text-muted"][0])
             if not more and step < ROLE_STEP:
                 bad.append(f"{tier} --hw-text and --hw-text-muted are {step:.4f} apart in "
@@ -1051,7 +1061,11 @@ def main_ramps(paths):
         if not path.is_file():
             failures.append(f"{path} does not exist; build it with tools/ramps.py first")
             continue
-        bad, report = certify_ramps(path)
+        try:
+            bad, report = certify_ramps(path)
+        except (OSError, UnicodeDecodeError) as e:
+            failures.append(f"{path} could not be read: {e}")
+            continue
         failures += [f"{path.stem.removesuffix('.tokens')}: {f}" for f in bad]
         print(f"ramps {path.name}: every step floor and solid label, every role in "
               f"roles.css in light, dark and both under prefers-contrast: more, float and "

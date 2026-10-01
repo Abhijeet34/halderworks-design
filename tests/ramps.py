@@ -14,7 +14,9 @@
      blocks' agreement, so the re-measure is a check rather than a formality.
   8. tools/contrast.py --ramps refuses a floor missed by under 0.01, a role on the wrong step, an
      accent equal to the success green, and malformed files, each by name and without a traceback.
-  9. Every fifth accent hue through contrast.py's separation bars: hue 150 refused, 262 not.
+  9. ramps.py's floors and contrast.py's are the same set, declared in each file.
+  10. Every fifth accent hue through contrast.py's separation bars: hue 150 refused, 262 not.
+      Every hue builds (4); this is how many of them read as a state once built.
 
     python3 tests/ramps.py [repo-root]
 """
@@ -53,25 +55,42 @@ def second_instrument_agrees(fails):
           f"{r.stdout.count('0 failed')} brands certified")
 
 
+def floors_declared_twice(fails):
+    """The floors ramps.py solves to and the floors contrast.py certifies are two declarations of
+    one set, so weakening a floor takes an edit in both files and this check names it."""
+    theirs = {k: (v[0], tuple(v[1])) for k, v in contrast.STEP_FLOORS.items()}
+    if theirs != ramps.FLOORS or contrast.SOLIDS != (9, 10) or contrast.AA != ramps.LABEL:
+        fails.append(f"tools/ramps.py solves to {ramps.FLOORS}, label {ramps.LABEL}, and "
+                     f"tools/contrast.py certifies {theirs}, label {contrast.AA}")
+    print(f"  floors:       ramps.py and contrast.py declare the same {len(theirs)} step floors "
+          f"and the {ramps.LABEL}:1 label")
+
+
 def brand_css(tmp, name, brand):
     path = Path(tmp) / f"{name}.tokens.css"
     path.write_text(ramps.emit(ramps.build(brand), name), encoding="utf-8")
     return path
 
 
-def lift_until(css, token, theme_head, under, bar):
-    """css with `token`'s lightness in the block after theme_head moved by 0.001 at a time until
-    contrast.py's worst reading of it falls just under bar: a floor missed by under 0.01."""
-    head = css.index(theme_head)
-    m = re.compile(rf"  {token}: oklch\(([0-9.]+) ([0-9.]+) ([0-9.]+)\);").search(css, head)
+def just_under(css, token, theme_head, under, bar):
+    """css with `token` in the block after theme_head rewritten to the triple, at the precision
+    the file is written in, whose worst reading by contrast.py (float or 8-bit) falls closest
+    under bar: lightness walks toward the grounds by 0.001, then chroma picks the finest miss
+    near that edge. Returns (css, how far under bar it lands)."""
+    m = re.compile(rf"  {token}: oklch\(([0-9.]+) ([0-9.]+) ([0-9.]+)\);").search(
+        css, css.index(theme_head))
     L, C, h = (float(x) for x in m.groups())
-    direction = 1 if "light" in theme_head else -1
-    for _ in range(400):
-        L = round(L + direction * 0.001, 3)
-        if min(contrast.ratio((L, C, h), g)[i] for g in under for i in (0, 1)) < bar:
-            line = f"  {token}: oklch({L:.3f} {C:.3f} {ramps.num(h)});"
-            return css[:m.start()] + line + css[m.end():], L
-    raise AssertionError(f"{token} never fell under {bar}")
+    sign = 1 if "light" in theme_head else -1
+
+    def worst(t):
+        return min(min(contrast.ratio(t, g)) for g in under)
+    while worst((L, C, h)) >= bar:
+        L = round(L + sign * 0.001, 3)
+    near = [(L2, round(C2 / 1000, 3), h) for L2 in (L, round(L - sign * 0.001, 3))
+            for C2 in range(0, int(C * 1000) + 61)]
+    t = max((t for t in near if contrast.in_gamut(*t) and worst(t) < bar), key=worst)
+    line = f"  {token}: oklch({t[0]:.3f} {t[1]:.3f} {ramps.num(h)});"
+    return css[:m.start()] + line + css[m.end():], bar - worst(t)
 
 
 def contrast_refuses(fails):
@@ -81,19 +100,20 @@ def contrast_refuses(fails):
     light = ':root, [data-theme="light"] {'
     blocks = ramps.parse(house)
     grays = [blocks["light"][g][i] for g in blocks["light"] for i in range(1, 4)]
-    near = [lift_until(house, "--hw-accent-8", light, grays, 3.0)[0]]
     texts = [blocks["light"][g][i] for g in blocks["light"] for i in range(1, 6)]
-    near.append(lift_until(house, "--hw-red-11", light, texts, 4.5)[0])
-    near.append(lift_until(house, "--hw-gray-12", light, texts, 13.0)[0])
+    near = [just_under(house, tok, light, under, bar) for tok, under, bar in (
+        ("--hw-accent-8", grays, 3.0), ("--hw-red-11", texts, 4.5), ("--hw-gray-12", texts, 13.0))]
+    fails += [f"the near miss on {bar} is {miss:.4f} under, not under 0.01"
+              for (_, miss), bar in zip(near, (3.0, 4.5, 13.0)) if not 0 < miss < 0.01]
     green = copy.deepcopy(HOUSE)
     green["hues"]["accent"] = dict(green["hues"]["green"])
     at150 = copy.deepcopy(HOUSE)
     at150["hues"]["accent"] = {"hue": 150, "chroma": 0.15}
     dark_head = '[data-theme="dark"] {\n'
     token_cases = [
-        ("step 8 missing 3:1 by under 0.01", near[0], "accent-8 on"),
-        ("step 11 missing 4.5:1 by under 0.01", near[1], "red-11 on"),
-        ("step 12 missing 13:1 by under 0.01", near[2], "gray-12 on"),
+        (f"step 8 missing 3:1 by {near[0][1]:.4f}", near[0][0], "accent-8 on"),
+        (f"step 11 missing 4.5:1 by {near[1][1]:.4f}", near[1][0], "red-11 on"),
+        (f"step 12 missing 13:1 by {near[2][1]:.4f}", near[2][0], "gray-12 on"),
         ("a white label on the mark", tampered(house, "--hw-mark-on-solid: var(--hw-gray-12);",
                                                "--hw-mark-on-solid: #FFFFFF;"), "mark-on-solid on"),
         ("a dark block the media copy disagrees with",
@@ -156,7 +176,8 @@ def contrast_refuses(fails):
             fails.append(f"contrast.py --ramps on {what}: exit {rc}, expected 1 naming "
                          f"{expect!r}; got: {err.strip()[:300]}")
     print(f"  refuses:      {len(cases)} wrong ramp files, roles and brands, each refused by "
-          f"tools/contrast.py --ramps naming what broke")
+          f"tools/contrast.py --ramps naming what broke; floors missed by "
+          + ", ".join(f"{miss:.4f}" for _, miss in near))
 
 
 def separation_sweep(fails):
@@ -315,6 +336,7 @@ def main():
     print("tools/ramps.py, checked from outside")
     committed_files_are_fresh(fails)
     second_instrument_agrees(fails)
+    floors_declared_twice(fails)
     roles_resolve(fails)
     step_9_is_brightest(fails)
     malformed_brands_are_refused(fails)

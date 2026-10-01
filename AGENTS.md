@@ -12,7 +12,7 @@ An agent *using* the system to build a product screen reads [SKILL.md](SKILL.md)
 | `tokens/tokens.css`, `tokens/tokens.json` | generated from the seed by `tools/build.py`; never edited by hand |
 | `exports/` | generated from `tokens/tokens.json` by `tools/export.py`; never edited by hand |
 | `examples/` | one directory per product brand: its `brand.seed.json`, and the `tokens/` and `exports/` that `tools/build.py --brand` and `tools/export.py` write from it; `examples/quoth/` also holds quoth's own colour seed and the `quoth.tokens.css` that `--extend` solves against quoth's set. `examples/specimen.html` draws one product screen from any brand's files, for the render a release needs. The worked examples for [design/12-brand.md](design/12-brand.md) and [design/95-extending.md](design/95-extending.md#a-colour-of-the-products-own), and the fixtures CI builds and certifies on every change; each product owns the copy it ships |
-| `ramps/` | the twelve-step ramps proposed to replace the solver, landing beside it and read by nothing yet: `brands/<name>.json` (a neutral and five to eight hues), `tokens/<name>.tokens.css` generated from them by `tools/ramps.py` and never edited by hand, and `roles.css`, the colour roles every brand shares. Do not load `roles.css` beside `tokens/tokens.css`: the names overlap |
+| `ramps/` | the twelve-step ramps proposed to replace the solver, landing beside it, certified by `tools/contrast.py --ramps` and read by nothing that ships yet: `brands/<name>.json` (a neutral and five to eight hues), `tokens/<name>.tokens.css` generated from them by `tools/ramps.py` and never edited by hand, and `roles.css`, the colour roles every brand shares. Do not load `roles.css` beside `tokens/tokens.css`: the names overlap |
 | `tools/` | nine standard-library Python 3 scripts, no dependencies. Only `check-sources.py` uses the network |
 | `tests/` | the suite that checks the tools rather than the tokens, adopted from the 2026-09-21 audit; `tests/run.py` is the one command. `tests/fixtures/field/` is quoth's Field identity as a brand seed, the fixture every vivid-tier input is certified against |
 | `.github/rulesets/`, `.github/settings/` | what this repository enforces on the forge, as files. Nothing applies them on its own; see "The settings that are not files" below |
@@ -38,6 +38,7 @@ python3 tools/export.py examples/papertrace   # the same, per brand
 python3 tools/check-coverage.py   # the inventory, its refusals, its claimed entries, its manifest, every link
 python3 tools/test-check-sources.py  # the source classifier, against a local server
 python3 tools/ramps.py --check    # every ramps/brands/*.json still builds, holds its floors, and matches ramps/tokens/
+python3 tools/contrast.py --ramps # the same files and ramps/roles.css, certified by the second instrument
 python3 tools/check-sources.py    # every cited source still resolves. THE ONE THAT LEAVES THE MACHINE
 python3 tests/run.py              # the checks on the tools: invariants, hue sweep, mutations, ramps
 python3 tools/faces.py --check FONT... OFL.txt...  # a roster face: x-height, pitch, sha256 and licence text, against copies of its files
@@ -64,9 +65,11 @@ over all 360 accent hues, every fifth hue at four brand corners and as a vivid k
 failing when no vivid key builds or either buildable arc moves, `tests/mutation_tests.py` over a set of deliberately wrong inputs (its
 own run prints "N cases: N as expected, 0 improved, 0 failed" for the current count) - and two
 further diagnostics, `tests/coverage_probe.py` and `tests/ident_sweep.py`, print rather than
-refuse and are run on demand. A fourth suite, `tests/ramps.py` (70.6 seconds on 2026-10-02),
-checks `tools/ramps.py` from outside: every floor re-measured by `contrast.py`'s converter on the
-float and the 8-bit value, every accent hue building, and malformed brand files refused by name.
+refuse and are run on demand. A fourth suite, `tests/ramps.py` (86.7 seconds on 2026-10-02),
+checks `tools/ramps.py` from outside: `contrast.py --ramps` certifying the committed files, every
+accent hue building, malformed brand files refused by name, and `contrast.py --ramps` refusing a
+floor missed by under 0.01, a role on the wrong step, an accent equal to the success green and a
+malformed file.
 
 `build.py` and `contrast.py` are deliberately two instruments rather than one, and two things make
 them two. They share no arithmetic: `build.py` inverts the original Oklab matrices, `contrast.py`
