@@ -424,8 +424,7 @@
 
 /* Step 12 holds 13:1 on steps 1-5 of every ramp, gray-1 among them, so a step-12 solid carries a
    gray-1 label and step-12 text clears 7:1 everywhere step 11 cleared 4.5:1. In dark every step 12
-   is near white, so the danger solid and text land on the ink and the ring: tools/contrast.py
-   --ramps reports those two pairs as gaps, per brand, until this block chooses. */
+   is near white, so the dark blocks below move the danger solid and the ring off it. */
 @media (prefers-contrast: more) {
   :root {
     --hw-text-muted: var(--hw-gray-12);
@@ -445,6 +444,29 @@
     --hw-success: var(--hw-green-12);
     --hw-warning: var(--hw-amber-12);
     --hw-danger: var(--hw-red-12);
+  }
+}
+
+/* Dark under more. Danger text stays on red 12, the only step that clears 7:1, so the ring leaves
+   white for accent 11, whose 4.5:1 floor on steps 1-5 is the raised non-text bar itself. The danger
+   solid becomes red 7, the brightest red still carrying a gray-12 label at 7:1 (red 8 gives 5.3:1):
+   a red block under a white word, not a white block beside the ink one. No colour carries that
+   label at 7:1 and also clears 3:1 on a dark ground (2.65:1 at best), so the word carries it. */
+@media (prefers-contrast: more) {
+  [data-theme="dark"] {
+    --hw-focus: var(--hw-accent-11);
+    --hw-danger-solid: var(--hw-red-7);
+    --hw-danger-hover: var(--hw-red-7);
+    --hw-on-danger: var(--hw-gray-12);
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --hw-focus: var(--hw-accent-11);
+    --hw-danger-solid: var(--hw-red-7);
+    --hw-danger-hover: var(--hw-red-7);
+    --hw-on-danger: var(--hw-gray-12);
   }
 }
 

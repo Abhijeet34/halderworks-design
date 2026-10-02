@@ -23,7 +23,7 @@ A house design system: 42 colour roles, each naming a step of a twelve-step ramp
 | when | what moves |
 |---|---|
 | `[data-theme="dark"]`, or `prefers-color-scheme: dark` when the page names no theme | the dark set |
-| `prefers-contrast: more` | muted text, lines, the focus ring, solids and state text move to step 12, which clears 7:1 |
+| `prefers-contrast: more` | muted text, lines, the focus ring, solids and state text move to step 12, which clears 7:1; in dark the ring moves to accent 11 and the danger solid to red 7 under a light label, off the ink |
 | `data-text-size="s|m|l|xl|xxl"` on `html` | the root size, so every rem step moves |
 | `data-density="compact"` on any ancestor | control height, row height and vertical cell and field padding |
 | `pointer: coarse` | a control never measures under 44px, compact or not, at any text size |
@@ -54,7 +54,7 @@ A house design system: 42 colour roles, each naming a step of a twelve-step ramp
 | `--hw-accent-text` | `oklch(0.496 0.120 252)` | `oklch(0.669 0.120 252)` | `oklch(0.214 0.064 252)` | `oklch(0.987 0.006 252)` | links and accent words |
 | `--hw-accent-fill` | `oklch(0.948 0.025 252)` | `oklch(0.230 0.037 252)` | `oklch(0.948 0.025 252)` | `oklch(0.230 0.037 252)` | selected row |
 | `--hw-accent-line` | `oklch(0.820 0.070 252)` | `oklch(0.400 0.070 252)` | `oklch(0.820 0.070 252)` | `oklch(0.400 0.070 252)` | the edge of a selected row or chip |
-| `--hw-focus` | `oklch(0.625 0.108 252)` | `oklch(0.520 0.108 252)` | `oklch(0.213 0.005 250)` | `oklch(0.987 0.005 250)` | the focus ring; never removed |
+| `--hw-focus` | `oklch(0.625 0.108 252)` | `oklch(0.520 0.108 252)` | `oklch(0.213 0.005 250)` | `oklch(0.669 0.120 252)` | the focus ring; never removed |
 | `--hw-mark` | `oklch(0.900 0.187 100)` | `oklch(0.880 0.182 100)` | `oklch(0.900 0.187 100)` | `oklch(0.880 0.182 100)` | highlighter: words the product knows |
 | `--hw-on-mark` | `oklch(0.213 0.005 250)` | `oklch(0.165 0.005 250)` | `oklch(0.213 0.005 250)` | `oklch(0.165 0.005 250)` | text on the highlighter solid |
 | `--hw-mark-quiet` | `oklch(0.928 0.072 100)` | `oklch(0.295 0.061 100)` | `oklch(0.928 0.072 100)` | `oklch(0.295 0.061 100)` | a quiet highlight behind running text |
@@ -71,9 +71,9 @@ A house design system: 42 colour roles, each naming a step of a twelve-step ramp
 | `--hw-danger` | `oklch(0.518 0.190 25)` | `oklch(0.693 0.190 25)` | `oklch(0.224 0.090 25)` | `oklch(0.987 0.006 25)` | error text and icon |
 | `--hw-danger-fill` | `oklch(0.948 0.025 25)` | `oklch(0.230 0.058 25)` | `oklch(0.948 0.025 25)` | `oklch(0.230 0.058 25)` | behind an error callout or badge |
 | `--hw-danger-line` | `oklch(0.820 0.100 25)` | `oklch(0.400 0.112 25)` | `oklch(0.820 0.100 25)` | `oklch(0.400 0.112 25)` | the edge of an error callout or field |
-| `--hw-danger-solid` | `oklch(0.588 0.190 25)` | `oklch(0.588 0.190 25)` | `oklch(0.224 0.090 25)` | `oklch(0.987 0.006 25)` | a destructive action's button |
-| `--hw-danger-hover` | `oklch(0.548 0.190 25)` | `oklch(0.548 0.190 25)` | `oklch(0.224 0.090 25)` | `oklch(0.987 0.006 25)` | the destructive solid under the pointer |
-| `--hw-on-danger` | `#FFFFFF` | `#FFFFFF` | `oklch(0.985 0.005 250)` | `oklch(0.165 0.005 250)` | the label on a destructive solid |
+| `--hw-danger-solid` | `oklch(0.588 0.190 25)` | `oklch(0.588 0.190 25)` | `oklch(0.224 0.090 25)` | `oklch(0.400 0.112 25)` | a destructive action's button |
+| `--hw-danger-hover` | `oklch(0.548 0.190 25)` | `oklch(0.548 0.190 25)` | `oklch(0.224 0.090 25)` | `oklch(0.400 0.112 25)` | the destructive solid under the pointer |
+| `--hw-on-danger` | `#FFFFFF` | `#FFFFFF` | `oklch(0.985 0.005 250)` | `oklch(0.987 0.005 250)` | the label on a destructive solid |
 | `--hw-scrim` | `oklch(0.2 0 0 / 0.42)` | `oklch(0 0 0 / 0.6)` | `oklch(0.2 0 0 / 0.42)` | `oklch(0 0 0 / 0.6)` | behind a modal dialog; never read on |
 
 ## Text size
@@ -235,8 +235,3 @@ The ramp steps themselves (`--hw-<hue>-1` to `-12`, in `variables.css`, named on
 Chart colours have no role yet and are a stated gap, followed up in house-chart-roles-r8: `--hw-chart-1` to `-6` stay in `tokens/tokens.json` and `tokens/tokens.css` but carry no name in `ramps/roles.css`, so this export does not carry them either.
 
 Per-step letter-spacing and weight are the same kind of gap: the rem type ramp ships a size and a leading for each step and nothing for `--hw-tracking-*` or `--hw-weight-*`, so this export carries neither.
-
-Two role pairs fall under their separation bar and are reported, not refused, by `tools/contrast.py --ramps` until `ramps/roles.css` chooses (house-contrast-more-danger-r7): in dark under `prefers-contrast: more` every step 12 is near white, so the danger solid and danger text land on the ink and the focus ring.
-
-- dark-more: `--hw-focus` against `--hw-danger`
-- dark-more: `--hw-ink` against `--hw-danger-solid`

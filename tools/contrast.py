@@ -816,7 +816,10 @@ RAMP_BLOCKS = {(None, ':root, [data-theme="light"]'): "light", (None, '[data-the
                "media-dark"}
 ROLE_BLOCKS = {(None, ":root"): "base", (None, '[data-theme="dark"]'): "dark",
                ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
-               "media-dark", ("@media (prefers-contrast: more)", ":root"): "more"}
+               "media-dark", ("@media (prefers-contrast: more)", ":root"): "more",
+               ("@media (prefers-contrast: more)", '[data-theme="dark"]'): "dark-more",
+               ("@media (prefers-contrast: more) and (prefers-color-scheme: dark)",
+                ':root:not([data-theme="light"])'): "media-dark-more"}
 # A step-8 role holds 3:1 on steps 1 to 3 only, so it is certified on the grounds at or beyond them.
 ROLE_GROUNDS = ["--hw-bg", "--hw-bg-subtle", "--hw-surface", "--hw-surface-raised", "--hw-fill"]
 ROLE_FILLS = ["--hw-fill-hover", "--hw-fill-active"]
@@ -852,14 +855,6 @@ ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill th
      "a focused control that reads as a bordered one")] + [
     ("fill-ground", s, "--hw-bg", FILL_FROM_GROUND, "a status fill that sinks into the ground")
     for s in STATE_FILLS]
-# Under prefers-contrast: more, roles.css raises the danger solid and every state ink to step 12,
-# and in dark every step 12 is near white, so they land on the ink and the ring. No step holds a
-# 7:1 label and a hue at once there; until roles.css chooses, these pairs are reported as gaps,
-# by exact brand and pair (maintainer decision, 2026-10-02), and any other failure still refuses,
-# a new brand's included.
-ROLE_GAPS = {(brand, "dark-more", a, b)
-             for brand in ("house", "papertrace", "pointback", "quoth")
-             for a, b in (("--hw-ink", "--hw-danger-solid"), ("--hw-focus", "--hw-danger"))}
 ROLE_INK_REPORTED = ("--hw-accent-text", ("--hw-success", "--hw-warning", "--hw-danger"))
 
 WHITE_OKLCH = (1.0, 0.0, 0.0)   # the reference path returns #FFFFFF from this exactly
@@ -942,7 +937,6 @@ def ramp_steps(block):
 
 def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
     """(failures, report lines) for one tools/ramps.py file and ramps/roles.css over it."""
-    brand = Path(tokens_path).name.removesuffix(".tokens.css")
     rb, bad = declarations(tokens_path, RAMP_BLOCKS)
     lb, rbad = declarations(roles_path, ROLE_BLOCKS)
     bad += rbad
@@ -956,6 +950,9 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
                    "[data-theme=\"dark\"]")
     if lb.get("media-dark") != lb.get("dark"):
         bad.append("roles.css's prefers-color-scheme: dark overrides differ from "
+                   "[data-theme=\"dark\"]'s")
+    if lb.get("media-dark-more") != lb.get("dark-more"):
+        bad.append("roles.css's prefers-color-scheme: dark overrides under more differ from "
                    "[data-theme=\"dark\"]'s")
     report, lowest = [], {}
     used = {*ROLE_GROUNDS, *ROLE_FILLS, *ROLE_TINTS, *ROLE_EDGES, *ROLE_TEXT, ROLE_DISABLED,
@@ -1003,8 +1000,10 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
                         steps[(r, "on-solid")], steps[(r, str(i))])
         for more in (False, True):
             tier = theme + ("-more" if more else "")
-            roles = {**lb["base"], **(lb.get("dark", {}) if theme == "dark" else {}),
-                     **(lb.get("more", {}) if more else {})}
+            dark = theme == "dark"
+            roles = {**lb["base"], **(lb.get("dark", {}) if dark else {}),
+                     **(lb.get("more", {}) if more else {}),
+                     **(lb.get("dark-more", {}) if dark and more else {})}
             env = {**rb[theme], **roles}
             bad += [f"{tier} {r} is in roles.css and certified by nothing; certify it or name it "
                     f"in ROLE_EXEMPT" for r in sorted(roles) if r not in used | set(ROLE_EXEMPT)]
@@ -1035,9 +1034,7 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
                     measure(fg, bg, bar_of(AA), "role label", tier, col[fg], col[bg])
             for what, a, b, bar, reads in ROLE_BARS:
                 d = painted(col[a], col[b])
-                if d < bar and (brand, tier, a, b) in ROLE_GAPS:
-                    report.append(f"  gap {tier}: {a} sits {d:.1f} from {b}, below {bar}: {reads}")
-                elif d < bar:
+                if d < bar:
                     bad.append(f"{tier}: {a} sits {d:.1f} CIEDE2000 from {b} at 8-bit, below "
                                f"{bar}: {reads}")
                 else:
