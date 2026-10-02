@@ -195,3 +195,13 @@ The other twelve licence texts declare none, which `tools/faces.py` reports for 
 - **Lowercase is never letterspaced positively**, except the label style at 0.01em, which keeps 12px from closing up.
 
 Set type to be read for an hour, not to be seen for a second.
+
+## Sources
+
+| source | taken | left |
+|---|---|---|
+| [Omnibus-Type/Archivo](https://github.com/Omnibus-Type/Archivo), `OFL.txt`, SIL Open Font License 1.1, pinned by sha256 in `ramps/roster.json` | the variable TTF's x-height (0.526) and cap height (0.686), and its `wdth` axis for Archivo Expanded at 125% | the ttf and otf upstream ships; only the Fontsource woff2 subset is vendored |
+| [googlefonts/literata](https://github.com/googlefonts/literata), `OFL.txt`, SIL Open Font License 1.1, pinned by sha256 in `ramps/roster.json` | the variable TTF's x-height (0.507) and cap height (0.700) | the ttf upstream ships; only the Fontsource woff2 subset is vendored |
+| [IBM/plex](https://github.com/IBM/plex), `OFL.txt`, SIL Open Font License 1.1, pinned by sha256 in `ramps/roster.json` | `IBMPlexMono-Regular.ttf`'s x-height (0.516) and its Reserved Font Name, "Plex" | the otf, woff and woff2 upstream ships, and every weight but Regular; only the Fontsource woff2 subset is vendored |
+| Fontsource 5.3.0 on npm | the latin subset WOFF2 vendored in `fonts/` for all three faces, the same source quoth installs its Archivo from | other language subsets and variable-font builds |
+| [the product-identities scout's licensing survey of 2026-09-22](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/90-evidence.md#font-licensing-per-platform) | the OFL as the only licence, of twelve surveyed, that clears self-hosting, woff2 in a WKWebView, and a sold Mac app, with no fee and no per-app licence | the eleven other licence sources it screened and declined |
