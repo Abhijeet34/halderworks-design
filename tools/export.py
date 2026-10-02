@@ -738,7 +738,7 @@ def emit_design_md(src, compact):
         if compact:
             out += ["  ".join(f"`{k}` {v}" for k, v in rows), ""]
             continue
-        out += [f"| token | value | px at M | role |", "|---|---|---|---|"]
+        out += ["| token | value | px at M | role |", "|---|---|---|---|"]
         out += [f"| `{k}` | `{v}` | {fmt_px(at_root(v, m_px))} | {desc.get(k, '')} |"
                 for k, v in rows]
         out.append("")
