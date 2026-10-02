@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Check that every source the book cites still exists.
 
-The other five tools in this directory are offline and internally consistent; this one is the
-only one that leaves the machine, which is why it runs on the weekly schedule rather than on
-every change. A source rots in months, so 51 outbound requests per push buy no information.
+Every other tool in this directory is offline; this one is the only one that leaves the
+machine, which is why it runs on the weekly schedule rather than on every change. A source rots in months, so 51 outbound requests per push buy no information.
 
 What "exists" means is the whole substance of this check, and it is a three-way answer rather
 than a two-way one:
