@@ -39,7 +39,7 @@ The product surface: a screen that reports state and takes action.
 | what it fixes | value |
 |---|---|
 | largest permitted step | `title-1` |
-| display face | none. The display face, Newsreader or a brand's own, does not appear; a brand shows on a product screen through its text face ([12-brand.md](12-brand.md#faces)) |
+| display face | none. The display face, Archivo or a brand's own, does not appear; a brand shows on a product screen through its text face ([12-brand.md](12-brand.md#faces)) |
 | density | comfortable |
 | running measure | `--hw-measure-ui`, 56ch |
 | formats available | none of section 3. A screen is not an issue of anything |
@@ -79,7 +79,7 @@ Marketing, documentation, release notes and dated reports.
 | what it fixes | value |
 |---|---|
 | largest permitted step | `display-1` |
-| display face | Newsreader at `display-1` and `display-2`, and nowhere else |
+| display face | Archivo, or a brand's own, at `display-1` and `display-2`, and nowhere else |
 | density | comfortable |
 | running measure | `--hw-measure-prose`, 68ch, at `body-lg` |
 | formats available | all seven in section 3 |
@@ -99,7 +99,7 @@ Two published systems answer high contrast in **opposite** directions: one re-so
 Those answer different media queries, and one block cannot answer both.
 This one answers `prefers-contrast: more`, a reader asking for a stronger palette, with a per-role re-solve.
 
-`tokens/tokens.css` carries it under `@media (prefers-contrast: more)`, solved by `tools/build.py` from the same seed as the default themes rather than chosen by eye.
+`exports/variables.css` carries it under `@media (prefers-contrast: more)`: `ramps/roles.css` moves each role to the ramp step whose floor clears the raised bar, rather than a value chosen by eye, and `tools/contrast.py` certifies every one.
 Every 4.5:1 floor is raised to the 7:1 of WCAG 2.2 SC 1.4.6.
 Every 3:1 floor is raised to 4.5:1, because SC 1.4.11 has no enhanced level and 4.5:1 is the next bar this system already holds.
 The same 108 text pairs and 90 non-text pairs are certified at the raised bars by both instruments, on the float value and at 8-bit, with 0 below either: the worst text pair is 7.03:1 and the worst non-text pair 4.53:1.
@@ -254,17 +254,17 @@ A numeral set two or more steps above the headline it counts.
 
 | part | token |
 |---|---|
-| the numeral | `display-1` (56px Newsreader, 500) or `display-2` (40px) |
+| the numeral | `display-1` (56px, the display face, 500) or `display-2` (40px) |
 | the headline | `title-2` (21px) or `title-3` (17px), at least two steps below |
 | the numeral's colour | `--hw-text`, or `--hw-text-muted` where the headline is primary. Never `--hw-accent` |
 | the numeral's column | `--hw-space-64` at `display-1`, `--hw-space-48` at `display-2` |
 | numeral to headline / item to item | `--hw-space-16` / `--hw-space-24` |
 
 **Where the column width comes from.**
-[20-type.md](20-type.md) records Newsreader's ten digits measuring 567px at 100px, so one digit advances 0.567em.
-Two digits are 63.5px at 56px and 45.4px at 40px, which `--hw-space-64` and `--hw-space-48` hold with 0.5px and 2.6px to spare.
+[20-type.md](20-type.md#why-archivo-and-literata) records Archivo's ten zeros measuring 572.7px at 100px, so its widest digit advances 0.573em.
+Two digits are 64.1px at 56px and 45.8px at 40px: `--hw-space-48` holds the smaller with 2.2px to spare, and **`--hw-space-64` is 0.1px short of two zeros at `display-1`**, so a two-digit count at that step overhangs its column by a tenth of a pixel until the column is re-derived.
+The format was derived on Newsreader, whose ten digits measured 567px and fit both columns.
 Three digits fit neither step, and that is the format's real ceiling rather than an accident: **a set of more than 99 does not take this format**, because a set nobody can hold in their head is a table.
-This is derived from the recorded 567px measurement in [20-type.md](20-type.md) and was not re-measured when the format was written, because the faces could not be loaded in the environment it was written in. Re-measuring it needs one browser with Newsreader loaded.
 
 **When it applies.** Three tests, all of which must pass. The boundary is in [4. Typography treatments](#4-typography-treatments), under the oversized ordinal, because the failure is a type failure.
 
@@ -347,7 +347,7 @@ is whatever the consumer chose.
 | the frame | aspect 1.905, at 1200 x 630 or a multiple of it | | four of six cards |
 | inset, all four sides | `0.10 H` for everything that must be read | 63px | Railway's 10.2% above and 11.1% below |
 | the mark | the product name in `--hw-font-sans` at 600, band height `0.076 H`, top left at the inset | 48px | Railway's wordmark band, 7.6%; the mark is a name, per [00-brand-book.md](00-brand-book.md#the-mark) |
-| the headline | `display-1`'s face, weight and tracking, **cap height `0.084 H`**, so a size of `0.124 H` in Newsreader, whose cap height is 0.676em ([20-type.md](20-type.md#why-not-inter)) | 53px cap, 78px size | Railway's three headline lines, each 8.4% |
+| the headline | `display-1`'s face, weight and tracking, **cap height `0.084 H`**, so a size of `0.122 H` in Archivo, whose cap height is 0.686em ([20-type.md](20-type.md#why-archivo-and-literata)) | 53px cap, 77px size | Railway's three headline lines, each 8.4% |
 | line pitch | `1.5` times the cap height, `0.126 H` | 80px | Railway's 80px on a 53px cap. It is 1.02 of the size, which is `display-1`'s own line-height |
 | lines | at most three, the last one above the bottom inset | | Railway's three |
 | ground and ink | `--hw-text` on `--hw-ground`, one theme's pair, chosen per product | | |
@@ -402,9 +402,9 @@ whatever the export chose.
 | the frame | aspect 0.800, 4:5 | | both measured carousels; the feed's portrait frame |
 | margin, four sides | one inset at `0.104` of the short side | 112px | measured 110 to 117px |
 | corner labels | `micro`'s treatment - uppercase, 0.06em, 600 - at a glyph height of `0.017 H`, one size for all four | 23px | head and foot measured identical |
-| cover ordinal | the **count of the set**, Newsreader at a glyph height of `0.156 H`, `--hw-text` | 211px | measured 15.63% |
+| cover ordinal | the **count of the set**, the display face at a glyph height of `0.156 H`, `--hw-text` | 211px | measured 15.63% |
 | cover headline | `display-1`'s face, weight and tracking, line pitch `0.070 H` | 94px | measured 6.96% |
-| body ordinal | the **index of the item** on this slide, Newsreader at `0.102 H`, `--hw-text-muted` | 137px | measured 10.15% |
+| body ordinal | the **index of the item** on this slide, the display face at `0.102 H`, `--hw-text-muted` | 137px | measured 10.15% |
 | advance mark | Lucide `arrow-right` at `0.014 H`, in the ink of the text beside it | 19px | measured 1.41% |
 
 **Contrast:** `--hw-text` and `--hw-text-muted` on `--hw-ground`, 14.83:1 and 4.88:1 light, 16.38:1
@@ -490,7 +490,7 @@ Emphasis carried by the ground rather than by the ink.
 The marked words must be the ones a reader would repeat back. A mark on a whole line is a line with a different background, not emphasis.
 
 **Taken:** a mark on the ground is a second channel for emphasis that does not spend a colour and does not compete with weight.
-**Left behind:** the highlighter yellow itself, and the hand-drawn skew and overshoot that make it read as a pen stroke. A yellow marker needs a fifth colour that is neither a semantic nor the accent, and this system has no fifth colour to spend. `tools/build.py` could solve one now; what it cannot do is decide that a fifth colour should exist, and nothing here argues that it should. <!-- covered-by: Colour palette, and how each value was arrived at -->
+**Left behind:** the highlighter yellow itself, and the hand-drawn skew and overshoot that make it read as a pen stroke. A yellow marker needs a fifth colour that is neither a semantic nor the accent, and this system has no fifth colour to spend. A value for one could be built now; what no tool can do is decide that a fifth colour should exist, and nothing here argues that it should. <!-- covered-by: Colour palette, and how each value was arrived at -->
 
 ### The bracketed aside
 
@@ -507,7 +507,7 @@ One aside per headline. Never in a control label, an error or a table header.
 
 ### The mixed-face headline
 
-One display headline set in Public Sans with a single term in Newsreader.
+One display headline set in the sans with a single term in the reading face: Archivo around one Literata term in the house.
 The span marks **the term the headline names**, never emphasis.
 
 That is what makes it specifiable without touching either standing rule.
@@ -517,18 +517,18 @@ In this headline the face does that job instead, so the face still carries a rol
 | part | token |
 |---|---|
 | the headline | `display-1` or `display-2` size, line-height, tracking and weight, in `--hw-font-sans` |
-| the term | the same size, weight and tracking in `--hw-font-display`, roman and never also italic |
+| the term | the same size, weight and tracking in `--hw-font-read`, roman and never also italic |
 | both | `--hw-text` on `--hw-ground`, 14.83:1 light and 16.38:1 dark, already certified |
 
 ```css
 [data-overlay="editorial"] .hw-headline-mixed { font-family: var(--hw-font-sans); }
-[data-overlay="editorial"] .hw-headline-mixed > .hw-term { font-family: var(--hw-font-display); }
+[data-overlay="editorial"] .hw-headline-mixed > .hw-term { font-family: var(--hw-font-read); }
 ```
 
 **The term test.** The span's words are the name of the thing the page is about, and the body uses the same words again, unmarked. A span on a verb, an adjective or an intensifier is emphasis set in a second face and is refused.
 
-**Rules.** One span per headline and one mixed-face headline per view. Editorial overlay only, which is already the only place Newsreader appears; never on Instrument or Console and never in product UI. No hue on the span and no marker highlight in the same headline, because two marks in one line have marked nothing.
-The two faces are set at one size and not optically matched. Newsreader's cap height is 0.676em ([20-type.md](20-type.md#why-not-inter)) and Public Sans's was not re-measured, because the faces could not be loaded where this entry was written; checking it needs one browser with both faces loaded.
+**Rules.** One span per headline and one mixed-face headline per view. Editorial overlay only; never on Instrument or Console and never in product UI. No hue on the span and no marker highlight in the same headline, because two marks in one line have marked nothing.
+The two faces are set at one size and not optically matched: Literata's cap height is 0.700em and Archivo's 0.686em ([20-type.md](20-type.md#why-archivo-and-literata)), so the term's capitals stand 2% taller than the line's, under a pixel at `display-1`.
 
 **Taken:** two faces in one line can carry information, that these words are a name, when the second face is reserved for that one job.
 **Left behind:** the second face as the carrier of the headline's voice, spent on whichever word the line leans on. That is emphasis by face, which is the reading `khushidotjpeg`'s and `ui.ux.jam`'s headlines invite and the one [20-type.md](20-type.md) refuses.
@@ -561,7 +561,7 @@ What a scheme fixes is which four colours a surface actually uses, so a project 
 **The requirement is that this book is usable irrespective of which model reads it.**
 A system that exists only as prose is a system every agent re-interprets, so the book emits itself in the four forms agents actually consume.
 
-`tools/export.py` composes the brand's `ramps/tokens/<brand>.tokens.css`, the shared `ramps/roles.css` and `ramps/scales.css`, and the faces, shape and layout from `tokens/tokens.json`, and writes all four into `exports/`:
+`tools/export.py` composes the brand's `ramps/tokens/<brand>.tokens.css`, with its faces, shape and stroke, and the shared `ramps/roles.css` and `ramps/scales.css`, and writes all five into `exports/`:
 
 | file | what it is | for |
 |---|---|---|
@@ -571,24 +571,24 @@ A system that exists only as prose is a system every agent re-interprets, so the
 | `variables.css` | plain CSS custom properties: both themes, `prefers-contrast: more`, compact density, the 44px touch floor, reduced motion and `html[data-text-size]` | anything else |
 | `exports/design-tokens.json` | W3C DTCG, with `$value`, `$type` and `$description` on every token | a design tool or a token pipeline |
 
-The six chart colours are roles in `ramps/roles.css` under the names `tokens/tokens.css` uses, `--hw-chart-1` to `-6`, so all five exports carry them.
+The six chart colours are roles in `ramps/roles.css`, `--hw-chart-1` to `-6`, so all five exports carry them.
 Each names a step of one of six series ramps `tools/ramps.py` adds to every brand: teal 180, blue 260, violet 310, pink 355, olive 110 and sky 220, clear of the states at 27, 70 and 150.
 Odd series sit on step 8 and even on step 11, so neighbours differ in lightness as well as hue; under `prefers-contrast: more` series 1, 3 and 5 move to step 11.
-`tools/contrast.py --ramps` holds each to 3:1 on every ground a chart is drawn on, 4.5:1 under more, and 14 CIEDE2000 from every other series and every state ink, and `tools/painted.py` measures the same pairs on screenshot pixels.
+`tools/contrast.py` holds each to 3:1 on every ground a chart is drawn on, 4.5:1 under more, and 14 CIEDE2000 from every other series and every state ink, and `tools/painted.py` measures the same pairs on screenshot pixels.
 On all four brands the lowest mark is 3.06:1, the closest two series 16.42 and the closest series to a state 18.77.
 To a dichromat (Machado 2009, severity 1) every pair stays 5.2 apart or more in light and dark, but under more contrast, where all six share step 11, the closest falls to 2.87, `--hw-chart-1` and `--hw-chart-6` under tritanopia; that is reported, not refused, and is why a series always carries a direct label ([70-data-display.md](70-data-display.md#charts)).
 
-**This is not `tools/build.py`.**
-That one solves colour against a contrast target and emits both token files; this one only re-expresses values it has already solved.
-The exporter only re-expresses values that are already solved, so it cannot invent one, and it proves that twice on every run: before it writes anything, every name `tokens/tokens.css` carries in a carried family (`radius`, `shadow`, `layout`, `icon`, `zIndex`, `stroke`) is compared value for value against it, and every other name is checked by presence instead - declared by `ramps/roles.css` under its own name or a renamed one, unroled (per-step letter-spacing and weight) or retired (`hw-space-2`, `hw-space-96`, `hw-duration-instant`, `hw-ease-in`, `hw-ease-standard`), with anything in none of those refused by name. After writing it parses both CSS exports back from disk and compares every block, in order, against the same three sources, and refuses if any of the twelve required conditions - every theme, `prefers-contrast: more`, compact density, the coarse-pointer touch floor, reduced motion and the five `html[data-text-size]` steps - is missing.
+**This is not `tools/ramps.py`.**
+That one solves colour against a contrast target and emits a brand's ramps; this one only re-expresses values that are already solved, so it cannot invent one.
+After writing it parses both CSS exports back from disk and compares every block, in order, against its three sources, and refuses if any of the twelve required conditions - every theme, `prefers-contrast: more`, compact density, the coarse-pointer touch floor, reduced motion and the five `html[data-text-size]` steps - is missing.
 
 That second check is not decoration.
 It found three real omissions the first time it ran: the per-step `--hw-leading-*`, `--hw-tracking-*` and `--hw-weight-*` properties, the `prefers-reduced-motion` block, and the `[data-density="compact"]` block.
 Each would have handed an agent reading the export a quietly different system from the one a browser loads - in the second case, one that had dropped an accessibility accommodation.
 
-**`tokens/tokens.json` was also not the single source it claimed to be.**
-Four durations and three easings shipped in `tokens/tokens.css` and appeared nowhere in `tokens/tokens.json`, so any export built from the stated source would have had no motion values at all.
-They are now families in `tokens/tokens.json` with roles, named `duration` and `easing` rather than `motion` because the artifact page's token reader rejects a family under that name.
+**The retired `tokens/tokens.json` was also not the single source it claimed to be.**
+Four durations and three easings shipped in its CSS and appeared nowhere in the JSON, so any export built from the stated source would have had no motion values at all.
+They are families of their own in the exports, named `duration` and `easing` rather than `motion` because the artifact page's token reader rejects a family under that name.
 
 ### Every token carries its role
 
@@ -597,7 +597,7 @@ The role names the job and enumerates the surfaces:
 
 > `--hw-border` - The 1px hairline: card and panel edges, table and cell borders, the tab baseline, chart axes and gridlines, the masthead rule, a framed quotation. Separates a container from its ground without being read as an edge.
 
-All 112 entries in `tokens/tokens.json` carry one, and `exports/design-tokens.json` emits each as `$description`.
+Every declaration in `ramps/roles.css`, `ramps/scales.css` and a brand's own block carries one as the comment beside it, and `exports/design-tokens.json` emits each as `$description`, 134 tokens in the house set.
 **The premise that ours largely lacked roles turned out to be wrong and is recorded here rather than quietly acted on:** all 105 entries already had a `usage` field, median 67 characters. Ten were thin enough to be worth enriching - `hw-border`, `hw-ink`, the three semantics, four of the six chart series, and `hw-cell-pad-y-compact` - and were rewritten to name their surfaces. The other 95 were already roles and were left alone.
 
 **Taken:** an export format and a role discipline. A design system that ships a DESIGN.md and a W3C token file is one an agent can consume without a human translating it, and a role per token is what stops the consuming agent guessing.

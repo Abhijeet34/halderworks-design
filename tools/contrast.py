@@ -1,71 +1,41 @@
 #!/usr/bin/env python3
-"""Re-derive and verify this system's contrast claims from tokens/tokens.css.
+"""Re-derive and verify this system's contrast claims from the files tools/ramps.py writes.
 
 This is the SECOND instrument, and two things make it one rather than a second reading of the
-first. It shares no line of arithmetic with tools/build.py: the conversion here is the CSS
+first. It shares no line of arithmetic with tools/ramps.py: the conversion here is the CSS
 Color 4 reference path (w3c/csswg-drafts css-color-4/conversions.js, OKLab_to_LMS, LMS_to_XYZ
-and XYZ_to_lin_sRGB as exact rationals), which is what a browser implements, while build.py
-inverts the original Oklab matrices. And the pairs it requires are declared here, not read from
-tokens/tokens.seed.json, so a floor cannot be weakened in the same edit as the value it guards.
-Until 2026-09-21 neither held: build.py imported this file's converter, and the seed carried the
-floors, so deleting a floor and moving its value was one edit that no tool refused.
+and XYZ_to_lin_sRGB as exact rationals), which is what a browser implements, while ramps.py uses
+Ottosson's published Oklab constants. And the floors and pairs it requires are declared here,
+not imported from ramps.py, so a floor cannot be weakened in the same edit as the value it
+guards. Until 2026-09-21 neither held for the solver this replaced: it imported this file's
+converter, and its seed carried the floors, so deleting a floor and moving its value was one edit
+that no tool refused.
 
 The principle both instruments are built to: MEASURE THE ARTIFACT, NEVER THE INTENT. A number
 that was not re-measured in the exact form it will ship has not been certified.
 
-It runs four passes and exits non-zero if any fails:
+Per brand and theme, against WCAG AA 4.5:1 for text and 1.4.11's 3:1 for a control boundary,
+with no tolerance and each pair measured twice, on the unquantized value and on the 8-bit sRGB
+value a display receives (a pair that clears 3:1 on floats and reads 2.999 in hex is not a pair
+any third-party checker will agree about):
 
-  1. Every ratio the book publishes, re-derived. The tables in 15-color-combinations.md are
-     parsed cell by cell rather than transcribed, so a published number that stops being true
-     is a failure here instead of a sentence nobody re-measured. A converter that cannot
-     reproduce the existing table cannot certify a new pair either, and this caught a real bug:
-     omitting the XYZ step returns a plausible-looking colour with the wrong hue, and it put the
-     light ground at #F2F8FF instead of #F6F8F8.
-  2. REQUIRED: every pair this system certifies, against WCAG AA 4.5:1 for text and 1.4.11's
-     3:1 for a control boundary. No tolerance, three decimals, and each pair is measured twice:
-     on the unquantized value and on the 8-bit sRGB value a display receives, because a pair
-     that clears 3:1 on floats and reads 2.999 in hex is not a pair any third-party checker
-     will agree about. The @media (prefers-contrast: more) blocks are held to the same pairs at
-     7:1 and 4.5:1.
-  3. The accent is told apart from the three states on each element it paints, in CIEDE2000 on
-     the 8-bit value a display receives: its ink, the selected-row fill, and the focus ring
-     against the error border. The ring is told apart from a control's own edge, and each state's
-     quiet fill from the ground. The six chart colours are told apart from the three semantics
-     and from each other, and neighbours alternate in lightness; a chart hue is the accent plus a
-     fixed rotation while the semantics stay put, so a collision moves around the wheel with
-     every rebuild. The text roles keep a visible lightness step, which raising the floors once
-     erased. A brand's shape register and icon stroke are one of the house's own.
-  4. Every colour token is inside sRGB, and each dark block a user with no explicit choice
-     actually gets, through a prefers-color-scheme query, is identical to the explicit one. That
-     copy used to be discarded as a duplicate, which is a guess about a file this tool is here
-     to stop guessing about.
+  1. Every step floor: 8 at 3:1 on steps 1-3 of every ramp, 11 at 4.5:1 and 12 at 13:1 on steps
+     1-5, a hue's 12 at 7:1, and the label on solids 9 and 10 at 4.5:1.
+  2. Every role in ramps/roles.css on the grounds it is read on, at its step's floor, and under
+     prefers-contrast: more at the raised bar: 7:1 for text and 4.5:1 for a mark. A line it
+     cannot read, or a role certified by nothing and exempted nowhere, is a failure.
+  3. The CIEDE2000 bars, on the 8-bit value: the accent fill apart from the three state fills,
+     the primary from the danger solid, the focus ring from the error and from a control's own
+     edge, each state's fill from the ground, each status word from the text, and the six chart
+     series apart from each other and from the three states, with what a dichromat sees of them
+     reported. The text roles keep a visible lightness step. A brand's shape register, icon
+     stroke and display width are one of the house's own.
+  4. Every colour is inside sRGB, and each dark block a user with no explicit choice actually
+     gets, through a prefers-color-scheme query, is identical to the explicit one.
 
-  Pass 1 is measured on the house set, which the file's header names as `Brand: house.`. Run
-  against a brand's set or a rebuild at another hue - `tools/build.py --brand` or
-  `--accent-hue N` - the published ratios no longer describe that palette, so pass 1 reports
-  itself skipped and names the brand rather than failing rows that were never claimed about it.
-  Until the brand tier it recognised the house by hue 198, which held a brand that kept 198
-  with other neutrals to ratios it never claimed. Passes 2 to 4 always run; they are the
-  certificate.
-
-  Pass 5 runs only with --extend: a product's own colour tokens, from the file tools/build.py
-  --extend wrote beside the product's seed, held to what this file requires of any product
-  colour and to any higher bar the seed claims.
-
-  --ramps certifies tools/ramps.py's files instead, which nothing ships yet, and runs none of
-  the passes above. Per brand and theme: every step floor (8 at 3:1 on steps 1-3 of every ramp,
-  11 at 4.5:1 and 12 at 13:1 on steps 1-5, a hue's 12 at 7:1) and the label on solids 9 and 10 at 4.5:1; every role
-  in ramps/roles.css on the grounds it is read on, at its step's floor and under prefers-contrast:
-  more at the raised bar; pass 3's CIEDE2000 bars carried onto the roles; the six chart series
-  as marks on every ground, apart from each other and from the three states, with what a
-  dichromat sees of them reported; sRGB and the two dark blocks' agreement. Its floors are declared below, not imported, and a line it cannot read,
-  or a role certified by nothing and exempted nowhere, is a failure.
-
-    python3 tools/contrast.py [tokens.css] [--extend product.seed.json [--extend-css file]]
-    python3 tools/contrast.py --ramps [ramps/tokens/NAME.tokens.css ...]
+    python3 tools/contrast.py [ramps/tokens/NAME.tokens.css ...]   # default: every brand
 """
 import argparse
-import json
 import math
 import re
 import sys
@@ -75,10 +45,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 # --- the converter: the CSS Color 4 reference path -----------------------------------------
-# Exact rationals for XYZ -> linear sRGB, as conversions.js carries them. The measurable
-# difference from build.py's inverted-matrix path is small and it is the point: white comes back
-# as exactly 1.000000 here and as 1.000186 there, which is a white-point mismatch rather than
-# the round-off the old comment in this file claimed.
+# Exact rationals for XYZ -> linear sRGB, as conversions.js carries them, so white comes back as
+# exactly 1.000000 here; tools/ramps.py goes straight from LMS to linear sRGB on Ottosson's
+# rounded constants instead, and tests/invariants.py bounds how far the two may disagree.
 
 OKLAB_TO_LMS = ((1.0, 0.3963377773761749, 0.2158037573099136),
                 (1.0, -0.1055613458156586, -0.0638541728258133),
@@ -153,9 +122,8 @@ def hexof(L, C, h):
 
 # --- painted colour difference: CIEDE2000 on the 8-bit value --------------------------------
 # linear sRGB -> XYZ is conversions.js's lin_sRGB_to_XYZ, as exact rationals, and D65 is its
-# white; build.py derives both from the inverse of its own matrix instead. The difference formula
-# is Sharma, Wu and Dalal 2005, written here in their numbered steps, and tests/invariants.py
-# holds this and build.py's to the paper's own test pairs.
+# white. The difference formula is Sharma, Wu and Dalal 2005, written here in their numbered
+# steps, and tests/invariants.py holds it to the paper's own test pairs.
 
 LIN_SRGB_TO_XYZ = tuple(tuple(float(x) for x in row) for row in (
     (F(506752, 1228815), F(87881, 245763), F(12673, 70218)),
@@ -226,9 +194,8 @@ def painted(a, b):
     return de2000(lab(a), lab(b))
 
 
-# Machado, Oliveira and Fernandes 2009, severity 1.0, on linear sRGB: the paper's table, copied
-# here rather than imported from build.py for the reason the converters are two. Pass 5 reports
-# what a dichromat sees of a product colour and never refuses on it (10-color.md).
+# Machado, Oliveira and Fernandes 2009, severity 1.0, on linear sRGB: the paper's table. What a
+# dichromat sees of the chart series is reported and never refused on (70-data-display.md).
 DICHROMACY = {
     "protan": ((0.152286, 1.052583, -0.204868), (0.114503, 0.786281, 0.099216),
                (-0.003882, -0.048116, 1.051998)),
@@ -243,583 +210,54 @@ def dichromat_painted(a, b):
     return min((de2000(lab(a, m), lab(b, m)), kind) for kind, m in DICHROMACY.items())
 
 
-TOKEN_RE = re.compile(r"^\s*(--[a-z][a-z0-9]*-[a-z0-9-]+):\s*oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)\s*;")
-
-
-# (media query, selector) -> block. A selector means nothing without the query it sits in: the
-# light selector appears twice, once plain and once under prefers-contrast, and reading the
-# second as the first would certify the high-contrast values as the default ones.
-MORE = "@media (prefers-contrast: more)"
-BLOCKS = {
-    (None, ':root, [data-theme="light"]'): "light",
-    (None, '[data-theme="dark"]'): "dark",
-    ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'): "media-dark",
-    (MORE, ':root, [data-theme="light"]'): "light-more",
-    (MORE, '[data-theme="dark"]'): "dark-more",
-    (MORE + " and (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
-        "media-dark-more",
-}
-
-
-def parse_tokens(path):
-    """Return {'light': {...}, 'dark': {...}, 'media-dark': {...}, and the three -more blocks}.
-
-    Every colour block, including both media-query copies of dark: pass 4 checks each against
-    the explicit block rather than assuming it is a duplicate."""
-    themes = {name: {} for name in BLOCKS.values()}
-    cur, media = None, None
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        s = line.strip()
-        if s.startswith("@media"):
-            media = s[:-1].strip()
-            continue
-        if s.endswith("{"):
-            cur = BLOCKS.get((media, s[:-1].strip()))
-            continue
-        if s.startswith("}"):
-            if cur is None:
-                media = None
-            cur = None
-            continue
-        m = TOKEN_RE.match(line)
-        if m and cur:
-            themes[cur][m.group(1)] = (float(m.group(2)), float(m.group(3)), float(m.group(4)))
-    return themes
-
 
 # --- what this system certifies ------------------------------------------------------------
-# The certificate lives here and nowhere else in this file's reach. tokens.seed.json carries the
-# same set as solver targets, and tests/invariants.py fails if the two ever disagree: two
-# declarations that must match is deliberate redundancy, the same reason a ledger has two sides.
-# It held 158 pairs where the list it replaced held 112, and 77 cells of
-# design/15-color-combinations.md were certified by nothing at all. The chart fills on the three
-# surfaces beside the ground and the ruled ground's two permitted inks took it to 198.
 
 AA, NON_TEXT = 4.5, 3.0
 # prefers-contrast: more raises text to WCAG 2.2 SC 1.4.6's 7:1. SC 1.4.11 has no enhanced level,
 # so a non-text pair is raised to 4.5:1, the next bar this file already holds.
 MORE_BAR = {AA: 7.0, NON_TEXT: AA}
 
-SURFACES = ["--hw-ground", "--hw-surface", "--hw-surface-raised", "--hw-surface-sunken",
-            "--hw-surface-hover", "--hw-surface-active"]
-QUIET = ["--hw-accent-quiet", "--hw-success-quiet", "--hw-warning-quiet", "--hw-danger-quiet"]
-SEMANTICS = ["accent", "success", "warning", "danger"]
-
-
-def required():
-    """(bar, foreground, background, what relies on it), every pair the book certifies.
-
-    Grouped by the claim each group answers, so a reader can check the list against the prose
-    rather than against the seed. 99 pairs per theme, 198 over the two."""
-    for s in SURFACES:
-        yield AA, "--hw-text", s, "body copy, label, legend, read-only value"
-        yield AA, "--hw-text-secondary", s, "helper text"
-        yield AA, "--hw-text-muted", s, "placeholder, character count"
-        yield NON_TEXT, "--hw-border-strong", s, "input, select, textarea, switch, slider rail, panel edge"
-        yield NON_TEXT, "--hw-ink", s, "checked box, radio dot, switch on, slider fill"
-        yield NON_TEXT, "--hw-accent-ring", s, "focus ring on a form control"
-        # 10-color.md: the accent and the three semantics are readable text on every surface.
-        # This subsumes their non-text uses - hw-danger as an error field border was listed
-        # separately at 3:1, which is a weaker claim about the same pair.
-        for sem in SEMANTICS:
-            yield AA, f"--hw-{sem}", s, f"{sem} text, and its border where it draws one"
-    # 15-color-combinations.md certifies body text on any quiet fill, and each semantic on its own.
-    for q in QUIET:
-        yield AA, "--hw-text", q, "body copy inside a quiet fill"
-    for sem in SEMANTICS:
-        yield AA, f"--hw-{sem}", f"--hw-{sem}-quiet", f"{sem} summary block"
-    # 60-states.md: disabled text is exempt from AA and is still held to the non-text bar.
-    for s in ("--hw-ground", "--hw-surface", "--hw-surface-sunken"):
-        yield NON_TEXT, "--hw-text-disabled", s, "disabled field text"
-    yield AA, "--hw-ink-text", "--hw-ink", "check glyph, switch thumb"
-    yield AA, "--hw-ink-text", "--hw-ink-active", "check glyph on a pressed control"
-    # 10-color.md: the six chart colours are held to the same 3:1 as a control boundary, on
-    # every surface a chart is drawn on rather than on the page ground alone.
-    for n in range(1, 7):
-        for s in SURFACES[:4]:
-            yield NON_TEXT, f"--hw-chart-{n}", s, f"chart series {n} on {s[5:]}"
-    # 75-spec-sheet.md#ruled: ink on the ruled ground can land on a rule, so it is certified
-    # against --hw-border, the ground's worst pixel.
-    for fg in ("--hw-text", "--hw-text-secondary"):
-        yield AA, fg, "--hw-border", "ink permitted on the ruled ground"
-
-
-# The vivid tier (12-brand.md#the-vivid-tier), declared here on its own for the same reason as the
-# pairs above. A set that declares none of these tokens is not held to them; a set that declares
-# one declares all of them, or it is refused.
-VIVID = ["--hw-brand", "--hw-brand-hover", "--hw-brand-active", "--hw-on-brand",
-         "--hw-brand-quiet", "--hw-field", "--hw-on-field", "--hw-select", "--hw-primary",
-         "--hw-primary-hover", "--hw-primary-active", "--hw-on-primary"]
-# What the primary aliases may copy: the ink family, or the brand's.
-PRIMARY_FAMILIES = {"ink": ("--hw-ink", "--hw-ink-hover", "--hw-ink-active", "--hw-ink-text"),
-                    "brand": ("--hw-brand", "--hw-brand-hover", "--hw-brand-active",
-                              "--hw-on-brand")}
-PRIMARY_ALIASES = ("--hw-primary", "--hw-primary-hover", "--hw-primary-active", "--hw-on-primary")
-# The labels a vivid fill may carry: the text ink or the ink control's label, nothing else.
-LABEL_INKS = ("--hw-text", "--hw-ink-text")
-
-
-def vivid_required():
-    """(bar, foreground, background, what relies on it), every pair of the vivid tier."""
-    for fill in ("--hw-brand", "--hw-brand-hover", "--hw-brand-active"):
-        yield AA, "--hw-on-brand", fill, "a label on the brand fill, at rest, hovered and pressed"
-    yield AA, "--hw-on-field", "--hw-field", "display copy and its one action on a vivid field"
-    for fill in PRIMARY_ALIASES[:3]:
-        yield AA, "--hw-on-primary", fill, "the primary button's label, at rest, hovered and pressed"
-    # 7:1 in both tiers: a selected row and a brand tint are read at length, so the default tier
-    # already holds them at the raised bar.
-    yield 7.0, "--hw-text", "--hw-brand-quiet", "body copy on the brand's quiet tint"
-    yield 7.0, "--hw-text", "--hw-select", "body copy in a selected row"
-
-
-def vivid(tokens):
-    """Failures of the vivid tier's forms in one block: every token declared, each label one of
-    the two inks, and the primary aliases one family copied whole."""
-    missing = [v for v in VIVID if v not in tokens]
-    if missing:
-        return [f"declares part of the vivid tier and not {', '.join(missing)}"]
-    bad = []
-    for label in ("--hw-on-brand", "--hw-on-field"):
-        if not any(tokens[label] == tokens[ink] for ink in LABEL_INKS):
-            bad.append(f"{label} is {hexof(*tokens[label])}, which is neither --hw-text nor "
-                       f"--hw-ink-text")
-    if not any(all(tokens[a] == tokens[f] for a, f in zip(PRIMARY_ALIASES, fam))
-               for fam in PRIMARY_FAMILIES.values()):
-        bad.append("--hw-primary and its states copy neither the ink family nor the brand's "
-                   "whole")
-    if not (tokens["--hw-select"][1] <= max(tokens[n][1] for n in NEUTRALS) + 1e-9
-            or tokens["--hw-select"] == tokens["--hw-accent-quiet"]):
-        bad.append(f"--hw-select is {hexof(*tokens['--hw-select'])}, neither neutral nor "
-                   f"--hw-accent-quiet's value")
-    return bad
-
-
-def refused():
-    """(bar, foreground, background, why), pairs the book refuses because they fall BELOW the bar.
-
-    A published refusal is a claim too: if a re-solve lifted this pair over 4.5:1 the book would
-    go on refusing a pair that now passes, and nothing would say so."""
-    yield AA, "--hw-text-muted", "--hw-border", "75-spec-sheet.md#ruled refuses muted ink on a rule"
-
-
-# The bars, declared here rather than read from the seed, for the same reason the pairs are.
-# The accent is held apart from the states on each element it paints, in CIEDE2000 on the 8-bit
-# value (10-color.md, "The three bars the accent is held to"): its ink from every state ink, the
-# selected-row fill from every state's quiet fill, and the focus ring from hw-danger, the one
-# state drawn as a border around a control. The ring is also held apart from hw-border-strong, the control's own edge, and every
-# state's quiet fill from hw-ground (12-brand.md). A chart colour is an ink, held to one bar in
-# oklab distance times 100 against each semantic and each other series, and neighbours alternate
-# in lightness: 0.12 of lightness is a separation of 12 on its own, so neighbours stay apart
-# where hue is lost, in greyscale print or to a reader who cannot see it.
-# The primary bar used to hold the accent ink from all three states. Narrowed by the vivid tier:
-# it holds the loudest fill, --hw-primary where the set declares it and --hw-ink otherwise, from
-# --hw-danger, the one state drawn as a filled button; the accent ink is reported, not refused
-# (10-color.md#the-three-bars-the-accent-is-held-to). The selected-row fill is --hw-select where
-# declared, and a neutral one is exempt because it is not a hue.
-ACCENT_BARS = (("primary", ("--hw-primary", "--hw-ink"), "", ("danger",), 14),
-               ("fill", ("--hw-select", "--hw-accent-quiet"), "-quiet",
-                ("success", "warning", "danger"), 5),
-               ("ring", ("--hw-accent-ring",), "", ("danger",), 17))
-NEUTRALS = SURFACES + ["--hw-border"]
-RING_FROM_BORDER, FILL_FROM_GROUND = 14, 6
-CHART_SEPARATION, NEIGHBOUR_DL = 8.0, 0.12
-CHARTS = [f"--hw-chart-{n}" for n in range(1, 7)]
-
-
-def separation(a, b, lightness=True):
-    """Oklab distance times 100 between two oklch triples. Without lightness it is the distance
-    in hue and chroma alone, which pass 5 holds a product colour to."""
-    (L1, C1, h1), (L2, C2, h2) = a, b
-    da = C1 * math.cos(math.radians(h1)) - C2 * math.cos(math.radians(h2))
-    db = C1 * math.sin(math.radians(h1)) - C2 * math.sin(math.radians(h2))
-    return 100 * math.hypot(L1 - L2 if lightness else 0.0, da, db)
-
-
-def separations(tokens):
-    """(failures, closest chart pair, worst painted distance per bar), for one block."""
-    bad, closest, worst = [], None, {}
-    worst["ink"] = min(painted(tokens["--hw-accent"], tokens[f"--hw-{s}"]) for s in SEMANTICS[1:])
-    for kind, names, suffix, states, bar in ACCENT_BARS:
-        ours = next(n for n in names if n in tokens)
-        if (ours == "--hw-select"
-                and tokens[ours][1] <= max(tokens[n][1] for n in NEUTRALS) + 1e-9):
-            worst[kind] = float("inf")
-            continue
-        for sem in states:
-            d = painted(tokens[ours], tokens[f"--hw-{sem}{suffix}"])
-            worst[kind] = min(worst.get(kind, d), d)
-            if d < bar:
-                bad.append(f"{ours}, the {kind} fill, sits {d:.1f} from --hw-{sem}{suffix}, "
-                           f"below {bar} CIEDE2000: a brand element that reads as a state"
-                           if kind != "ring" else
-                           f"{ours}, the ring, sits {d:.1f} from --hw-{sem}{suffix}, "
-                           f"below {bar} CIEDE2000: a focus ring that reads as an error border")
-    d = painted(tokens["--hw-accent-ring"], tokens["--hw-border-strong"])
-    worst["ring-border"] = d
-    if d < RING_FROM_BORDER:
-        bad.append(f"--hw-accent-ring sits {d:.1f} from --hw-border-strong, below "
-                   f"{RING_FROM_BORDER} CIEDE2000: a focused control that reads as a bordered one")
-    for sem in SEMANTICS[1:]:
-        d = painted(tokens[f"--hw-{sem}-quiet"], tokens["--hw-ground"])
-        worst["fill-ground"] = min(worst.get("fill-ground", d), d)
-        if d < FILL_FROM_GROUND:
-            bad.append(f"--hw-{sem}-quiet sits {d:.1f} from --hw-ground, below "
-                       f"{FILL_FROM_GROUND} CIEDE2000: a status fill that sinks into the ground")
-    for fg in CHARTS:
-        for sem in SEMANTICS[1:]:
-            d = separation(tokens[fg], tokens[f"--hw-{sem}"])
-            if d < CHART_SEPARATION:
-                bad.append(f"{fg} sits {d:.1f} from --hw-{sem}, below {CHART_SEPARATION}: a "
-                           f"series colour that reads as a state")
-    for i, a in enumerate(CHARTS):
-        for b in CHARTS[i + 1:]:
-            d = separation(tokens[a], tokens[b])
-            if closest is None or d < closest[0]:
-                closest = (d, a, b)
-            if d < CHART_SEPARATION:
-                bad.append(f"{a} sits {d:.1f} from {b}, below {CHART_SEPARATION}")
-        if i + 1 < len(CHARTS):
-            dl = abs(tokens[a][0] - tokens[CHARTS[i + 1]][0])
-            if dl < NEIGHBOUR_DL:
-                bad.append(f"{a} and {CHARTS[i + 1]} are adjacent series {dl:.3f} apart in "
-                           f"lightness, below {NEIGHBOUR_DL}")
-    return bad, closest, worst
-
-
-# A brand's shape and stroke, one of the house's own (12-brand.md). Three radii bound to three
-# roles, child never larger than parent, is what a register guarantees; a free triple does not.
-REGISTERS = {"crisp": ("2px", "3px", "6px"), "house": ("4px", "6px", "10px"),
-             "moulded": ("4px", "7px", "12px"), "soft": ("6px", "8px", "14px")}
-ICON_STROKES = ("1.5px", "1.75px", "2px")
-DECLARATION = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*([^;]+);")
-
-
-def root_values(path):
-    """The declarations of the file's one unconditional :root block, the theme-free tokens."""
-    out, inside = {}, False
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        if line.strip() == ":root {":
-            inside = True
-        elif inside and line.strip().startswith("}"):
-            break
-        elif inside and DECLARATION.match(line):
-            m = DECLARATION.match(line)
-            out[m.group(1)] = m.group(2).strip()
-    return out
-
-
-def geometry(path):
-    """(failures, register name) for the shape and stroke a file declares."""
-    root = root_values(path)
-    radii = tuple(root.get(f"--hw-radius-{s}") for s in ("sm", "md", "lg"))
-    register = next((n for n, r in REGISTERS.items() if r == radii), None)
-    bad = [] if register else [f"radii sm/md/lg are {'/'.join(map(str, radii))}, which is none of "
-                               f"the registers " + ", ".join(f"{n} {'/'.join(r)}"
-                                                            for n, r in REGISTERS.items())]
-    stroke = root.get("--hw-icon-stroke")
-    if stroke not in ICON_STROKES:
-        bad.append(f"--hw-icon-stroke is {stroke}, which is none of {', '.join(ICON_STROKES)}")
-    return bad, f"{register or 'none'}, stroke {stroke}"
-
-
-BRAND_LINE = re.compile(r"^\s*Brand: (.+)\.$", re.M)
-# A set whose header says its dark cards are stepped is held to that step in both dark blocks:
-# a card told from the page by a lighter surface and a border, never a shadow
-# (12-brand.md#the-dark-card-step). The number is this file's, not the header's.
-CARD_LINE = re.compile(r"^\s*Dark cards: stepped", re.M)
-CARD_STEP = 1.2
-
-
-# The text roles, most prominent first, and the smallest lightness step the default themes keep
-# between two of them (0.062 light, 0.068 dark, secondary to muted). Raising the floors pushes
-# neighbouring roles toward one bar, and a step under this is one role under two names.
-ROLE_LADDER, ROLE_STEP = ["--hw-text", "--hw-text-secondary", "--hw-text-muted"], 0.06
-BLOCKS_CERTIFIED = ["light", "dark", "light-more", "dark-more"]
-
-
-def roles(tokens):
-    return [f"{a} and {b} are {abs(tokens[a][0] - tokens[b][0]):.4f} apart in lightness, "
-            f"below the {ROLE_STEP} that keeps them two roles"
-            for a, b in zip(ROLE_LADDER, ROLE_LADDER[1:])
-            if abs(tokens[a][0] - tokens[b][0]) < ROLE_STEP]
-
-
-# --- pass 1: every ratio the book publishes -------------------------------------------------
-
-TABLES = ["15-color-combinations.md", "10-color.md"]
-
-CELL = re.compile(r"\*{0,2}([0-9]+\.[0-9]+)\*{0,2}$")
-COLUMN = re.compile(r"`([a-z0-9-]+)`|^on ([a-z0-9-]+)$")
-PAIR_CELL = re.compile(r"^`(hw-[a-z0-9-]+)` on `(hw-[a-z0-9-]+)`$")
-TWO_THEME_TOKEN = re.compile(r"^\| `(hw-[a-z0-9-]+)` \| \*{0,2}([0-9.]+)\*{0,2} \| \*{0,2}([0-9.]+)\*{0,2} \|$")
-TWO_THEME_PAIR = re.compile(r"^\| `(hw-[a-z0-9-]+)` on `(hw-[a-z0-9-]+)` \| ([0-9.]+) \| ([0-9.]+) \|$")
-
-# Ratios the book states in a sentence rather than in a table, each with the file and line it is
-# written on. They are listed rather than parsed because a sentence has no column to key on, and
-# they are listed at all because an unguarded published number is the defect this pass exists to
-# stop: until 2026-09-21 the chart ratios below, and the disabled table in 60-states.md, were
-# certified by nothing.
-PROSE = [
-    # 15-color-combinations.md:99, 106, and the fill-is-not-a-boundary paragraph at :129
-    ("light", "--hw-accent", "--hw-ink", 3.30),
-    ("dark", "--hw-accent", "--hw-ink", 3.07),
-    ("light", "--hw-border", "--hw-surface", 1.30),
-    ("light", "--hw-surface", "--hw-surface-sunken", 1.129),
-    ("dark", "--hw-surface", "--hw-surface-sunken", 1.115),
-    # 10-color.md:72-74, the focus ring against the surface closest to it in lightness
-    ("light", "--hw-accent-ring", "--hw-surface-sunken", 3.05),
-    ("dark", "--hw-accent-ring", "--hw-surface-raised", 3.05),
-    ("light", "--hw-accent-ring", "--hw-surface-raised", 3.44),
-    ("dark", "--hw-accent-ring", "--hw-surface-sunken", 3.70),
-    # 10-color.md:78-80 and the table in 70-data-display.md#charts, the six chart fills against
-    # each ground and against each theme's worst surface
-    *[(t, f"--hw-chart-{i}", f"--hw-{g}", v)
-      for t, g, row in (("light", "ground", [3.29, 8.13, 3.62, 8.41, 3.43, 7.55]),
-                        ("light", "surface-sunken", [3.10, 7.66, 3.41, 7.93, 3.24, 7.12]),
-                        ("dark", "ground", [8.54, 13.62, 7.84, 13.37, 8.18, 14.14]),
-                        ("dark", "surface-raised", [7.31, 11.65, 6.71, 11.44, 7.00, 12.10]))
-      for i, v in enumerate(row, 1)],
-    # 75-spec-sheet.md#ruled, ink on the ruled ground, certified against its rule
-    *[(t, f"--hw-{fg}", "--hw-border", v)
-      for fg, row in (("text", (12.17, 11.84)), ("text-secondary", (5.23, 5.06)),
-                      ("text-muted", (4.01, 3.89)))
-      for t, v in zip(("light", "dark"), row)],
-    # 50-surface-texture.md, the measured separations table
-    *[(t, f"--hw-{fg}", f"--hw-{bg}", v)
-      for fg, bg, row in (("surface-hover", "surface", (1.083, 1.042)),
-                          ("surface-active", "surface", (1.129, 1.087)),
-                          ("surface-sunken", "ground", (1.060, 1.037)))
-      for t, v in zip(("light", "dark"), row)],
-    # 60-states.md:75-76, the disabled text table
-    *[(t, "--hw-text-disabled", f"--hw-{g}", v)
-      for t, row in (("light", [3.21, 3.42, 3.03]), ("dark", [3.51, 3.26, 3.64]))
-      for g, v in zip(("ground", "surface", "surface-sunken"), row)],
-]
-
-
-def published_ratios(root):
-    """Every numeric cell in the book's ratio tables, as (theme, fg, bg, value).
-
-    Four table shapes across the two files that carry them: a per-theme grid whose header row
-    names the grounds, a row inside such a grid keyed on a named pair, a two-column light/dark
-    table keyed on one foreground, and a two-column table keyed on a named pair."""
-    out = []
-    for name in TABLES:
-        theme, cols = None, None
-        for line in (root / "design" / name).read_text(encoding="utf-8").splitlines():
-            if line.startswith("### Light"):
-                theme = "light"
-            elif line.startswith("### Dark"):
-                theme = "dark"
-            elif line.startswith("## "):
-                theme, cols = None, None
-            m = TWO_THEME_TOKEN.match(line)
-            if m:
-                for t, v in (("light", m.group(2)), ("dark", m.group(3))):
-                    out.append((t, "--hw-border-strong", "--" + m.group(1), float(v)))
-                continue
-            m = TWO_THEME_PAIR.match(line)
-            if m:
-                for t, v in (("light", m.group(3)), ("dark", m.group(4))):
-                    out.append((t, "--" + m.group(1), "--" + m.group(2), float(v)))
-                continue
-            if not line.startswith("|"):
-                continue
-            cells = [c.strip() for c in line.strip().strip("|").split("|")]
-            if cells[0] in ("ink", "foreground"):
-                cols = []
-                for c in cells[1:]:
-                    m = COLUMN.search(c)
-                    cols.append((m.group(1) or m.group(2)) if m else None)
-                continue
-            if not (theme and cols):
-                continue
-            m = PAIR_CELL.match(cells[0])
-            if m:
-                values = [c for c in cells[1:] if CELL.fullmatch(c)]
-                if values:
-                    out.append((theme, "--" + m.group(1), "--" + m.group(2),
-                                float(CELL.fullmatch(values[0]).group(1))))
-            elif cells[0].startswith("`hw-"):
-                fg = "--" + cells[0].strip("`")
-                for g, v in zip(cols, cells[1:]):
-                    if g and CELL.fullmatch(v):
-                        out.append((theme, fg, "--hw-" + g, float(CELL.fullmatch(v).group(1))))
-    return out
-
-
-# --- pass 5: a product's own colour ---------------------------------------------------------
-# What every product colour is held to, declared here rather than read from the product's seed,
-# so a product cannot weaken it in the same edit as the value it guards: at least 3:1 on each of
-# the six surfaces, PRODUCT_FROM_STATE CIEDE2000 at 8-bit from each of the three states, and
-# PRODUCT_HUE_CHROMA in hue and chroma from the states and the accent. The seed is read only for
-# what it adds - a pair at a text bar, or a further colour to stay clear of, held to the guard.
-PRODUCT_APART = [f"--hw-{s}" for s in SEMANTICS]
-PRODUCT_STATES = [f"--hw-{s}" for s in SEMANTICS[1:]]
-# The accent's ink bar, and the guard that keeps a state shifted in lightness refused: a maroon at
-# hue 27 clears 14 CIEDE2000 from --hw-danger and still reads as red
-# (95-extending.md#how-a-product-colour-is-held-apart).
-PRODUCT_FROM_STATE, PRODUCT_HUE_CHROMA = 14, 5.0
-
 
 def raised(bar):
     return max(bar, MORE_BAR[AA]) if bar >= AA else MORE_BAR[NON_TEXT]
 
 
-def finite_bar(x):
-    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
-
-
-def extension_shape(ext):
-    """Every way a product seed's raw JSON cannot be trusted, checked once at the boundary so
-    the measuring code after it can index the seed freely."""
-    if not isinstance(ext, dict):
-        return [f"the product seed is {ext!r}, not a JSON object"]
-    bad = []
-    if not isinstance(ext.get("namespace"), str):
-        bad.append(f"namespace {ext.get('namespace')!r} is not a string")
-    color = ext.get("color")
-    if not isinstance(color, dict):
-        bad.append(f"color {color!r} is not an object")
-        return bad
-    tokens = color.get("tokens")
-    if not isinstance(tokens, list) or not tokens:
-        bad.append(f"color.tokens {tokens!r} is not a non-empty list of colour token entries")
-        return bad
-    for e in tokens:
-        if not isinstance(e, dict) or not isinstance(e.get("name"), str):
-            bad.append(f"a colour token entry {e!r} is not an object with a string name")
-            continue
-        name = "--" + e["name"]
-        floors = e.get("floors", [])
-        if not isinstance(floors, list):
-            bad.append(f"{name} has floors {floors!r}, which is not a list")
-        else:
-            for floor in floors:
-                if not isinstance(floor, dict):
-                    bad.append(f"{name} carries a floor {floor!r} that is not an object")
-                    continue
-                if not finite_bar(floor.get("bar")):
-                    bad.append(f"{name} carries a floor with bar {floor.get('bar')!r}, which "
-                               f"is not a finite number")
-                on = floor.get("on", [])
-                if not (isinstance(on, list) and all(isinstance(g, str) for g in on)):
-                    bad.append(f"{name} carries a floor on {on!r}, which is not a list of "
-                               f"house colour names")
-        apart = e.get("apart", [])
-        if not (isinstance(apart, list) and all(isinstance(a, str) for a in apart)):
-            bad.append(f"{name} has apart {apart!r}, which is not a list of house colour "
-                       f"names")
-    return bad
-
-
-def load_extension(seed_path, css_arg):
-    """The one entry point for a product seed: read it, parse it, validate its shape and
-    every leaf, and resolve and check its built CSS exists - all before any other --extend
-    code touches the seed or the path. (failures, ext, css path)."""
-    try:
-        text = seed_path.read_text(encoding="utf-8")
-    except OSError as exc:
-        return [f"{seed_path} could not be read: {exc.strerror or exc}"], None, None
-    try:
-        ext = json.loads(text)
-    except json.JSONDecodeError as exc:
-        return [f"{seed_path} is not valid JSON: {exc}"], None, None
-    shape = extension_shape(ext)
-    if shape:
-        return shape, None, None
-    css = Path(css_arg) if css_arg else seed_path.parent / (ext["namespace"] + ".tokens.css")
-    if not css.exists():
-        return [f"{css} does not exist; run tools/build.py --extend {seed_path} first"], None, None
-    return [], ext, css
-
-
-def extension(themes, ext, seed_path, css_path):
-    """(failures, report lines) for one product's seed and the CSS already resolved and
-    confirmed to exist by load_extension."""
-    prod = parse_tokens(css_path)
-    bad, report = [], []
-    ns = ext["namespace"]
-    for block, tokens in prod.items():
-        for token in tokens:
-            if token.startswith("--hw-"):
-                bad.append(f"{block} {token} is redefined by {Path(css_path).name}, and a product "
-                           f"can never redefine an hw- token")
-            elif not token.startswith(f"--{ns}-"):
-                bad.append(f"{block} {token} is outside the --{ns}- namespace")
-    for e in ext["color"]["tokens"]:
-        name = "--" + e["name"]
-        pairs = {s: NON_TEXT for s in SURFACES}
-        for floor in e.get("floors", []):
-            bar = floor["bar"]
-            if bar != NON_TEXT and bar < AA:
-                bad.append(f"{name} claims {bar}:1, which certifies nothing this file holds")
-                continue
-            for g in floor["on"]:
-                pairs[f"--hw-{g}"] = max(pairs.get(f"--hw-{g}", 0), bar)
-        apart = sorted(set(PRODUCT_APART) | {"--" + a for a in e.get("apart", [])})
-        for theme in BLOCKS_CERTIFIED:
-            fg = prod[theme].get(name)
-            if fg is None:
-                bad.append(f"{theme} {name} is declared in {Path(seed_path).name} and not in "
-                           f"{Path(css_path).name}")
-                continue
-            if not in_gamut(*fg):
-                bad.append(f"{theme} {name} oklch{fg} falls outside sRGB")
-            worst = None
-            for bg, base in pairs.items():
-                bar = raised(base) if theme.endswith("-more") else base
-                if bg not in themes[theme]:
-                    bad.append(f"{theme} {name} is claimed on {bg}, which the house does not "
-                               f"declare")
-                    continue
-                got, got8 = ratio(fg, themes[theme][bg])
-                if got < bar or got8 < bar:
-                    bad.append(f"{theme} {name} on {bg}: {got:.3f} ({got8:.3f} at 8-bit), below "
-                               f"{bar}, {hexof(*fg)} on {hexof(*themes[theme][bg])}")
-                if worst is None or got < worst[0]:
-                    worst = (got, got8, bg)
-            bad += [f"{theme} {name} is held apart from {a}, which the house does not declare"
-                    for a in apart if a not in themes[theme]]
-            valid_apart = [a for a in apart if a in themes[theme]]
-            seps = sorted((separation(fg, themes[theme][a], lightness=False), a)
-                          for a in valid_apart)
-            bad += [f"{theme} {name} sits {d:.1f} from {a} in hue and chroma, below "
-                    f"{PRODUCT_HUE_CHROMA}: a product colour that reads as a house state"
-                    for d, a in seps if d < PRODUCT_HUE_CHROMA]
-            states = [a for a in PRODUCT_STATES if a in themes[theme]]
-            des = sorted((painted(fg, themes[theme][a]), a) for a in states)
-            bad += [f"{theme} {name} sits {d:.1f} CIEDE2000 from {a} at 8-bit, below "
-                    f"{PRODUCT_FROM_STATE}: a product colour that reads as a house state"
-                    for d, a in des if d < PRODUCT_FROM_STATE]
-            if not (des and seps):
-                report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
-                              f"{worst[1]:.3f}) on {worst[2]}; no house state to measure "
-                              f"separation against")
-                continue
-            cvd = min((*dichromat_painted(fg, themes[theme][a]), a) for a in states)
-            report.append(f"  {name} {theme:10} {hexof(*fg)}  worst {worst[0]:.3f} (8-bit "
-                          f"{worst[1]:.3f}) on {worst[2]}; {des[0][0]:.2f} CIEDE2000 from "
-                          f"{des[0][1]}; {seps[0][0]:.2f} in hue and chroma from {seps[0][1]}; "
-                          f"{cvd[1]} sees {cvd[0]:.1f} from {cvd[2]}, reported")
-    for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
-        if prod[copy] != prod[block]:
-            bad.append(f"the {copy} block of {Path(css_path).name} differs from {block}")
-    return bad, report
+# The CIEDE2000 bars, each the maintainer's decision (10-color.md#the-three-bars-the-accent-is-held-to):
+# the selected fill from a state's fill, the primary from the danger solid, the ring from the
+# error, the ring from a control's own edge, and a state's fill from the ground.
+FILL_FROM_STATE, PRIMARY_FROM_DANGER, RING_FROM_DANGER = 5, 14, 17
+RING_FROM_BORDER, FILL_FROM_GROUND = 14, 6
+CHARTS = [f"--hw-chart-{n}" for n in range(1, 7)]
+# The smallest lightness step between primary and muted text, below which two roles read as one.
+ROLE_STEP = 0.06
+# A brand's shape and stroke, one of the house's own: three radii bound to three roles, child
+# never larger than parent, is what a register guarantees; a free triple does not.
+REGISTERS = {"crisp": ("2px", "3px", "6px"), "house": ("4px", "6px", "10px"),
+             "moulded": ("4px", "7px", "12px"), "soft": ("6px", "8px", "14px")}
+ICON_STROKES = ("1.5px", "1.75px", "2px")
+FACES = ("--hw-font-sans", "--hw-font-display", "--hw-font-read", "--hw-font-mono")
+DISPLAY_STRETCHES = ("100%", "125%")   # the normal width, and Archivo Expanded's
+# The ramps every brand carries: the neutral, the five roles.css names and the six chart series.
+# Any other is the brand's own, reported against the three state ramps below.
+STATE_RAMPS = ("red", "amber", "green")
+HOUSE_RAMPS = ("gray", "accent", "mark", *STATE_RAMPS, "teal", "blue", "violet", "pink", "olive",
+               "sky")
 
 
 # --- the ramps: tools/ramps.py's files and ramps/roles.css ----------------------------------
-# What the ramps claim, declared again here rather than imported from tools/ramps.py, for the
-# reason the pairs above are declared here: a floor cannot be weakened in the same edit as the
-# step it guards. Floors are those of ramps.py's docstring; a role is held to the floor of the
-# step it names, and under prefers-contrast: more to raised() of it.
+# What the ramps claim, declared again here rather than imported from tools/ramps.py: a floor
+# cannot be weakened in the same edit as the step it guards. Floors are those of ramps.py's
+# docstring; a role is held to the floor of the step it names, and under prefers-contrast: more
+# to raised() of it.
 
 RAMPS_DIR = ROOT / "ramps"
 STEP_FLOORS = {8: (NON_TEXT, (1, 2, 3)), 11: (AA, (1, 2, 3, 4, 5)), 12: (13.0, (1, 2, 3, 4, 5))}
 # A hue's step 12 is read only as text under more, so it holds that bar and not the gray's 13:1.
 HUE_STEP_12 = MORE_BAR[AA]
 SOLIDS = (9, 10)
-RAMP_BLOCKS = {(None, ':root, [data-theme="light"]'): "light", (None, '[data-theme="dark"]'): "dark",
+RAMP_BLOCKS = {(None, ":root"): "brand",
+               (None, ':root, [data-theme="light"]'): "light", (None, '[data-theme="dark"]'): "dark",
                ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
                "media-dark"}
 ROLE_BLOCKS = {(None, ":root"): "base", (None, '[data-theme="dark"]'): "dark",
@@ -858,11 +296,11 @@ STATE_FILLS = ("--hw-success-fill", "--hw-warning-fill", "--hw-danger-fill")
 # A status word keeps its hue against the text beside it in every tier, the bar a product colour
 # keeps from a state: under more in dark every step 12 sat near white, 2.1 from --hw-text.
 STATE_TEXT = ("--hw-danger", "--hw-warning", "--hw-success", "--hw-delete", "--hw-insert")
-STATE_FROM_TEXT = PRODUCT_FROM_STATE
-ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill that reads as a state")
+STATE_FROM_TEXT = 14
+ROLE_BARS = [("fill", "--hw-accent-fill", s, FILL_FROM_STATE, "a brand fill that reads as a state")
              for s in STATE_FILLS] + [
-    ("primary", "--hw-ink", "--hw-danger-solid", ACCENT_BARS[0][4], "a primary that reads as danger"),
-    ("ring", "--hw-focus", "--hw-danger", ACCENT_BARS[2][4], "a focus ring that reads as an error"),
+    ("primary", "--hw-ink", "--hw-danger-solid", PRIMARY_FROM_DANGER, "a primary that reads as danger"),
+    ("ring", "--hw-focus", "--hw-danger", RING_FROM_DANGER, "a focus ring that reads as an error"),
     ("ring-border", "--hw-focus", "--hw-line-strong", RING_FROM_BORDER,
      "a focused control that reads as a bordered one")] + [
     ("fill-ground", s, "--hw-bg", FILL_FROM_GROUND, "a status fill that sinks into the ground")
@@ -958,6 +396,30 @@ def ramp_steps(block):
     return ramps, bad
 
 
+def brand_shape(block):
+    """(failures, register) for a brand's own block: its four faces and the display width, and
+    radii and an icon stroke that are one of the house's own."""
+    owned = (*FACES, "--hw-font-display-stretch", "--hw-radius-sm", "--hw-radius-md",
+             "--hw-radius-lg", "--hw-icon-stroke")
+    bad = [f"the brand block names no {k}" for k in owned if k not in block]
+    bad += [f"{k} is in the brand block, which carries faces, the display width, radii and the icon stroke only"
+            for k in sorted(set(block) - set(owned))]
+    if bad:
+        return bad, None
+    radii = tuple(block[f"--hw-radius-{s}"] for s in ("sm", "md", "lg"))
+    register = next((n for n, r in REGISTERS.items() if r == radii), None)
+    if register is None:
+        bad.append(f"radii {' '.join(radii)} are none of the house's registers: "
+                   + "; ".join(f"{n} {' '.join(r)}" for n, r in REGISTERS.items()))
+    if block["--hw-font-display-stretch"] not in DISPLAY_STRETCHES:
+        bad.append(f"--hw-font-display-stretch is {block['--hw-font-display-stretch']}, which is "
+                   f"none of {', '.join(DISPLAY_STRETCHES)}")
+    if block["--hw-icon-stroke"] not in ICON_STROKES:
+        bad.append(f"--hw-icon-stroke is {block['--hw-icon-stroke']}, which is none of "
+                   f"{', '.join(ICON_STROKES)}")
+    return bad, register
+
+
 def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
     """(failures, report lines) for one tools/ramps.py file and ramps/roles.css over it. A list
     passed as `pairs` receives every pair certified, as (tier, fg, bg, bar, "ratio" | "de2000")
@@ -965,7 +427,7 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
     rb, bad = declarations(tokens_path, RAMP_BLOCKS)
     lb, rbad = declarations(roles_path, ROLE_BLOCKS)
     bad += rbad
-    for b in ("light", "dark", "media-dark"):
+    for b in ("brand", "light", "dark", "media-dark"):
         if b not in rb:
             bad.append(f"{Path(tokens_path).name} has no {b} block")
     if bad or "base" not in lb:
@@ -979,6 +441,8 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
     if lb.get("media-dark-more") != lb.get("dark-more"):
         bad.append("roles.css's prefers-color-scheme: dark overrides under more differ from "
                    "[data-theme=\"dark\"]'s")
+    sbad, register = brand_shape(rb["brand"])
+    bad += sbad
     report, lowest = [], {}
     used = {*ROLE_GROUNDS, *ROLE_FILLS, *ROLE_TINTS, *ROLE_EDGES, *ROLE_TEXT, ROLE_DISABLED, *CHARTS,
             *ROLE_LABELS, *(f for fs in ROLE_LABELS.values() for f in fs),
@@ -1026,6 +490,13 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
                     for i in span:
                         measure(f"{r}-{step}", f"{g}-{i}", bar, step, f"{theme} step {step}",
                                 steps[(r, str(step))], steps[(g, str(i))], theme)
+        # A brand's own hue (quoth's live orange, the house pencil) is reported against the three
+        # states, never refused: the solver's product-colour pass held one 14 apart, which the
+        # live ramp misses against amber, and a product painting it keeps the word beside it.
+        for r in set(ramps) - set(HOUSE_RAMPS):
+            low("own hue from a state, reported", *min(
+                (painted(steps[(r, k)], steps[(st, k)]), f"{theme} {r}-{k} and {st}-{k}")
+                for k in ("8", "11") for st in STATE_RAMPS))
         for r in ramps:
             for i in SOLIDS:
                 measure(f"{r}-on-solid", f"{r}-{i}", AA, "label", f"{theme} solid label",
@@ -1089,6 +560,7 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
             elif more:
                 low("ladder under more, reported", step, tier)
     report.insert(0, "  lowest: " + "; ".join(f"{k} {v[0]:.2f} ({v[1]})" for k, v in lowest.items()))
+    report.insert(1, f"  shape: the {register} register, icon stroke {rb['brand'].get('--hw-icon-stroke')}")
     return bad, report
 
 
@@ -1109,7 +581,7 @@ def main_ramps(paths):
         failures += [f"{path.name.removesuffix('.tokens.css')}: {f}" for f in bad]
         print(f"ramps {path.name}: every step floor and solid label, every role in "
               f"roles.css in light, dark and both under prefers-contrast: more, float and "
-              f"8-bit; {len(bad)} failed")
+              f"8-bit, and the brand's shape; {len(bad)} failed")
         print("\n".join(report))
     for f in failures:
         print("FAIL  " + f, file=sys.stderr)
@@ -1117,163 +589,13 @@ def main_ramps(paths):
     return 1 if failures else 0
 
 
+
+
 def main(argv):
     ap = argparse.ArgumentParser(prog="contrast.py", description=__doc__.split("\n")[0])
-    ap.add_argument("css", nargs="?", default=str(ROOT / "tokens" / "tokens.css"))
-    ap.add_argument("--ramps", nargs="*", metavar="TOKENS",
-                    help="certify tools/ramps.py output and ramps/roles.css instead (default "
-                         "every ramps/tokens/*.tokens.css)")
-    ap.add_argument("--extend", metavar="SEED", help="also verify this product seed's tokens")
-    ap.add_argument("--extend-css", metavar="FILE",
-                    help="the product's built CSS, if not <namespace>.tokens.css beside the seed")
-    opts = ap.parse_args(argv[1:])
-    if opts.ramps is not None:
-        return main_ramps(opts.ramps)
-    path = opts.css
-    if not Path(path).is_file():
-        print(f"FAIL  {path} does not exist; build it with tools/build.py first", file=sys.stderr)
-        return 1
-    themes = parse_tokens(path)
-    failures = []
-
-    m = BRAND_LINE.search(Path(path).read_text(encoding="utf-8"))
-    brand = m.group(1) if m else "not named in the header"
-    if brand == "house":
-        claims = published_ratios(ROOT) + PROSE
-        for theme, fg, bg, want in claims:
-            got, _ = ratio(themes[theme][fg], themes[theme][bg])
-            # The book prints two or three decimals, so a cell is reproduced when it rounds back
-            # to what is written. 0.011 is half a unit in the last place of a two-decimal cell.
-            if abs(got - want) > 0.011:
-                failures.append(f"published {theme} {fg} on {bg}: book says {want}, "
-                                f"this file computes {got:.3f}")
-        print(f"pass 1: {len(claims)} published ratios re-derived from "
-              f"{', '.join('design/' + t for t in TABLES)} and the prose list, "
-              f"{len(failures)} mismatched")
-    else:
-        print(f"pass 1: skipped. This set's brand is {brand}; the published ratios were "
-              f"measured on the house set and do not describe it.")
-
-    checked, worst = 0, {}
-    for base, fg, bg, why in required():
-        for theme in BLOCKS_CERTIFIED:
-            bar = MORE_BAR[base] if theme.endswith("-more") else base
-            for token in (fg, bg):
-                if token not in themes[theme]:
-                    failures.append(f"{theme} {token} is certified and is not in {path}")
-            if fg not in themes[theme] or bg not in themes[theme]:
-                continue
-            got, got8 = ratio(themes[theme][fg], themes[theme][bg])
-            checked += 1
-            # No tolerance on either reading. WCAG states its thresholds without rounding, and a
-            # tolerance is how 2.9953 came to be published as 3.00.
-            if got < bar:
-                failures.append(f"{theme} {fg} on {bg}: {got:.3f} below {bar} ({why})")
-            elif got8 < bar:
-                failures.append(f"{theme} {fg} on {bg}: {got:.3f} clears {bar} but reads "
-                                f"{got8:.3f} at 8-bit, {hexof(*themes[theme][fg])} on "
-                                f"{hexof(*themes[theme][bg])} ({why})")
-            key = ("text" if base >= AA else "nontext", theme)
-            if key not in worst or got < worst[key][0]:
-                worst[key] = (got, got8, fg, bg)
-    vivid_blocks = [t for t in BLOCKS_CERTIFIED if any(v in themes[t] for v in VIVID)]
-    for theme in vivid_blocks:
-        failures += [f"{theme} {f}" for f in vivid(themes[theme])]
-    for base, fg, bg, why in vivid_required():
-        for theme in vivid_blocks:
-            if fg not in themes[theme] or bg not in themes[theme]:
-                continue
-            bar = MORE_BAR.get(base, base) if theme.endswith("-more") else base
-            got, got8 = ratio(themes[theme][fg], themes[theme][bg])
-            checked += 1
-            if got < bar or got8 < bar:
-                failures.append(f"{theme} {fg} on {bg}: {got:.3f} ({got8:.3f} at 8-bit), below "
-                                f"{bar} ({why})")
-    for bar, fg, bg, why in refused():
-        for theme in ("light", "dark"):
-            got, got8 = ratio(themes[theme][fg], themes[theme][bg])
-            checked += 1
-            if got >= bar or got8 >= bar:
-                failures.append(f"{theme} {fg} on {bg}: {got:.3f} now clears {bar}, and the book "
-                                f"still refuses it ({why})")
-    print(f"pass 2: {checked} certified pairs checked against AA {AA}:1 and non-text "
-          f"{NON_TEXT}:1, and under prefers-contrast: more against {MORE_BAR[AA]}:1 and "
-          f"{MORE_BAR[NON_TEXT]}:1, on the float value and at 8-bit, "
-          f"{2 * len(list(refused()))} of them asserted below their bar")
-    for (kind, theme), (got, got8, fg, bg) in sorted(worst.items()):
-        print(f"  worst {kind:8} {theme:10} {got:6.3f} (8-bit {got8:6.3f})  {fg} on {bg}")
-    # A brand sets the well's depth (12-brand.md#sunken-depth), so every pair on it is reported
-    # at the depth this file actually paints, beside the step it sits under the ground.
-    well = "--hw-surface-sunken"
-    for theme in BLOCKS_CERTIFIED:
-        t = themes[theme]
-        on = sorted((ratio(t[fg], t[well])[0], base, fg) for base, fg, bg, _ in required()
-                    if bg == well and fg in t and well in t)
-        if not on or "--hw-ground" not in t:
-            continue
-        worst_of = ", ".join(f"worst {kind} {p[0]:.3f} {p[2]}" for kind, p in (
-            ("text", next((p for p in on if p[1] >= AA), None)),
-            ("non-text", next((p for p in on if p[1] < AA), None))) if p)
-        print(f"  the well {theme:10} L {t[well][0]:.4f}, {ratio(t['--hw-ground'], t[well])[0]:.3f}"
-              f":1 under the ground; {len(on)} pairs on it, {worst_of}")
-
-    for theme in BLOCKS_CERTIFIED:
-        bad, (d, a, b), w = separations(themes[theme])
-        bad += roles(themes[theme])
-        failures += [f"{theme} {f}" for f in bad]
-        fill = "exempt, neutral" if w["fill"] == float("inf") else f"{w['fill']:.1f}"
-        print(f"pass 3: {theme:10} {len(bad)} below bar; primary {w['primary']:.1f}, fill "
-              f"{fill}, ring {w['ring']:.1f}; accent ink {w['ink']:.1f} reported; "
-              f"ring from border {w['ring-border']:.1f}; "
-              f"state fill from ground {w['fill-ground']:.1f}; closest chart pair {d:.1f}, "
-              f"{a[5:]} / {b[5:]}")
-    if CARD_LINE.search(Path(path).read_text(encoding="utf-8")):
-        steps = []
-        for theme in ("dark", "dark-more"):
-            for fg, bg in (("--hw-surface", "--hw-ground"), ("--hw-border", "--hw-surface")):
-                got, got8 = ratio(themes[theme][fg], themes[theme][bg])
-                steps.append(got)
-                if got < CARD_STEP or got8 < CARD_STEP:
-                    failures.append(f"{theme} {fg} sits {got:.3f}:1 ({got8:.3f} at 8-bit) over "
-                                    f"{bg}, below the {CARD_STEP}:1 dark card step the header "
-                                    f"claims")
-        print(f"pass 3: dark cards stepped, worst {min(steps):.3f}:1 against {CARD_STEP}:1")
-    bad, shape = geometry(path)
-    failures += bad
-    print(f"pass 3: shape register {shape}, {len(bad)} outside the house's own")
-
-    for theme in BLOCKS_CERTIFIED:
-        for token, (L, C, H) in sorted(themes[theme].items()):
-            if not in_gamut(L, C, H):
-                failures.append(f"{theme} {token} oklch({L} {C} {H}) falls outside sRGB")
-    for copy, block in (("media-dark", "dark"), ("media-dark-more", "dark-more")):
-        if themes[copy] != themes[block]:
-            diff = sorted(set(themes[block].items()) ^ set(themes[copy].items()))
-            failures.append(f"the {copy} block differs from {block} in {len(diff)} "
-                            f"declaration(s): " + ", ".join(t for t, _ in diff[:6]))
-    print(f"pass 4: {sum(len(themes[t]) for t in BLOCKS_CERTIFIED)} tokens inside sRGB; "
-          f"media-dark agrees with dark on {len(themes['media-dark'])} declarations and "
-          f"media-dark-more with dark-more on {len(themes['media-dark-more'])}")
-
-    if opts.extend:
-        seed = Path(opts.extend)
-        extend_failures, ext, css = load_extension(seed, opts.extend_css)
-        if extend_failures:
-            failures += extend_failures
-            print(f"pass 5: {seed} could not be verified; {len(extend_failures)} failed")
-        else:
-            bad, report = extension(themes, ext, seed, css)
-            failures += bad
-            print(f"pass 5: {Path(css).name} against this set, every token 3:1 or its "
-                  f"claimed bar on all six surfaces, {PRODUCT_FROM_STATE} CIEDE2000 from the "
-                  f"states and {PRODUCT_HUE_CHROMA} in hue and chroma from the states and the "
-                  f"accent; {len(bad)} failed")
-            print("\n".join(report))
-
-    for f in failures:
-        print("FAIL  " + f, file=sys.stderr)
-    print(f"\n{len(failures)} failures")
-    return 1 if failures else 0
+    ap.add_argument("tokens", nargs="*", help="tools/ramps.py files (default every "
+                                             "ramps/tokens/*.tokens.css)")
+    return main_ramps(ap.parse_args(argv[1:]).tokens)
 
 
 if __name__ == "__main__":

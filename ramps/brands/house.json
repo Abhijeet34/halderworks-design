@@ -1,8 +1,9 @@
 {
+  "note": "The house's own set: graphite neutral, accent hue 262, the yellow mark and the pencil blue as named light solids, and the live orange. It names no shape, stroke or face, so it takes the roster's default: the house register, a 1.5px stroke, Archivo, Literata and IBM Plex Mono.",
   "neutral": {"hue": 90, "chroma": 0.004},
   "hues": {
     "accent": {"hue": 262, "chroma": 0.15},
-    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.90, "dark": 0.88}},
+    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.9, "dark": 0.88}},
     "red": {"hue": 27, "chroma": 0.19},
     "amber": {"hue": 70, "chroma": 0.16},
     "green": {"hue": 150, "chroma": 0.14},

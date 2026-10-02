@@ -78,7 +78,7 @@ The three kinds are not interchangeable and [70-data-display.md](70-data-display
 The rules in [70-data-display.md](70-data-display.md) apply in a sentence as well as in a column.
 Carry the unit and the precision: `04:12`, `$1.84`, `2.4 MiB`, `sha256:77c2d4e...`.
 
-In running prose, numbers keep Public Sans' proportional figures, which are better inside a sentence.
+In running prose, numbers keep the face's proportional figures, which are better inside a sentence.
 `tabular-nums` is for columns and for numbers a reader will compare against the one above.
 
 ## Truncation

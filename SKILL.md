@@ -59,7 +59,7 @@ invent. That is why the inventory exists and why it is checked by a script.
 | understand what these products are and why the system looks like this | `design/00-brand-book.md` |
 | build or restyle any screen | `design/00-brand-book.md`, `design/35-layout.md`, then the component's sheet in `design/64-component-sheets.md` |
 | pick a colour | `design/10-color.md` for the token, `design/15-color-combinations.md` for what it may sit on. **The pairing table is permission, not documentation** |
-| build a screen for quoth, papertrace or pointback, or give a product its own identity | `design/12-brand.md`, then load `examples/<product>/tokens/tokens.css` in place of `tokens/tokens.css`. A brand changes values, never token names |
+| build a screen for quoth, papertrace or pointback, or give a product its own identity | `design/12-brand.md`, then load `examples/<product>/exports/variables.css` in place of `exports/variables.css`. A brand changes values, never token names |
 | set type | `design/20-type.md`. The tabular-figures rule is the one most often missed |
 | write the words in it | `design/25-content.md` |
 | space, round or elevate anything | `design/30-space-radius-elevation.md` |
@@ -114,50 +114,51 @@ Read `exports/DESIGN.compact.md` first and the specific file second. Do not read
 ## Loading the tokens into a product
 
 ```css
-@import "tokens.css";          /* the house set, or examples/<brand>/tokens/tokens.css for a brand */
+@import "fonts/fonts.css";     /* the house faces, self-hosted from this repository's fonts/ */
+@import "variables.css";       /* exports/variables.css, or examples/<brand>/exports/variables.css */
 @import "quoth/tokens.css";    /* the product's own namespace, loaded AFTER, never instead */
 ```
 
-Fonts are self-hosted from the upstream files `design/20-type.md` cites, never loaded from a font
-service; `design/95-extending.md#loading-the-system-in-a-product` has the `@font-face` rules.
+Fonts are self-hosted, never loaded from a font service: `fonts/` holds Archivo, Literata and IBM
+Plex Mono as WOFF2 with their OFL texts, and `design/95-extending.md#loading-the-system-in-a-product`
+says what a brand with another face ships instead.
 
 Every token is prefixed `hw-`, so it cannot collide with a framework's variables.
 Dark theme is `[data-theme="dark"]`, and the system follows `prefers-color-scheme` when the page
 has made no explicit choice. Compact density is `data-density="compact"` on any ancestor.
 
-The exports are the ramp roles set that replaces the solver's (`ramps/roles.css` and `ramps/scales.css`, whose names
-overlap `tokens.css`, so load one set, never both): `exports/variables.css` is plain custom
-properties with every theme and media block, `exports/theme.css` is the same plus a Tailwind v4
-`@theme inline` map, `exports/design-tokens.json` is W3C DTCG. Type, space and control sizes are
+The exports are generated from `ramps/`: `exports/variables.css` is plain custom properties with
+every theme and media block, `exports/theme.css` is the same plus a Tailwind v4 `@theme inline`
+map, `exports/design-tokens.json` is W3C DTCG. Type, space and control sizes are
 rem, and `data-text-size="s|m|l|xl|xxl"` on `html` sets the root to 13, 15, 17, 19 or 22px.
 
 ## What you may and may not change
 
-**A product's identity is its brand seed, and nothing else.**
-Twenty-three bounded inputs - accent hue, chroma and lightness, the selected-row fill, the focus ring,
-neutral hue and chroma, a shape register, an icon stroke, a display face, a text face, a vivid tier
-of seven more, opt-in by naming `brandLightness`, four for type: a mono face, a quote face, the
-step the display face starts at and the display steps' scale, and the sunken surface's depth under
-the ground, for a pane set in a deeper chassis - solved into the house's own token names
+**A product's identity is its brand file, and nothing else.**
+`ramps/brands/<product>.json` names a neutral, five to eight hues by name - the accent, the mark,
+the three states and up to three of its own - and may name a shape register, an icon stroke and a
+face per family from `ramps/roster.json`, built into the house's own token names
 ([design/12-brand.md](design/12-brand.md#the-inputs)). Take it by regenerating, never by
 hand-picking a colour:
 
 ```bash
-python3 tools/build.py --brand examples/papertrace/brand.seed.json
-python3 tools/contrast.py examples/papertrace/tokens/tokens.css
+python3 tools/ramps.py
+python3 tools/contrast.py ramps/tokens/papertrace.tokens.css
+python3 tools/export.py examples/papertrace
 ```
 
-The build re-solves every affected token against its contrast floor and **refuses to write** if one
-does not hold. It also refuses an accent whose ink, selected-row fill or focus ring sits too close to
-a state colour in CIEDE2000, so a product cannot take a green that competes with "passed".
+The build solves every text and boundary step against its contrast floor and **refuses to write**
+if one does not hold. `contrast.py` then refuses an accent whose selected-row fill, primary or
+focus ring sits too close to a state colour in CIEDE2000, so a product cannot take a green that
+competes with "passed".
 The second line is not a formality and it is not a second opinion from the same head: `contrast.py` shares no arithmetic with the build and carries its own list of what must hold.
-Of the 360 integer hues at the house anchors, 155 build, and `contrast.py` accepts all 155
+At every fifth accent hue, 45 of 72 clear it, and the 27 it refuses are 0 to 85 and 130 to 170
 ([design/10-color.md](design/10-color.md#the-three-bars-the-accent-is-held-to)).
 
 **Everything else goes in the product's own namespace**, `--quoth-`, `--gates-`, never by
 redefining an `hw-` token. `design/95-extending.md` is the whole procedure. A colour the house has
-no token for is declared in the product's own seed and solved by `tools/build.py --extend`, never
-hand-picked.
+no token for is a named hue in the product's brand file, built into a ramp like every other and
+certified by `tools/contrast.py`, never hand-picked.
 
 ## Three things this system does that most do not, and why they matter to you
 

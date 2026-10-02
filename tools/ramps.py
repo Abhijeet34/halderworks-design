@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Twelve-step OKLCH ramps with a contrast floor per step, one ramp per hue per theme.
 
-The replacement proposed for build.py's solver, landing beside it: tools/export.py composes
-exports/ from these files, ramps/roles.css and ramps/scales.css, and tokens/ and examples/*/tokens/ do not read
-them yet. A brand is a neutral and five to eight named hues
-(ramps/brands/<name>.json); every role in ramps/roles.css names a step of one of these ramps, so
-a role inherits that step's floor and a new role is a choice of step, never a new solve.
+Every colour the house ships starts here: tools/export.py composes exports/ and examples/*/exports/
+from these files, ramps/roles.css and ramps/scales.css. A brand (ramps/brands/<name>.json) is a
+neutral and five to eight named hues, and may name a shape register, an icon stroke and a face per
+family from ramps/roster.json, which supplies the house's own for any it leaves out. Every role in
+ramps/roles.css names a step of one of these ramps, so a role inherits that step's floor and a new
+role is a choice of step, never a new solve.
 
     python3 tools/ramps.py              # ramps/brands/*.json -> ramps/tokens/<name>.tokens.css
     python3 tools/ramps.py --check      # emit nothing; fail if a file is stale or a floor fails
@@ -29,9 +30,9 @@ muted gray text on an accent fill by construction, not by luck of lightness.
 Every value is quantized to the form it is written in before it is measured, every ratio is
 the lower of the float value and the 8-bit value a display receives (the 8-bit alone let the
 float miss by 0.016, which tools/contrast.py reads), and the written CSS is parsed back and measured
-again before anything reaches disk: MEASURE THE ARTIFACT, NEVER THE INTENT, as build.py does.
-The converter is Ottosson's published Oklab constants, a third path beside build.py's inverted
-matrices and contrast.py's CSS Color 4 one, so neither existing instrument checks itself here.
+again before anything reaches disk: MEASURE THE ARTIFACT, NEVER THE INTENT.
+The converter is Ottosson's published Oklab constants, a separate path from contrast.py's CSS
+Color 4 one, so the second instrument never checks this one with its own arithmetic.
 """
 import argparse
 import json
@@ -43,6 +44,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BRANDS = ROOT / "ramps" / "brands"
 OUT = ROOT / "ramps" / "tokens"
+ROSTER = ROOT / "ramps" / "roster.json"
+FAMILIES = ("sans", "display", "read", "mono")
 
 FIXED = {
     "light": (0.985, 0.968, 0.948, 0.928, 0.905, 0.875, 0.820),
@@ -64,7 +67,7 @@ REQUIRED = ("accent", "mark", "red", "amber", "green")   # the hues ramps/roles.
 MAX_HUES = 8
 # The six chart series, one ramp each, the same hues in every brand: ramps/roles.css names step 8 or
 # 11 of each, so a series holds that step's floor like any role. The hues keep clear of the three
-# states (27, 70, 150); tools/contrast.py --ramps holds the CIEDE2000 bars between them.
+# states (27, 70, 150); tools/contrast.py holds the CIEDE2000 bars between them.
 SERIES = {"teal": 180, "blue": 260, "violet": 310, "pink": 355, "olive": 110, "sky": 220}
 SERIES_CHROMA = 0.15
 CHROMA_MAX = 0.4     # CSS Color 4 maps 100% oklch chroma to 0.4
@@ -191,12 +194,13 @@ def hue_chroma_errors(spec, where, neutral):
 
 
 def brand_errors(brand):
-    errors = keys_errors(brand, "the brand", ("neutral", "hues"))
+    errors = keys_errors(brand, "the brand", ("neutral", "hues"),
+                         ("note", "shape", "iconStroke", "faces"))
     if errors:
         return errors
-    errors = keys_errors(brand["neutral"], "neutral", ("hue", "chroma"))
-    if not errors:
-        errors += hue_chroma_errors(brand["neutral"], "neutral", True)
+    errors = identity_errors(brand, roster())
+    e = keys_errors(brand["neutral"], "neutral", ("hue", "chroma"))
+    errors += e or hue_chroma_errors(brand["neutral"], "neutral", True)
     hues = brand["hues"]
     if not isinstance(hues, dict):
         return errors + ["hues must be an object"]
@@ -224,6 +228,104 @@ def brand_errors(brand):
                            f"not {solid[t]!r}" for t in ("light", "dark")
                            if t in solid and not (number(solid[t]) and HOVER < solid[t] < 1)]
     return errors
+
+
+# ---- the roster: shape, stroke and faces ---------------------------------------------------
+
+FACE_LICENCE = "OFL-1.1"   # design/20-type.md#the-licence-rule
+FACE_FILE_FIELDS = ("source", "licence", "sha256", "xHeight", "licenceText", "licenceSha256",
+                    "upstream", "formats")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def roster_errors(r):
+    """A self-hosted face is an OFL file pinned by the sha256 of its upstream file and of its
+    licence text; a system face is a stack that loads nothing and pins nothing."""
+    errors = keys_errors(r, "ramps/roster.json", ("note", "default", "registers", "iconStrokes",
+                                                  "faces"))
+    if errors:
+        return errors
+    for name, f in r["faces"].items():
+        where = f"roster face {name!r}"
+        if f.get("delivery") == "system":
+            errors += [f"{where} is a system stack and names {k!r}; it loads no file"
+                       for k in FACE_FILE_FIELDS + ("vendored",) if k in f]
+        elif f.get("delivery") != "self-hosted":
+            errors.append(f"{where} has delivery {f.get('delivery')!r}, not self-hosted or system")
+        elif missing := [k for k in FACE_FILE_FIELDS if k not in f]:
+            errors.append(f"{where} is self-hosted and names no {missing}")
+        elif f["licence"] != FACE_LICENCE:
+            errors.append(f"{where} is licensed {f['licence']!r}; a roster face is "
+                          f"{FACE_LICENCE} and nothing else")
+        elif not all(SHA256.match(str(f[k])) for k in ("sha256", "licenceSha256")):
+            errors.append(f"{where} pins a sha256 that is not 64 hex digits")
+    errors += identity_errors(r["default"], r, "the roster's default")
+    return errors
+
+
+def roster():
+    try:
+        r = json.loads(ROSTER.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise BrandError(f"ramps/roster.json: {e}") from None
+    errors = roster_errors(r)
+    if errors:
+        raise BrandError("; ".join(errors))
+    return r
+
+
+def identity_errors(brand, r, where="the brand"):
+    """The shape, stroke and faces a brand names, each one the roster carries."""
+    errors = []
+    for key, allowed in (("shape", tuple(r["registers"])), ("iconStroke", tuple(r["iconStrokes"]))):
+        if key in brand and brand[key] not in allowed:
+            errors.append(f"{where}: {key} {brand[key]!r} is not one of {', '.join(allowed)}")
+    faces = brand.get("faces", {})
+    if not isinstance(faces, dict):
+        return errors + [f"{where}: faces must be an object"]
+    for family, face in faces.items():
+        if family not in FAMILIES:
+            errors.append(f"{where}: faces.{family} is not a family; the families are "
+                          f"{', '.join(FAMILIES)}")
+        elif face not in r["faces"]:
+            errors.append(f"{where}: faces.{family} {face!r} is not a roster face")
+        elif family == "mono" and not r["faces"][face].get("monospaced"):
+            mono = [n for n, f in r["faces"].items() if f.get("monospaced")]
+            errors.append(f"{where}: faces.mono {face!r} is not one of {', '.join(mono)}")
+    return errors
+
+
+ROLE_NOTES = {"sans": "interface and body text", "display": "the stage voice",
+              "read": "running prose and quoted words", "mono": "code, keys and figures"}
+SHAPE_NOTES = {"sm": "things inside other things: badges, checkboxes, swatches, the status dot",
+               "md": "interactive controls: buttons, inputs, selects, menu items, tabs",
+               "lg": "containers: cards, panels, dialogs, popovers, toasts"}
+
+
+def identity(brand):
+    """[(property, value, description)]: the faces, shape and stroke a brand paints with."""
+    r = roster()
+    d = r["default"]
+    faces = {**d["faces"], **brand.get("faces", {})}
+    house_x = r["faces"][d["faces"]["sans"]]["xHeight"]
+    out = []
+    for family in FAMILIES:
+        face = r["faces"][faces[family]]
+        note = f"{ROLE_NOTES[family]}: {faces[family]}"
+        if family == "sans" and faces["sans"] != d["faces"]["sans"]:
+            note += f", held to the house x-height with font-size-adjust: {house_x}"
+        out.append((f"--hw-font-{family}", face["stack"], note))
+        if family == "display":
+            # A width is part of a face's identity (Archivo Expanded is Archivo at 125%), and a
+            # comment cannot set one, so the display face's width ships as its own value.
+            out.append(("--hw-font-display-stretch", face.get("stretch", "100%"),
+                        f"the display face's width, as font-stretch: {faces[family]}"))
+    shape = brand.get("shape", d["shape"])
+    out += [(f"--{k}", v, f"the {shape} register; {SHAPE_NOTES[k.rsplit('-', 1)[1]]}")
+            for k, v in r["registers"][shape].items()]
+    out.append(("--hw-icon-stroke", brand.get("iconStroke", d["iconStroke"]),
+                "stroke weight at 16px and 20px"))
+    return out
 
 
 # ---- the solve -----------------------------------------------------------------------------
@@ -287,7 +389,8 @@ def label_for(theme, steps, ink):
 
 
 def build(brand):
-    """{theme: {ramp: {step: (L, C, h), 'label': WHITE | 'ink'}}}, or BrandError."""
+    """{theme: {ramp: {step: (L, C, h), 'label': WHITE | 'ink'}}, 'identity': identity(brand)},
+    or BrandError."""
     specs = ramp_specs(brand)
     solids = {name: brightest_white_solid(s["hue"], s["chroma"])
               for name, s in specs.items() if "solid" not in s}
@@ -308,6 +411,7 @@ def build(brand):
             ramps[name][10] = colour(L9 - HOVER, step_chroma(s, 10), s["hue"])
             ramps[name]["label"] = label_for(theme, ramps[name], ink)
         out[theme] = ramps
+    out["identity"] = identity(brand)
     return out
 
 
@@ -328,10 +432,13 @@ def emit(built, source):
             lines += [f"{indent}--hw-{name}-{i}: {fmt(steps[i])};" for i in range(1, 13)]
             lines.append(f"{indent}--hw-{name}-on-solid: {label_value(theme, steps['label'])};")
         return "\n".join(lines)
+    faces = "\n".join(f"  {k}: {v};  /* {note} */" for k, v, note in built["identity"])
     return (f"/* Halderworks ramps, generated from {source} by tools/ramps.py.\n"
-            "   Twelve steps per hue per theme; tools/ramps.py measures every floor on the 8-bit\n"
-            "   value written here and refuses to emit if one does not hold. Do not hand-edit:\n"
-            "   edit the brand file and rebuild. Load before ramps/roles.css. */\n"
+            "   The brand's faces, shape and stroke, then twelve steps per hue per theme;\n"
+            "   tools/ramps.py measures every floor on the 8-bit value written here and refuses\n"
+            "   to emit if one does not hold. Do not hand-edit: edit the brand file and rebuild.\n"
+            "   Load before ramps/roles.css. */\n"
+            f":root {{\n{faces}\n}}\n\n"
             f"{SELECTORS['light']} {{\n{block('light', '  ')}\n}}\n\n"
             f"{SELECTORS['dark']} {{\n{block('dark', '  ')}\n}}\n\n"
             f"{MEDIA_DARK} {{\n  :root:not([data-theme=\"light\"]) {{\n"

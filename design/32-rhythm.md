@@ -6,7 +6,7 @@ Until this file, **nothing said how the two relate** - so "on the grid" was a ha
 property, and a reader had no way to check a screen against it.
 
 This file states the relationship, gives the number, and names every place the system breaks it on
-purpose. `tools/build.py` refuses to emit a token that breaks it by accident.
+purpose. `tests/exports.py` refuses an export that breaks it by accident.
 
 ## The unit, and exactly what it governs
 
@@ -32,11 +32,12 @@ What it refuses is now the whole rule rather than one spelling of it.
 The first version read a value only when it was written as a lowercase `Npx`, and skipped anything
 else without a word, so `13PX`, `calc(13px)`, `+13px`, a bare `13` and the same length in rem were the same
 off-unit length to a browser and all five passed.
-A value in a governed family that the check cannot read as `Npx` is refused, and the three that are
-not lengths at all - `--hw-columns` and the two measures in `ch` - are named in `tools/build.py`
-rather than inferred.
-The four governed families are named there too, because a seed that can narrow the scope can switch
-the rule off for whatever it drops.
+A value in a governed family that the check cannot read as a length is refused; it now reads every
+value as a browser would at the default text size M, rem and `max()` included, so the rem scales
+of `ramps/scales.css` are held in the px a reader sees.
+The governed families and the declared exceptions are named in `tests/exports.py` rather than in a
+file a change could narrow, because a source that can narrow the scope can switch the rule off for
+whatever it drops.
 A guarantee is only as wide as the values it reads.
 
 ## The seven exceptions, each with the reason it cannot be on the unit

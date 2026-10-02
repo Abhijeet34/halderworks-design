@@ -60,7 +60,7 @@ There are exactly two shadow tokens and **inside a window both are light-theme o
 
 The exception is a panel floating over content this system does not own, such as quoth's menu-bar panel, which keeps its shadow in **both** themes because there is no surface of ours underneath it whose lightness could carry the step.
 [36-form-factors.md](36-form-factors.md) owns that case and shows the render: with the shadow removed, a dark panel over a near-black desktop loses its edge entirely.
-`tokens/tokens.css` has always carried dark values for both shadow tokens; only the prose forbade them.
+The tokens have always carried dark values for both shadows, now in `ramps/scales.css`; only the prose forbade them.
 
 In dark theme a shadow is invisible against a dark ground, so dark elevation is carried by surface lightness and border instead: `--hw-surface` at 0.196, `--hw-surface-raised` at 0.232.
 In light theme the surfaces are the same white, and the shadow is what separates them.

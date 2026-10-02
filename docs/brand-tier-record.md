@@ -7,7 +7,7 @@ The release step that replaces it on every tag is in [AGENTS.md](../AGENTS.md#re
 
 ## How it was taken
 
-Each cell is [examples/specimen.html](../examples/specimen.html) opened on its own page in a headless Chromium browser (Brave), served over a local http origin, with the brand's emitted `tokens/tokens.css` and, for quoth, `quoth.tokens.css`.
+Each cell is `examples/specimen.html`, retired on 2026-10-02, opened on its own page in a headless Chromium browser (Brave), served over a local http origin, with the brand's emitted `tokens/tokens.css` and, for quoth, `quoth.tokens.css`.
 The two more-contrast rows are the files' own `@media (prefers-contrast: more)` blocks, applied by `&contrast=more`, because the driver could not emulate the media feature.
 The image is four rows of 420px screenshots, written with every PNG chunk but the image data removed.
 

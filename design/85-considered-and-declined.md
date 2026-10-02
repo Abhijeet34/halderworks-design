@@ -63,7 +63,7 @@ separation predicts contrast in general.
 Adopting it would mean rebuilding every token name here to carry a grade, which
 [10-color.md](10-color.md) and [15-color-combinations.md](15-color-combinations.md) do not, in
 exchange for replacing a solver that already runs in milliseconds.
-`tools/build.py` computes the real ratio, so this system pays nothing for the exact answer.
+`tools/ramps.py` computes the real ratio, so this system pays nothing for the exact answer.
 
 **What would change it:** an author-time context where the real ratio genuinely cannot be computed.
 There is none here.
@@ -97,12 +97,12 @@ the build refuses to emit when the matrix does not hold - a discipline that caug
 eyeball found ([90-evidence.md](90-evidence.md#the-solver)).
 
 A generator that returns a pleasant ramp with no contrast target hands back the problem the solver
-exists to remove. The reel that recommended both tools demonstrates it on its own swatches:
+existed to remove. The reel that recommended both tools demonstrates it on its own swatches:
 `#4927B3`, `#824EBE`, `#9B75C9`, `#B49CD4` measure `oklch(0.4170 0.2029 284.51)` to
 `oklch(0.7334 0.0835 303.99)`, so the hue drifts 19.5 degrees across four steps of what is presented
 as one colour, and the base sits at 284.5, inside the 245-296 corridor
 [10-color.md](10-color.md#why-hue-198) measured as the most crowded in the field.
-`tools/build.py` holds a token's hue and solves only its lightness.
+`tools/ramps.py` holds a ramp's hue at every step and solves only lightness.
 `@adobe/leonardo-contrast-colors` is the comparison that settles it: it solves a colour **to a stated ratio**, measured at 20 of 20 values within 0.08 of the ratio asked for, and
 it is what [95-extending.md](95-extending.md) points at for a colour this system does not have.
 
@@ -230,8 +230,8 @@ measurement.
 **Why it is declined even if the palette is there.** A colour query answers "what do sites at this
 hue look like", and this system asks a colour question once per product, when a product takes its
 own brand. That question is already answered by measurement - the hue corridor in
-[10-color.md](10-color.md#why-hue-198) - and by `tools/build.py --brand`, which refuses an accent
-too close to a semantic colour on any element it paints. A screenshot at the same hue adds a look to copy, which is the input
+[10-color.md](10-color.md#why-hue-198) - and by `tools/contrast.py`, which refuses a brand whose accent
+fill, primary or focus ring sits too close to a semantic colour. A screenshot at the same hue adds a look to copy, which is the input
 [75-spec-sheet.md](75-spec-sheet.md) refuses to take.
 
 **What would change it:** palettes published as data that can be read in bulk. 4,000 sites with

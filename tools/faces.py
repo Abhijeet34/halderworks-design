@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
 """Read a face's x-height and cap height from its font file, and hold the roster to the file.
 
-A brand names its display and text faces from the roster in tokens/tokens.seed.json, and the one
-number the build takes from a face is the house text face's x-height, which every brand's text
-face is held to with `font-size-adjust`. 20-type.md measured that number in a browser at 100px;
-this reads it from the file, with the standard library, so a roster entry is a measurement a
-reader can repeat rather than a number somebody typed.
+A brand names its faces from the roster in ramps/roster.json, and the one number the house takes
+from a face is its text face's x-height, which every brand's other text face is held to with
+`font-size-adjust`. 20-type.md measured that number in a browser at 100px; this reads it from the
+file, with the standard library, so a roster entry is a measurement a reader can repeat rather
+than a number somebody typed.
 
     python3 tools/faces.py FONT...            # print x-height, cap height and sha256 per file
     python3 tools/faces.py --check FONT...    # and refuse any file whose roster entry disagrees
     python3 tools/faces.py --check OFL.txt    # a face's licence text, and its Reserved Font Name
+    python3 tools/faces.py --vendored         # fonts/ against the roster, offline: CI runs this
 
-The repository vendors no font, so this runs on demand against a copy of the upstream file each
-roster entry cites, not in CI. A file is matched to its entry by sha256, which is the check that
-the metrics were read from the file the roster says they were; a licence text is matched the same
-way, and the Reserved Font Name it declares, the one clause of the OFL that constrains a subset,
-is held to the roster's.
+--check runs on demand against a copy of the upstream file each roster entry cites. A file is
+matched to its entry by sha256, which is the check that the metrics were read from the file the
+roster says they were; a licence text is matched the same way, and the Reserved Font Name it
+declares, the one clause of the OFL that constrains a subset, is held to the roster's.
+
+--vendored holds the faces the house ships in fonts/ to the roster: every file a face's
+`vendored` entry pins is there at that sha256, beside an OFL.txt at the face's licenceSha256;
+fonts/fonts.css loads exactly those files and nothing off its own origin; and fonts/ holds
+nothing the roster does not account for.
 """
 import argparse
 import hashlib
@@ -70,17 +75,56 @@ def reserved_name(text):
 
 
 def roster():
-    seed = json.loads((ROOT / "tokens" / "tokens.seed.json").read_text(encoding="utf-8"))
-    return seed["brand"]["faces"]
+    return json.loads((ROOT / "ramps" / "roster.json").read_text(encoding="utf-8"))["faces"]
+
+
+def vendored(faces):
+    """Failures of fonts/ against the roster's vendored entries."""
+    fonts, bad, want = ROOT / "fonts", [], {"fonts.css"}
+    for name, f in faces.items():
+        if "vendored" not in f:
+            continue
+        files = {Path(p) for p in f["vendored"]}
+        licences = {p.parent / "OFL.txt" for p in files}
+        for path, sha in [*f["vendored"].items(), *((str(p), f["licenceSha256"]) for p in licences)]:
+            want.add(Path(path).relative_to("fonts").as_posix())
+            try:
+                got = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+            except OSError as e:
+                bad.append(f"{name}: {path} cannot be read: {e.strerror}")
+                continue
+            if got != sha:
+                bad.append(f"{name}: {path} has sha256 {got}, and the roster pins {sha}")
+    css = (fonts / "fonts.css").read_text(encoding="utf-8")
+    urls = set(re.findall(r'url\("?([^")]+)"?\)', css))
+    bad += [f"fonts/fonts.css loads {u}, which is not a vendored file" for u in sorted(urls)
+            if u not in want or u == "fonts.css"]
+    bad += [f"fonts/fonts.css never loads {w}" for w in sorted(want)
+            if w.endswith(".woff2") and w not in urls]
+    bad += [f"fonts/{p.relative_to(fonts).as_posix()} is in no roster entry"
+            for p in sorted(fonts.rglob("*")) if p.is_file()
+            and p.relative_to(fonts).as_posix() not in want]
+    print(f"{sum(1 for w in want if w.endswith('.woff2'))} vendored files and "
+          f"{sum(1 for w in want if w.endswith('OFL.txt'))} licence texts against the roster, "
+          f"{len(urls)} loaded by fonts/fonts.css, {len(bad)} failed")
+    return bad
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("fonts", nargs="+", type=Path)
+    ap.add_argument("fonts", nargs="*", type=Path)
     ap.add_argument("--check", action="store_true",
                     help="refuse a file whose roster entry carries different metrics")
+    ap.add_argument("--vendored", action="store_true", help="hold fonts/ to the roster")
     a = ap.parse_args(argv)
     faces = roster()
+    if a.vendored:
+        bad = vendored(faces)
+        for f in bad:
+            print("FAIL  " + f, file=sys.stderr)
+        return 1 if bad else 0
+    if not a.fonts:
+        ap.error("name a font file, or pass --vendored")
     # One file can back two entries, as Archivo does at two widths, so a hash names a list.
     by_hash, by_licence = {}, {}
     for name, f in faces.items():

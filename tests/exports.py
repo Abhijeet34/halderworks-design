@@ -15,10 +15,12 @@ them to what the book promises:
   5. the prefers-color-scheme copy equals [data-theme="dark"], property for property
   6. under prefers-contrast: more, muted text is step 12
   7. every var() resolves, and theme.css cascades exactly as variables.css does
+  8. every space and size value is on the 4px unit at M, or is a declared exception below, and
+     no declared exception has moved back onto the unit (design/32-rhythm.md)
 
-Rule 3 is also held on every tokens/tokens.css. Four negative controls replay a defect this
-suite exists to catch, among them the touch block as it shipped before the compact fix, and each
-must be refused, so a green run cannot be a suite that checks nothing.
+Four negative controls replay a defect this suite exists to catch, among them the touch block
+as it shipped before the compact fix, and each must be refused, so a green run cannot be a suite
+that checks nothing.
 
     python3 tests/exports.py
 """
@@ -33,6 +35,19 @@ DEFAULT_PX = 16
 TOUCH_FLOOR = 44
 TARGET_FLOOR = 24           # WCAG 2.2 2.5.8, and the ring geometry design/45-density.md sizes for
 TYPE_FLOOR = 11
+UNIT = 4
+# The space and size families the unit governs, pinned here rather than read from a file a
+# change could narrow. Radius and stroke are not distances, and the line box is a type size times
+# a line-height, so the unit governs none of them (design/32-rhythm.md).
+GRID = re.compile(r"--hw-(space|control-h|row-h|cell-pad|field-pad|icon(-sm|-lg|-gap)?$|bp|"
+                  r"gutter|column-gap|container|rail|panel)")
+OFF_UNIT = {
+    "--hw-icon-gap": "6px: 4px reads as an icon and its label as one object, 8px as two",
+    "--hw-icon-sm": "14px beside 12px label text; on the unit it is too small at 12 or overshoots at 16",
+    "--hw-field-pad-y": "7px, what is left of the 32px control after the line box and the border",
+    "--hw-field-pad-y-compact": "3px, the same consequence at the compact control height",
+    "--hw-cell-pad-y-compact": "6px: 19.5px of line box plus 6px above and below is the 32px compact row",
+}
 MEDIA = {"(prefers-color-scheme: dark)": "scheme_dark", "(prefers-contrast: more)": "more",
          "(pointer: coarse)": "coarse", "(prefers-reduced-motion: reduce)": "reduce"}
 
@@ -137,7 +152,7 @@ def scenarios():
                 yield (theme, scheme_dark, more, coarse, reduce, size)
 
 
-def check(name, text, fails, touch_only=False):
+def check(name, text, fails):
     rules, n = parse(text), 0
     seen = {}
     for sc in scenarios():
@@ -147,9 +162,8 @@ def check(name, text, fails, touch_only=False):
                  f"more={more} coarse={coarse} reduce={reduce} size={size}")
         n += 1
         try:
-            root_px = DEFAULT_PX * float(root.get("font-size", "100%").rstrip("%")) / 100 \
-                if not touch_only else DEFAULT_PX
-            if not touch_only and abs(root_px - SIZES[size]) > 0.01:
+            root_px = DEFAULT_PX * float(root.get("font-size", "100%").rstrip("%")) / 100
+            if abs(root_px - SIZES[size]) > 0.01:
                 fails.append(f"{where}: root {root_px:g}px, not {SIZES[size]}px")
             for el, props in (("root", root), ("compact", child)):
                 h = px(resolve(props["--hw-control-h"], props), root_px)
@@ -157,8 +171,6 @@ def check(name, text, fails, touch_only=False):
                     fails.append(f"{where}: a {el} control is {h:g}px under a coarse pointer")
                 if h < TARGET_FLOOR - 0.01:
                     fails.append(f"{where}: a {el} control is {h:g}px, under {TARGET_FLOOR}px")
-            if touch_only:
-                continue
             for k in [k for k in root if re.fullmatch(r"--hw-text-(xs|sm|md|lg|x+l|2xl)", k)]:
                 got = px(resolve(root[k], root), root_px)
                 if got < TYPE_FLOOR - 0.01:
@@ -185,6 +197,30 @@ def check(name, text, fails, touch_only=False):
     return n
 
 
+def grid(name, text, fails):
+    """Every space and size length at the default size M, on the unit or declared, both ways."""
+    root, _ = scenario(parse(text), None, False, False, False, False, "m")
+    n = 0
+    for k in sorted(k for k in root if GRID.match(k)):
+        n += 1
+        try:
+            v = round(px(resolve(root[k], root), SIZES["m"]), 1)
+        except ValueError:
+            fails.append(f"{name}: {k} is {root[k]!r}, a length the {UNIT}px unit governs and "
+                         f"this check cannot read")
+            continue
+        if v % UNIT == 0 and k in OFF_UNIT:
+            fails.append(f"{name}: {k} is a declared exception at {v:g}px, which is on the "
+                         f"{UNIT}px unit; remove the exception")
+        elif v % UNIT and k not in OFF_UNIT:
+            fails.append(f"{name}: {k} is {v:g}px at M, off the {UNIT}px unit, and not a "
+                         f"declared exception")
+    for k in OFF_UNIT:
+        if k not in root:
+            fails.append(f"{name}: {k} is a declared exception and names nothing")
+    return n
+
+
 def cascade_digest(text):
     rules = parse(text)
     return [scenario(rules, *sc) for sc in scenarios()]
@@ -199,14 +235,13 @@ def main():
         v = (d / "variables.css").read_text(encoding="utf-8")
         t = (d / "theme.css").read_text(encoding="utf-8")
         n += check(f"{rel}/variables.css", v, fails)
+        g = grid(f"{rel}/variables.css", v, fails)
         if cascade_digest(v) != cascade_digest(t):
             fails.append(f"{rel}/theme.css does not cascade as {rel}/variables.css does")
     print(f"  exports:      {n} scenarios over {len(exports)} brands, root and compact child, "
           f"theme.css cascading identically")
-    tokens = sorted(ROOT.glob("**/tokens/tokens.css"))
-    for p in tokens:
-        check(str(p.relative_to(ROOT)), p.read_text(encoding="utf-8"), fails, touch_only=True)
-    print(f"  touch floor:  held on {len(tokens)} tokens/tokens.css, compact or not")
+    print(f"  unit:         {g} space and size values per brand at M, each on the {UNIT}px unit "
+          f"but the {len(OFF_UNIT)} declared off it")
 
     # Negative controls: each replays one defect and must be refused.
     house = (ROOT / "exports" / "variables.css").read_text(encoding="utf-8")
@@ -215,31 +250,24 @@ def main():
         '[data-density="compact"] {',
         "@media (pointer: coarse) {\n  :root { --hw-control-h: max(44px, 2.1333rem); }\n}\n"
         '[data-density="compact"] {', 1)
-    # The touch block exactly as tokens/tokens.css shipped it at 1250209, put back in its old
-    # place ahead of the compact block. Rebuilt from today's file rather than read from git
-    # history, because CI checks out one commit deep and that history is not there.
-    tokens = (ROOT / "tokens" / "tokens.css").read_text(encoding="utf-8")
-    touch = re.search(r"@media \(pointer: coarse\) \{.*?\n\}\n", tokens, re.S).group(0)
-    shipped = tokens.replace(touch, "").replace(
-        '[data-density="compact"] {',
-        "@media (pointer: coarse) {\n  :root { --hw-control-h: var(--hw-row-h); }\n}\n\n"
-        '[data-density="compact"] {', 1)
     cases = [
-        ("the touch block before the compact one, as tokens.css shipped it",
-         before_fix, False),
-        ("tokens/tokens.css with its touch block as shipped at 1250209", shipped, True),
+        ("the touch block before the compact one, as tokens.css shipped it", before_fix),
         ("no prefers-color-scheme copy",
-         re.sub(r"@media \(prefers-color-scheme: dark\) \{.*?\n\}\n", "", house, flags=re.S), False),
+         re.sub(r"@media \(prefers-color-scheme: dark\) \{.*?\n\}\n", "", house, flags=re.S)),
         ("text size S left at the M root",
          re.sub(r'html\[data-text-size="s"\] \{ font-size: [^;]+;', 'html[data-text-size="s"] '
-                "{ font-size: 93.75%;", house), False),
+                "{ font-size: 93.75%;", house)),
+        ("a space step moved off the unit, 12px to 13px",
+         house.replace("--hw-space-12: 0.8rem;", "--hw-space-12: 0.8667rem;", 1)
+         if "--hw-space-12: 0.8rem;" in house else ""),
     ]
-    for label, text, touch_only in cases:
+    for label, text in cases:
         got = []
         if not text:
             fails.append(f"negative control {label!r} has no input")
             continue
-        check("control", text, got, touch_only=touch_only)
+        check("control", text, got)
+        grid("control", text, got)
         if not got:
             fails.append(f"negative control not caught: {label}")
         print(f"  control:      {label}: {'caught' if got else 'MISSED'}, {len(got)} finding(s), "

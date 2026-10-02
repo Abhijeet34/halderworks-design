@@ -1,8 +1,11 @@
 {
+  "note": "quoth's Field identity: a warm putty neutral at hue 95, the sports-yellow key as the accent's named solid and as the mark, the live microphone orange at 48, moulded corners 4/7/12, Archivo for text, Archivo Expanded for display and Martian Mono for labels and figures. No slate accent: the primary is ink (maintainer decision D-099).",
+  "shape": "moulded",
+  "faces": {"display": "Archivo Expanded", "mono": "Martian Mono"},
   "neutral": {"hue": 95, "chroma": 0.008},
   "hues": {
-    "accent": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.90, "dark": 0.88}},
-    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.90, "dark": 0.88}},
+    "accent": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.9, "dark": 0.88}},
+    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.9, "dark": 0.88}},
     "red": {"hue": 27, "chroma": 0.19},
     "amber": {"hue": 70, "chroma": 0.16},
     "green": {"hue": 150, "chroma": 0.14},

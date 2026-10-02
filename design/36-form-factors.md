@@ -22,7 +22,7 @@ below is named for both and owns only the viewport half; the pointer half is one
 the keyboard half is a file.
 
 One apparent gap was checked and dismissed.
-`dark mode` also returns zero, and it is a keyword miss rather than a hole: theming is carried by `[data-theme="dark"]` and a `prefers-color-scheme` block in `tokens/tokens.css`, every colour pair is certified in both themes, and [10-color.md](10-color.md) and [15-color-combinations.md](15-color-combinations.md) print both tables.
+`dark mode` also returns zero, and it is a keyword miss rather than a hole: theming is carried by `[data-theme="dark"]` and a `prefers-color-scheme` block in `exports/variables.css`, every colour pair is certified in both themes, and [10-color.md](10-color.md) and [15-color-combinations.md](15-color-combinations.md) print both tables.
 The phrase is absent; the layer is not.
 
 ## 1. The desktop application shell
@@ -49,7 +49,7 @@ Every rule below follows from that last clause.
 
 | token | value | derivation |
 |---|---:|---|
-| `--hw-panel-w` | 352px | 40ch of `body-sm` Public Sans measures **318.4px** in a browser with the face loaded, plus `--hw-cell-pad-x` each side is 350.4px, rounded up to the 4px grid. 40ch is the measure [65-components.md](65-components.md) already uses for an empty state, and a panel is read in glances like one |
+| `--hw-panel-w` | 352px | 40ch of `body-sm` Public Sans, the house face it was derived on, measures **318.4px** in a browser with the face loaded, plus `--hw-cell-pad-x` each side is 350.4px, rounded up to the 4px grid. 40ch is the measure [65-components.md](65-components.md) already uses for an empty state, and a panel is read in glances like one |
 | `--hw-panel-max-h` | 464px | a 32px header, 12 rows at `--hw-row-h-compact`, and a 48px footer. Past twelve rows the reader is scanning rather than glancing, and scanning belongs in the app window |
 
 The height is always clamped by the screen as well: `max-height: min(var(--hw-panel-max-h), calc(100vh - var(--hw-space-48)))`.
@@ -77,7 +77,7 @@ So the panel's elevation is:
 - **A 1px `--hw-border-strong` edge**, which is solved to 3:1 against the panel's own fill and is therefore findable from the inside whatever is outside.
 - **`--hw-shadow-dialog`, in both themes.**
 
-A correction that makes this possible without inventing anything: `tokens/tokens.css` and `tokens/tokens.json` **already ship dark values for both shadow tokens**, while all three prose files say the tokens are light-theme only.
+A correction that makes this possible without inventing anything: the token files **already shipped dark values for both shadow tokens**, now in `ramps/scales.css`, while all three prose files said the tokens were light-theme only.
 The values exist and are usable; only the prose forbade them.
 [50-surface-texture.md](50-surface-texture.md) now carries the exception.
 

@@ -5,8 +5,9 @@ The difference is not pedantry. Solving caught a `warning` at chroma 0.12 that f
 Both would have shipped under an eyeball.
 
 **108 text pairs, both themes, 0 below WCAG AA 4.5:1. 90 non-text pairs held to 3:1, 0 below it. 33 tokens, 0 outside the sRGB gamut.**
-Those are the counts `tools/build.py` prints and writes into the header of `tokens/tokens.css`; every one is re-measured on the formatted strings before either file is written.
-`tools/contrast.py` then re-derives all **198 certified pairs** from the CSS with a second converter that shares no code with the build, on the float value and on the 8-bit value a display receives.
+Those were the counts the retired solver printed for the house set.
+Today `tools/ramps.py` solves step 8 of every ramp to 3:1 against steps 1 to 3 of every ramp, and steps 11 and 12 to 4.5:1 and to 13:1 on the gray or 7:1 on a hue against steps 1 to 5, and re-measures the written file before it reaches disk.
+`tools/contrast.py` then re-derives every step floor and every role in `ramps/roles.css` with a second converter that shares no code with the build, on the float value and on the 8-bit value a display receives.
 
 The first pass certified 51 pairs. Re-running the matrix over the completed system, with the two
 surfaces the interaction-state layer needed and the ink-on-quiet-fill pairs the rules already
@@ -18,7 +19,7 @@ assumed, found **three defects that had shipped**:
 | `hw-success` on `hw-success-quiet`, dark | 4.46:1, below AA | 4.61:1 |
 | `hw-accent-ring` solved against the ground only | **2.56:1 on `hw-surface-raised`**, a focus ring inside a dialog | re-solved against the surface closest to it in lightness; 3.05:1 at its worst |
 
-All three came from the same habit the solver exists to prevent: checking a pair against a
+All three came from the same habit the solver existed to prevent: checking a pair against a
 convenient ground rather than against the worst one it is permitted to sit on. The token build
 now refuses to emit unless the whole matrix holds.
 
@@ -163,7 +164,7 @@ The umber is hue 70 at 0.6 times the house chroma, L 0.38 and 0.76, with its fil
 Every accent the render read as a state still refuses, on the fill or the ring; the ink half of teal's and 152's verdict is the one the words now carry.
 The umber and the moss refuse only the ring's distance from a control's own edge, which [12-brand.md](12-brand.md#the-focus-ring) owns, and build with either of the rings it offers.
 
-**What this opens is warm colour, and a second band.** The house set builds at 155 accent hues where it built at 127: 100 to 124, 184 to 219 and 265 to 358, against 113 to 115, 187 to 219 and 265 to 355 before, and `tests/hue_sweep.py` fails if that arc moves without this sentence moving with it.
+**What this opens is warm colour, and a second band.** The house set builds at 155 accent hues where it built at 127: 100 to 124, 184 to 219 and 265 to 358, against 113 to 115, 187 to 219 and 265 to 355 before. That was the solver's arc; the ramps build at every hue, and `tools/contrast.py` refuses an accent whose selected-row fill reads as a state, 27 of every fifth hue's 72, from 0 to 85 and 130 to 170.
 A brand's vivid key is bound by none of the accent's arc: its one bar is the primary's 14 from `hw-danger`, and only when it is the primary.
 quoth's Field identity keys on hue 100 over a slate accent at 255.
 A warm accent at the house chroma is still bound by its fill: for hues 0 to 95 the fill tops out at 4.7 whatever the ink does.
