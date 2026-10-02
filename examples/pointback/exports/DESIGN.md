@@ -231,9 +231,9 @@ A `-` is a stage size, set by `clamp()` against the viewport as well.
 
 | token | value | px at M | role |
 |---|---|---|---|
-| `--hw-font-sans` | `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | - | interface and body text: system sans, held to the house x-height with font-size-adjust: 0.526 |
-| `--hw-font-display` | `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | - | the stage voice: system sans |
-| `--hw-font-display-stretch` | `100%` | - | the display face's width, as font-stretch: system sans |
+| `--hw-font-sans` | `"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` | - | interface and body text: Archivo |
+| `--hw-font-display` | `"Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` | - | the stage voice: Archivo |
+| `--hw-font-display-stretch` | `100%` | - | the display face's width, as font-stretch: Archivo |
 | `--hw-font-read` | `"Literata", "Iowan Old Style", Georgia, "Times New Roman", serif` | - | running prose and quoted words: Literata |
 | `--hw-font-mono` | `"IBM Plex Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace` | - | code, keys and figures: IBM Plex Mono |
 

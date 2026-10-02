@@ -1,7 +1,7 @@
 {
-  "note": "pointback, the pencil in the margin: its shipped non-photo blue, oklch(0.78 0.12 230), is the accent's named solid and carries ink, on a cool neutral at 260, with a 2px stroke and the system sans. The product pins the dark theme; both themes are built and certified.",
+  "note": "pointback, the pencil in the margin: its shipped non-photo blue, oklch(0.78 0.12 230), is the accent's named solid and carries ink, on a cool neutral at 260, with a 2px stroke, Archivo for interface and display and IBM Plex Mono for code and file names (maintainer decision C4 in pointback's record, 2026-10-02). The product pins the dark theme; both themes are built and certified.",
   "iconStroke": "2px",
-  "faces": {"sans": "system sans", "display": "system sans"},
+  "faces": {"sans": "Archivo", "display": "Archivo", "mono": "IBM Plex Mono"},
   "neutral": {"hue": 260, "chroma": 0.012},
   "hues": {
     "accent": {"hue": 230, "chroma": 0.12, "solid": {"light": 0.78, "dark": 0.78}},

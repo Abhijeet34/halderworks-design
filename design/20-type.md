@@ -115,7 +115,7 @@ A face is an entry in the roster in `ramps/roster.json`, and an entry is a face 
 
 - **self-hosted**: the product ships the file.
   The roster cites the upstream file by URL and pins its sha256, and cites the family's `OFL.txt` and pins that too, so the metrics below were read from a file a reader can fetch and check and the licence that ships beside it is the one the roster read.
-- **system**: a named stack that loads nothing, for a product that makes no network request and ships no font, which is what papertrace's report and pointback's chrome both promise.
+- **system**: a named stack that loads nothing, for a product that makes no network request and ships no font, which is what papertrace's report promises.
 
 An entry may also carry a width or a style, which the build writes beside the family in every class that sets it: **Archivo Expanded** is Archivo's own file at `font-stretch: 125%`, the named instance at the end of its width axis, and **Instrument Serif Italic** sets `font-style: italic`.
 Field's renders set its screen title at 110%, its welcome headline at 112% and, after the refresh that followed D-039, its site headline at 125%; the roster carries the one wide width, and a product that needs a narrower one for titles has found a gap, not a value to set by hand.
@@ -160,7 +160,7 @@ python3 tools/faces.py --check OFL.txt                 # the licence text's sha2
 python3 tools/faces.py --vendored                      # fonts/ holds exactly the pinned files, and fonts.css loads only them
 ```
 
-The display face is a brand's to choose because it is the one face the brand is recognised by; the sans is a brand's too, because papertrace sets its report in a serif and pointback its chrome in the system sans, and a rule that took either away would delete an identity each product already has.
+The display face is a brand's to choose because it is the one face the brand is recognised by; the sans is a brand's too, because papertrace sets its report in a serif, and a rule that took that away would delete an identity the product already has.
 
 ### The faces the house ships
 

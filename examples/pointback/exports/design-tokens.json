@@ -3688,30 +3688,26 @@
     "sans": {
       "$type": "fontFamily",
       "$value": [
-        "system-ui",
+        "Archivo",
         "-apple-system",
         "BlinkMacSystemFont",
         "Segoe UI",
         "Roboto",
-        "Helvetica Neue",
-        "Arial",
         "sans-serif"
       ],
-      "$description": "interface and body text: system sans, held to the house x-height with font-size-adjust: 0.526"
+      "$description": "interface and body text: Archivo"
     },
     "display": {
       "$type": "fontFamily",
       "$value": [
-        "system-ui",
+        "Archivo",
         "-apple-system",
         "BlinkMacSystemFont",
         "Segoe UI",
         "Roboto",
-        "Helvetica Neue",
-        "Arial",
         "sans-serif"
       ],
-      "$description": "the stage voice: system sans"
+      "$description": "the stage voice: Archivo"
     },
     "display-stretch": {
       "$type": "number",
@@ -3721,7 +3717,7 @@
           "css": "100%"
         }
       },
-      "$description": "the display face's width, as font-stretch: system sans"
+      "$description": "the display face's width, as font-stretch: Archivo"
     },
     "read": {
       "$type": "fontFamily",
