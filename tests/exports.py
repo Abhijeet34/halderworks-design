@@ -16,7 +16,7 @@ them to what the book promises:
   6. under prefers-contrast: more, muted text is step 12
   7. every var() resolves, and theme.css cascades exactly as variables.css does
   8. every space and size value is on the 4px unit at M, or is a declared exception below, and
-     no declared exception has moved back onto the unit (design/32-rhythm.md)
+     no declared exception has moved back onto the unit (design/30-space.md)
 
 Four negative controls replay a defect this suite exists to catch, among them the touch block
 as it shipped before the compact fix, and each must be refused, so a green run cannot be a suite
@@ -33,12 +33,12 @@ ROOT = Path(__file__).resolve().parent.parent
 SIZES = {"s": 13, "m": 15, "l": 17, "xl": 19, "xxl": 22}
 DEFAULT_PX = 16
 TOUCH_FLOOR = 44
-TARGET_FLOOR = 24           # WCAG 2.2 2.5.8, and the ring geometry design/45-density.md sizes for
+TARGET_FLOOR = 24           # WCAG 2.2 2.5.8 (design/60-accessibility.md)
 TYPE_FLOOR = 11
 UNIT = 4
 # The space and size families the unit governs, pinned here rather than read from a file a
 # change could narrow. Radius and stroke are not distances, and the line box is a type size times
-# a line-height, so the unit governs none of them (design/32-rhythm.md).
+# a line-height, so the unit governs none of them (design/30-space.md).
 GRID = re.compile(r"--hw-(space|control-h|row-h|cell-pad|field-pad|icon(-sm|-lg|-gap)?$|bp|"
                   r"gutter|column-gap|container|rail|panel)")
 OFF_UNIT = {

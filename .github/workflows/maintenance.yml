@@ -15,9 +15,9 @@ name: maintenance
 # only a schedule can do: the network liveness check, and the issue.
 #
 # No `push` trigger, deliberately. ci.yml already runs the consistency call on every push to
-# main, so a push here added nothing but 26 outbound requests per commit against a field that
-# moves in months - and it is how the network check first went red on a commit page, on an
-# event whose failure the issue job below was never wired to report.
+# main, so a push here added nothing but 26 outbound requests per commit (on 2026-09-21; 51 on
+# 2026-10-02) against a field that moves in months - and it is how the network check first went
+# red on a commit page, on an event whose failure the issue job below was never wired to report.
 
 on:
   schedule:
@@ -131,9 +131,9 @@ jobs:
             fi
             printf -- '---\n\n'
             printf 'What this run did **not** check: it did not re-screen the field, judge\n'
-            printf 'whether a value is still correct, render a single screen, or re-run the\n'
+            printf 'whether a value is still correct, render a single screen, or check that\n'
             # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
-            printf 'coverage cross-check. `README.md` states the boundary in full.\n'
+            printf 'the book is complete. `AGENTS.md` states the boundary in full.\n'
           } > "$body"
 
           # One open issue, updated rather than duplicated, so a persistent failure does not

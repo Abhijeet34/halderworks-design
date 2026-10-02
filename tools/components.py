@@ -39,7 +39,7 @@ SIZES = ("s", "m", "l", "xl", "xxl")
 
 
 def slug(text):
-    """GitHub's heading anchor, the one tools/check-coverage.py resolves."""
+    """GitHub's heading anchor, the one tools/check-links.py resolves."""
     return re.sub(r"[^\w\- ]", "", text.strip().lower()).replace(" ", "-")
 
 
@@ -250,7 +250,7 @@ INTRO = """# Component sheets
 
 {n} components in {g} groups, as plain CSS in [components/components.css](../components/components.css) over the house roles and scales, with one script, [components/radiogroup.js](../components/radiogroup.js), for the segmented control's arrow keys.
 Each sheet below is generated from the same entry as its rendered card, and its token list is read from the CSS rules that name the component's classes, so it cannot name a token the component does not use.
-Where a sheet and an older card in [65-components.md](65-components.md) differ, the sheet is the later decision.
+This is the one place a component is documented; the foundations it stands on are [the rest of this book](00-brand-book.md#where-each-answer-lives).
 
 ## The component layer
 

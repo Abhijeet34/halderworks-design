@@ -27,13 +27,12 @@ The safe input was never "a hue"; it is **an input to the build**.
 |---|---|---|---|
 | foundations | the house | once | `ramps/brands/house.json`, `ramps/roles.css`, `ramps/scales.css`, `ramps/roster.json`, and every refusal in `tools/ramps.py` and `tools/contrast.py` |
 | brand | the product | once, at build time | a brand file, built by `tools/ramps.py` into the same token names |
-| overlay | the product | per surface | `data-overlay`: Instrument, Console, Editorial ([75-spec-sheet.md](75-spec-sheet.md#1-themes)) |
 | viewer | the person | at run time | `data-theme`, `data-density`, `data-text-size`, `prefers-contrast`, `prefers-reduced-motion`, `forced-colors` |
-| product namespace | the product | as a concept arises | a hue of its own in the brand file, and `--quoth-live` and its kind naming its steps ([95-extending.md](95-extending.md#a-colour-of-the-products-own)) |
+| product namespace | the product | as a concept arises | a hue of its own in the brand file, and `--quoth-live` and its kind naming its steps ([below](#a-colour-of-the-products-own)) |
 
 A product may pin a viewer setting where its surface has a convention, as pointback pins the dark theme for its lightbox, with `data-theme="dark"`.
 The pin needs no tool: both themes are still built and certified, and the pin chooses which one the product shows.
-A product may also name a default overlay or a default density for a surface; the viewer's choice still wins where the screen is theirs.
+A product may also name a default density for a surface; the viewer's choice still wins where the screen is theirs.
 
 ## The inputs
 
@@ -43,9 +42,9 @@ An input is a hue or a top-level key other than `note`, and the house and the th
 | key | what it takes | default | what it moves |
 |---|---|---|---|
 | `neutral` | `{"hue", "chroma"}`, chroma 0 to 0.4 | none: every brand names it | the gray ramp: every ground, surface, line and text role |
-| `hues.accent` | `{"hue", "chroma"}`, and optionally `solid`, a lightness per theme for step 9 | none | links, the selected row, the focus ring and the accent solid |
-| `hues.mark` | the same | none | the highlighter, the house signature |
-| `hues.red`, `hues.amber`, `hues.green` | the same | none | the three states, and proof marks |
+| `accent`, under `hues` | `{"hue", "chroma"}`, and optionally `solid`, a lightness per theme for step 9 | none | links, the selected row, the focus ring and the accent solid |
+| `mark`, under `hues` | the same | none | the highlighter, the house signature |
+| `red`, `amber` and `green`, under `hues` | the same | none | the three states, and proof marks |
 | any other name, up to eight hues in all | the same | none | a ramp of the product's own, such as quoth's `live` |
 | `shape` | `crisp` 2/3/6px, `house` 4/6/10px, `moulded` 4/7/12px, `soft` 6/8/14px | `house` | `--hw-radius-sm`, `-md`, `-lg` |
 | `iconStroke` | `1.5px`, `1.75px`, `2px` | `1.5px` | `--hw-icon-stroke` |
@@ -55,18 +54,13 @@ An input is a hue or a top-level key other than `note`, and the house and the th
 The six chart series ramps (teal, blue, violet, pink, olive, sky) are the house's in every brand and are not inputs, so a chart reads the same series order in every product.
 The registers, the strokes and the faces live in `ramps/roster.json`, which `tools/ramps.py` validates, and `tools/contrast.py` declares the registers, the strokes and the display widths again on its own, so a hand-edited radius, stroke or width in an emitted file is refused by the second instrument too.
 
-### The steps every hue gets
-
-Steps 1 to 7 are fixed lightnesses, the grounds, fills and borders.
-Step 8 is solved to 3:1 against steps 1 to 3 of every ramp, step 11 to 4.5:1 against steps 1 to 5 of every ramp, and step 12 against the same steps to 13:1 on the gray, primary text, and to 7:1 on every other hue, the raised text bar of `prefers-contrast: more`, so a status word keeps its hue; step 10 is step 9 moved 0.04 darker.
-Step 9 is the brightest solid that carries a white label at 4.5:1, unless the brand names its lightness with `solid`: that is how a yellow key or a pencil blue carries an ink label instead.
-"Of every ramp" rather than its own, so accent text holds on a gray fill and muted gray text on an accent fill by construction.
+Every hue gets the same twelve steps, each with its floor, which [10-color.md](10-color.md#ramps-steps-and-floors) owns.
 
 ### Shape and stroke
 
 Four registers rather than a free number, because a 1px radius change is invisible and a free number invites one.
-`crisp` is the 3px of Radix and the 4px of Vercel and Stripe; `soft` is the 8px input and 12px card the field clusters on ([30-space-radius-elevation.md](30-space-radius-elevation.md#radius)); `moulded`, 4/7/12, is a device's injection-moulded corner, the register quoth's Field identity asks for.
-7px is off the 4px unit, and that is allowed: the unit governs space and size, and radius is outside its scope ([32-rhythm.md](32-rhythm.md)).
+`crisp` is the 3px of Radix and the 4px of Vercel and Stripe; `soft`, 6/8/14, is the rounder register, an 8px input; `moulded`, 4/7/12, is a device's injection-moulded corner, the register quoth's Field identity asks for.
+7px is off the 4px unit, and that is allowed: the unit governs space and size, and radius is outside its scope ([30-space.md](30-space.md#the-unit)).
 Every register keeps the two rules that give radius its job: three sizes bound to three roles, and a child never larger than its parent.
 The stroke weights are the two the capture measured, 1.5px on 8 sites and 2px on 12, and the step between.
 
@@ -84,7 +78,7 @@ This is where a product's warmth or coolness lives, and it moves the whole gray 
 A tinted ground costs no contrast: steps 8, 11 and 12 are solved against the grounds they actually sit on.
 What a tinted ground can cost is its states, so every state's quiet fill is held **at least 6 CIEDE2000 from `--hw-bg`** in every block; the four brands clear it with 9.29 at worst, quoth's warm putty in light.
 `--hw-surface` stays white in light whatever the neutral, so data never sits on the tint.
-[10-color.md](10-color.md#why-the-ground-is-neutral) says why the house's own ground stays near neutral; a brand may warm or cool its ground further, and the house does not.
+[10-color.md](10-color.md#roles) says why the house's own ground stays near neutral; a brand may warm or cool its ground further, and the house does not.
 
 ### The focus ring
 
@@ -97,16 +91,16 @@ The four brands clear the edge bar with 14.75 at worst, pointback's pencil in da
 
 The solver's vivid tier, twelve tokens for a brand fill, a field and a brand primary, is retired.
 What it existed for is a step-9 solid with a named lightness: quoth's sports-yellow key is accent step 9 at L 0.90 in light and 0.88 in dark, `#FCDF01` and `#F4D908`, with an ink label, and the house's mark is the same yellow.
-**The loudest control is ink in every brand.** `--hw-ink` is the primary, and no brand input moves it.
+**The loudest control is ink in every brand.**
+`--hw-ink` is the primary, and no brand input moves it.
 The tier's brand primary retired with it; quoth's vendored copy still carries `--hw-primary`, and its migration maps it onto the accent solid or onto ink.
 The accent solid, `--hw-accent`, is the one place a brand's key fills a control: a brand button, a selected switch, a stage.
 
 ### The dark card step
 
 quoth's D-040 asks for dark cards told from the page by a lighter surface at 1.2:1 and a visible border.
-The roles are the same for every brand, and the dark surface is gray step 2 over step 1, 1.054:1, with the border at 1.526:1 over the surface carrying the edge, as [30-space-radius-elevation.md](30-space-radius-elevation.md) has it.
+The roles are the same for every brand, and the dark surface is gray step 2 over step 1, 1.054:1, with the border at 1.526:1 over the surface carrying the edge, as [30-space.md](30-space.md#elevation) has it.
 That is under D-040's step, and it is a stated gap rather than a refusal: a brand cannot yet move a role, and a per-brand surface step would be the first input that does.
-<!-- not-a-refusal: a gap this file reports, not a surface it declines -->
 
 ### Sunken depth
 
@@ -119,7 +113,7 @@ The solver's `sunkenDepth` input is retired with the rest, so the deeper chassis
 The owner's rule, recorded 2026-09-28: **an identity is not bound to fixed specifics.**
 Mixing styles across products, and within one product, is allowed wherever it serves the experience, under the contrast floors.
 A product may pair a grotesque with a hand, a flat fill with a drawn scribble, an engraving in its hero with in-house drawings of real controls on its setup steps.
-Illustration and art styles may vary, and they are not one: [55-iconography.md](55-iconography.md#illustration) says what every style is still held to, and [56-asset-placement.md](56-asset-placement.md) where each may and may not go.
+Illustration and art styles may vary, and they are not one: [00-brand-book.md](00-brand-book.md#icons-and-art) says what every style is still held to and where art may not go.
 What does not vary is the floor: every colour a style brings is built and certified, and every pair it puts text on clears its bar.
 
 ## The bars every brand is held to
@@ -137,8 +131,8 @@ On top of the floors, `tools/contrast.py` holds the painted distances below, in 
 | each status word, `--hw-danger`, `--hw-warning`, `--hw-success`, `--hw-delete` and `--hw-insert`, from `--hw-text` | 14 | 24.71, quoth |
 | each chart series from every other series and from each state | 14 | 16.42 |
 
-The accent text is not held to the states; `tools/contrast.py` reports its distance and does not refuse it ([10-color.md](10-color.md#the-three-bars-the-accent-is-held-to)).
-A hue of the brand's own is reported against the three state ramps and never refused: quoth's `live` sits 11.01 from amber at step 11, and [95-extending.md](95-extending.md#how-a-product-colour-is-held-apart) says what that costs.
+The accent text is not held to the states; `tools/contrast.py` reports its distance and does not refuse it, because every state carries a glyph and a word.
+A hue of the brand's own is reported against the three state ramps and never refused: quoth's `live` sits 11.01 from amber at step 11, and [the worked example](#the-worked-example-quoths-live-colour) says what that costs.
 
 ## Building a brand
 
@@ -167,7 +161,7 @@ pointback / quoth            5.6/5.2    44.6/51.5   23.2/21.1   49.1/45.9    dif
 ```
 
 It is a report, and it refuses one case only: a pair whose every one of those colours sits under 2.3, the CIELAB just-noticeable difference, in both themes, with the same two faces, which is one brand built twice.
-house and papertrace sit closest, both blue-accented on a near-neutral ground, and they differ in shape and in every face.
+house and papertrace sit closest, both blue-accented on a near-neutral ground, and they differ in shape and in every face but the mono, IBM Plex Mono in both.
 
 A weighted score with a pass bar was proposed and tested against rendered screens before this shipped, and it failed both ways.
 It passed a pair with a different serif, crisp corners and a 2px stroke, which renders as the house with another serif, 0.64 CIEDE2000 from it at a glance.
@@ -193,7 +187,6 @@ Values are the emitted light and dark accent text (step 11), accent solid (step 
 **Field: a warm putty instrument whose key is a sports yellow.**
 The neutral at hue 95, the accent and the mark both the yellow key at hue 100 with ink labels, the live microphone orange at 48 as a hue of its own, `moulded` corners, Archivo for text, Archivo Expanded for display and Martian Mono for labels and figures, as quoth's D-039 decided.
 There is no slate accent: the earlier slate seed at hue 255 is retired (maintainer decision D-099), and the primary is ink.
-<!-- not-a-refusal: a record of one product's identity, not a surface the house declines -->
 quoth vendors its own copy of the tokens, built by the retired solver, until its migration replaces it with these exports.
 
 ### papertrace
@@ -211,6 +204,33 @@ Its non-photo blue, `oklch(0.78 0.12 230)`, is the accent's named solid and carr
 None of the three has an interface today, so none has a brand file.
 A slot is reserved rather than built: when one of them gets a surface, its brand is decided then, and it must still clear every bar above.
 
+## A colour of the product's own
+
+A product sometimes needs a colour for a concept the house has no opinion about, and quoth's open microphone is the case that exists.
+A composition of `hw-` roles is still the first answer.
+When no house colour means the thing, the product names a hue of its own in its brand file, up to three beside the five the house's roles need, and the build gives it the same twelve steps and floors as every other hue.
+The product then names the step its concept uses in its own namespace: `--quoth-live: var(--hw-live-8)` for a mark at 3:1 on every ground, step 11 for text at 4.5:1.
+
+`tools/contrast.py` measures a brand's own hue at steps 8 and 11 against the same steps of the three state ramps, in both themes, and **reports** the closest in CIEDE2000, as "own hue from a state, reported"; it does not refuse it.
+A reader holds that number to 14, the accent's old ink bar, decided by the maintainer on 2026-09-28 where teal 172 at 10.5 read as a state and 186 at 14.3 as its own colour.
+It is reported rather than refused because a product's own record decides its colour, and the word beside the mark carries the state either way.
+
+### The worked example, quoth's live colour
+
+The accent already marks selection and focus, so a shared accent makes "the microphone is open" read as "this row is selected", and recording red sits on `--hw-danger`.
+quoth's D-062 made it the orange of the open microphone, hue 48 at chroma 0.19 in `ramps/brands/quoth.json`.
+A run of `tools/contrast.py` reports the lowest of steps 8 and 11, 11.01 from amber; the table is each step through the same `painted()`, step 9 included:
+
+| step | light | dark | closest state, CIEDE2000, light / dark |
+|---|---|---|---|
+| 8, a mark at 3:1 | `#DC640C` | `#AD4C01` | amber 12.92 / 11.71 |
+| 9, a solid | `#C25601` | `#C25601` | amber 12.31 / 12.31 |
+| 11, text at 4.5:1 | `#A14600` | `#F36E01` | amber 11.01 / 13.41 |
+
+Every step sits under the 14 from amber, by 3 at worst, and clears red by 15.02 or more and green by 49.41.
+This is a finding, not a decision this file makes: either the orange moves off amber, which is quoth's to decide, or the bar is re-calibrated for ramps.
+The live state is always the word `Recording`, in a house text colour, beside the mark, announced in a `role="status"` region; the mark does not pulse ([40-motion.md](40-motion.md#what-moves-on-its-own)).
+
 ## What stays the house's
 
 What makes two of these recognisably from one maker is everything a brand file cannot reach, and the list is long on purpose:
@@ -221,11 +241,13 @@ What makes two of these recognisably from one maker is everything a brand file c
 - **The chart series**, six ramps in one order.
 - **One mono face per product**, so every hash, run id and timestamp on a screen is set identically; the house's is IBM Plex Mono, and a brand may name another monospaced face from the roster where the mono is its identity, as Field's is.
 - **One rhythm**: the 4px unit, the space steps, the 44px row, the 32px control, the two densities, the five text sizes.
-- **One behaviour**: nine states, one focus geometry, one keyboard contract, one motion. Every product answers at 120ms on the same curve.
+- **One behaviour**: the states each component's sheet lists, one focus geometry, one keyboard contract, one motion.
+  Every product answers at 120ms on the same curve.
 - **Border before shadow, one hairline, nothing floats that cannot be dismissed.**
-- **One icon set and one alignment rule**, at whichever of three weights.
+- **One icon set**, at whichever of three stroke weights.
 - **One voice**: sentence case, "Revoke key" then "Key revoked", numbers with their unit.
-- **One proof.** Every brand is built by the same code and certified by the same second instrument.
+- **One proof.**
+  Every brand is built by the same code and certified by the same second instrument.
 
 Put two products in greyscale with their names covered, and they should still differ in face and shape, and still obviously be siblings.
 
@@ -237,11 +259,11 @@ Put two products in greyscale with their names covered, and they should still di
 | a brand primary | the loudest control is ink in every brand, and the accent solid is where a key fills a control; the tier's `primary: brand` retired with the solver |
 | the type scale, and which step the display face starts at | every size is load-bearing for density, from the 44px row down, and the stage sizes are the only ones the display face sets |
 | a ring chroma of its own | the ring is accent step 8, held to its bars; a brand whose ring fails them changes its accent |
-| motion | the house curves are identity: three alternative ease-outs differ from the house curve by at most 1.5px on an 8px move. Up to four named large moments may live in a product's namespace ([40-motion.md](40-motion.md#a-products-own-moments)) |
+| motion | the house curve is identity: three alternative ease-outs differ from it by at most 1.5px on an 8px move. Up to four named moments may live in a product's namespace ([40-motion.md](40-motion.md#a-products-own-moments)) |
 | elevation | 73 of 75 sampled elements carry no shadow; border-first is identity |
-| surface texture | a product may have one, as a tier rather than an input: a signature ground is a product token held to the two-token pattern rule ([75-spec-sheet.md](75-spec-sheet.md)) |
-| a figurative illustration set | brings its palette through the product's namespace, and its SVG carries no literal colour ([55-iconography.md](55-iconography.md#illustration)) |
-| voice | the house rules are invariant; a product's register is its noun glossary ([25-content.md](25-content.md)) |
+| surface texture | a product may have one in its own namespace, held to the pattern rule ([30-space.md](30-space.md#surfaces)) |
+| a figurative illustration set | brings its palette through the product's namespace, and its SVG carries no literal colour ([00-brand-book.md](00-brand-book.md#icons-and-art)) |
+| voice | the house rules are invariant; a product's register is its noun glossary ([00-brand-book.md](00-brand-book.md#words)) |
 | a mark | a mark is a commission ([00-brand-book.md](00-brand-book.md#the-mark)) |
 
 A brand is chosen once and built every time.

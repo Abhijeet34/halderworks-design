@@ -1,115 +1,74 @@
 # Motion
 
-Four durations, three easings, and a short list of what is allowed to move at all.
+Three durations, one curve, and a short list of what may move at all.
 
-| token | value | what it is for |
+| token | value | for |
 |---|---:|---|
-| `duration-instant` | 90ms | a state flip that must feel like a direct response: checkbox, toggle, hover on a dense row |
-| `duration-fast` | 150ms | the default. Hover, focus ring, colour change, a small reveal |
-| `duration-base` | 220ms | enter and exit of a popover, menu, tooltip or toast |
-| `duration-slow` | 380ms | a dialog or a sheet, which moves a longer distance |
+| `--hw-duration-fast` | 120ms | feedback: hover, press, toggle |
+| `--hw-duration-base` | 200ms | an entrance: a menu, a popover, a toast |
+| `--hw-duration-slow` | 320ms | a move: a dialog, a sheet, a disclosure |
+| `--hw-ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | every entrance and every move |
 
-150ms is the default because it is the measured modal value. Sampling `transition-duration` across all 14 reference products, 0.15s is the most-used duration on seven of them and 0.2s on five.
-Durations above 0.5s exist in that set (Linear 0.7s, Stripe 0.8s, Vercel and Family 1s) and every one of them is attached to a hero or a scroll effect, never to a control.
-
-## Easing
-
-| token | curve | where |
-|---|---|---|
-| `ease-out` | `cubic-bezier(0.22, 1, 0.36, 1)` | the default. Anything entering, expanding, or responding to a click |
-| `ease-in` | `cubic-bezier(0.4, 0, 1, 1)` | exits only, and only when something is leaving the screen entirely |
-| `ease-standard` | `cubic-bezier(0.4, 0, 0.2, 1)` | a position change that both starts and ends on screen |
-
-The default is out-biased on purpose, and the evidence for that is in what the distinctive products chose versus what everyone inherited.
-`cubic-bezier(0.4, 0, 0.2, 1)` is the most common curve in the reference set, but it is Tailwind's shipped default, so its frequency measures adoption of a framework rather than a preference.
-The custom curves people actually wrote are out-biased: Stripe `cubic-bezier(0.25, 1, 0.5, 1)` at 605 uses, Linear `cubic-bezier(0.32, 0.72, 0, 1)` and `cubic-bezier(0.25, 0.46, 0.45, 0.94)`, Superlist `cubic-bezier(0.44, 0, 0.56, 1)`.
-Fast start, long settle. That is what makes an interface feel like it answered you rather than like it is playing an animation at you.
+All four are in `ramps/scales.css`, and no brand input moves them, so every product answers at 120ms on the same curve.
+The curve is out-biased, fast start and long settle, which is what makes an interface feel like it answered rather than like it is playing an animation.
+Base Web ships the same four numbers as its own `easeDecelerate`, arrived at independently.
 
 ## What may animate
 
-`opacity`, `transform`, `background-color`, `border-color`, `color`, `outline-color`, `box-shadow`.
+`opacity`, `transform`, `color`, `background-color`, `border-color`, `outline-color` and `box-shadow`, and nothing else.
+Never `height`, `width`, `top`, `left` or `margin`, which force layout on every frame; where a height must change, animate `grid-template-rows` from `0fr` to `1fr` instead.
+The layer breaks this once: the determinate progress bar transitions its fill's `width`, where a `scale` transform from the left edge would hold the rule.
 
-Nothing else. In particular: never `height`, `width`, `top`, `left`, or `margin`. Those force layout on every frame, and on a table of a few hundred rows they will drop frames on the machine the product is actually used on.
-Where a height must animate, animate `transform: scaleY()` on a wrapper, or `grid-template-rows` from `0fr` to `1fr`, which the compositor can handle.
+- **Hover is a fill, never a movement**, because a row that lifts reflows a long list under the pointer.
+- **A press moves a button 1px and never scales it**, as `components/components.css` draws it, because a shrinking button moves its own label out from under the cursor.
+- **Nothing animates on scroll.**
 
-No loop runs longer than 1.2s, and the only thing allowed to loop at all is a determinate progress indicator.
-A spinner that spins forever is telling the user nothing except that the product does not know either.
+## What moves on its own
+
+Three things in the house move without the reader moving them, each drawn in `components/components.css`, and nothing else does:
+
+- **a busy button's spinner**, inside the button whose action is under way and nowhere else;
+- **an indeterminate progress bar's sweep**, only while the total is unknown; a known total is a determinate bar with a sentence giving the numbers;
+- **a level meter**, which follows real input and is still when none arrives.
+
+A skeleton holds still: no shimmer and no pulse.
+A spinner standing on its own is not a house surface: a wait is a progress bar and a sentence.
+While a live signal, a level meter or a presence dot, is on screen nothing else in its view animates, because two moving things make neither a signal.
+A live state that is not one of the three is still: quoth's open microphone is a still mark beside the word `Recording`.
+
+**Two products break this today, and the rule stays.**
+quoth pulses its skeletons with `animate-pulse` and shows spinners outside a button, ten and three of them as the house design review of 2026-10-02 counted.
+pointback's presence dot pulses on a 1.4s infinite loop in its `src/browser/chrome.css`.
+Each is the product's to bring onto the rule, in its own migration; the house does not widen the rule to fit them.
 
 ## A product's own moments
 
-The four durations and three curves are the house's in every product, and no brand input moves them ([12-brand.md](12-brand.md#declined-as-inputs)).
-A product may add **named moments** in its own namespace, **four at most**, each a `--<product>-` token that takes a house duration, may take a curve of its own, and is removed under `prefers-reduced-motion` like every other movement.
-A moment is the product's character in motion: quoth's Field identity names one, the key sinking on press at 120ms, and a highlighter swipe, a line of words arriving with a stagger, and a panel moving a large distance are the other shapes a moment has taken.
+A product may add up to four **named moments** in its own namespace, each a `--<product>-` token, and each held to four rules:
 
-Every moment holds to four rules, which is what keeps four from becoming a motion language:
+- **It takes a house duration**, and takes a curve of its own only when it moves a distance large enough to show one.
+- **It runs once per trigger and never loops.**
+- **It animates a control, a line of text or a panel**, never art.
+- **It is removed under `prefers-reduced-motion`**, like every other movement.
 
-- **It is named and listed.** A product's design record lists its moments, and a movement not on the list takes the house tokens.
-- **It runs once per trigger and never loops.** The loop rule above has no product exception.
-- **Nothing else moves while a live signal is on screen.** A level meter or a presence dot is the one moving thing in its view, because two moving things make neither a signal; [56-asset-placement.md](56-asset-placement.md#never-together) holds the pairing.
-- **Art never moves.** A moment animates a control, a line of text or a panel, never an illustration.
+quoth's Field identity names one: the key sinking 2px on press over 120ms, which is `--hw-duration-fast`.
+A product's design record lists its moments, and a movement not on the list takes the house tokens.
 
-Four, and not one, because a product's character is carried by more than one surface: of the identities specified for quoth, papertrace and pointback in September 2026, the most any needed was four, quoth's first direction.
-Four, and not open, because every added moment is one more thing to hold still beside a live signal.
-
-The reason a moment is allowed and a brand-wide curve is not is a measurement.
-Three alternative ease-out curves, sampled at 60Hz against the house curve, differ from it by at most 18.9% of the travel: 1.5px on the 8px a control moves, which nobody sees, and 30 to 60px on a 320px panel, which everybody does.
-A curve is identity only where the distance is large enough to show it, so a moment takes a curve of its own only when it moves a large distance.
+A brand-wide curve is not an input because the difference does not show where most things move: three alternative ease-outs sampled at 60Hz differ from the house curve by at most 18.9% of the travel, 1.5px on the 8px a control moves and 30 to 60px on a 320px panel, which is why only a moment that moves a large distance may take its own.
 
 ## Reduced motion
 
 Under `prefers-reduced-motion: reduce`, movement goes and feedback stays.
+`ramps/scales.css` collapses every duration to 100ms, cuts every animation to one 1ms iteration, and limits transitions to opacity and colour, so a state still changes visibly and nothing travels.
+The component layer then stills its three movers: the busy button's spinner becomes a still ring, the indeterminate bar a still full-width bar at 35% opacity, and a dialog or sheet appears in place; the level meter still follows its input, because that movement is the data.
+`tests/exports.py` holds the 100ms collapse in every export, and only under the preference.
 
-```css
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --hw-duration-instant: 1ms;
-    --hw-duration-fast: 100ms;
-    --hw-duration-base: 100ms;
-    --hw-duration-slow: 100ms;
-  }
-  *, *::before, *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    transition-property: opacity, color, background-color, border-color, outline-color !important;
-    scroll-behavior: auto !important;
-  }
-}
-```
+`transition: none !important` is the error this rule is written against: it removes colour and opacity feedback with the movement, and a control that changes state with no transition at all reads as broken rather than accommodating.
 
-The `transition-property` override is the part that matters and the part usually got wrong.
-Blanket rules of the form `transition: none !important` remove colour and opacity transitions along with the movement, and a button whose state changes with no transition at all reads as a broken control rather than as an accommodation.
-Reduced motion is a request to stop moving things, not a request to make the interface feel dead.
+## Sources
 
-**Two widely used sources ship the exact error this rule was written against.** `sonner@2.0.8`
-sets `transition: none !important` and `animation: none !important` under
-`prefers-reduced-motion`, and a published design-reference skill does the same in its own
-shortcut. Two unrelated sources committing the same error independently is what moves this from a
-defensible opinion to a rule with two shipped counter-examples behind it, and
-[90-evidence.md](90-evidence.md) carries both.
+| source | taken | left |
+|---|---|---|
+| [Base Web](https://www.npmjs.com/package/baseui), read from `baseui` 18.2.0 | `easeDecelerate`, byte for byte the house curve | its other curves |
+| [WCAG 2.2, animation from interactions](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html) | motion an interaction triggers can be turned off | nothing |
 
-## What starts and stops a movement
-
-This file owns how long a thing takes and what curve it takes.
-[74-interaction-constants.md](74-interaction-constants.md) owns what makes it start and stop: the
-velocity and distance thresholds a dismissal gesture has to clear, the toast stack's scale and
-offset, and the one case where two properties inside one transition take different durations.
-
-That last one is a real limit of the table above, stated rather than left to be discovered: this
-file assigns one duration per interaction kind, which is correct and is coarser by one dimension
-than the field's practice. The two pairings where it matters are in that file and nowhere else.
-
-## What these three curves are, measured
-
-[90-evidence.md](90-evidence.md) puts all three on one axis against 14 other published curves,
-using the fraction of the change already done at the quarter point. Three readings belong here:
-
-- **`--hw-ease-out` is 0.765**, fourth most out-biased of the seventeen measured. The claim above
-  that it is out-biased on purpose now has a number rather than an adjective.
-- **Base Web ships `cubic-bezier(0.22, 1, 0.36, 1)` as its own `easeDecelerate`**, byte-for-byte
-  this system's `--hw-ease-out`, arrived at independently by a published design system. That is
-  the strongest confirmation any single value in this book has.
-- **`--hw-ease-standard` is byte-identical to Tailwind's default**, which the paragraph above says
-  while arguing against the curve and which the token itself did not record. It later did, in its
-  own `usage` string, and the token then retired from the exports: the house ships one ease-out.
-
-Remove the movement, keep the answer.
+The duration and curve measurements across fourteen reference products are recorded in [the evidence file as it stood on 2026-10-02](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/90-evidence.md).

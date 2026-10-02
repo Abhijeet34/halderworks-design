@@ -91,7 +91,7 @@ def colour_difference_holds(fails):
     print(f"  difference:   contrast.de2000 reproduces {len(SHARMA)} Sharma pairs both ways")
 
 
-# The separation bars decided on 2026-09-21 (design/10-color.md), and the chart and status-text
+# The separation bars decided on 2026-09-21 (design/12-brand.md), and the chart and status-text
 # bars of 2026-10-02, named here as a second declaration so lowering contrast.py's copy still fails.
 DECIDED = {"FILL_FROM_STATE": 5, "PRIMARY_FROM_DANGER": 14, "RING_FROM_DANGER": 17,
            "RING_FROM_BORDER": 14, "FILL_FROM_GROUND": 6, "CHART_APART": 14,

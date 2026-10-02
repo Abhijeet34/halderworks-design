@@ -81,7 +81,7 @@ def oklch_to_rgb(L, C, h_deg):
 
 def in_gamut(L, C, h, eps=1e-6):
     """The reference path returns white as exactly 1.0, so eps here only absorbs floating-point
-    noise rather than a white-point error. The real out-of-gamut defect 90-evidence.md records,
+    noise rather than a white-point error. The real out-of-gamut defect the solver once caught,
     a warning at chroma 0.12, sits at -0.1185 on blue and is five orders above this."""
     return all(-eps <= v <= 1 + eps for v in oklch_to_rgb(L, C, h))
 
@@ -195,7 +195,7 @@ def painted(a, b):
 
 
 # Machado, Oliveira and Fernandes 2009, severity 1.0, on linear sRGB: the paper's table. What a
-# dichromat sees of the chart series is reported and never refused on (70-data-display.md).
+# dichromat sees of the chart series is reported and never refused on (60-accessibility.md).
 DICHROMACY = {
     "protan": ((0.152286, 1.052583, -0.204868), (0.114503, 0.786281, 0.099216),
                (-0.003882, -0.048116, 1.051998)),
@@ -223,7 +223,7 @@ def raised(bar):
     return max(bar, MORE_BAR[AA]) if bar >= AA else MORE_BAR[NON_TEXT]
 
 
-# The CIEDE2000 bars, each the maintainer's decision (10-color.md#the-three-bars-the-accent-is-held-to):
+# The CIEDE2000 bars, each the maintainer's decision (12-brand.md#the-bars-every-brand-is-held-to):
 # the selected fill from a state's fill, the primary from the danger solid, the ring from the
 # error, the ring from a control's own edge, and a state's fill from the ground.
 FILL_FROM_STATE, PRIMARY_FROM_DANGER, RING_FROM_DANGER = 5, 14, 17
@@ -311,7 +311,7 @@ ROLE_INK_REPORTED = ("--hw-accent-text", ("--hw-success", "--hw-warning", "--hw-
 # A chart series is a mark: 1.4.11's 3:1 on every ground a chart is drawn on, the raised bar under
 # more, and held CHART_APART from every other series and every state ink, the bar a product colour
 # keeps from a state. Six hues cannot all survive a dichromacy (Machado 2009 puts the closest pair
-# near 3), so that is reported and the word beside a series carries it (70-data-display.md).
+# near 3), so that is reported and the word beside a series carries it (60-accessibility.md).
 CHART_APART = 14
 ROLE_BARS += [("chart", a, b, CHART_APART, "two series that read as one")
               for i, a in enumerate(CHARTS) for b in CHARTS[i + 1:]] + [

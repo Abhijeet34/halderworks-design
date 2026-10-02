@@ -101,8 +101,7 @@ jobs:
           run "Two brands paint as one" python3 tools/distinct.py
           run "A vendored face no longer matches the roster" python3 tools/faces.py --vendored
           run "The component sheets or their renders are stale" python3 tools/components.py --check
-          run "The coverage inventory, its refusals, its manifest or a link" \
-            python3 tools/check-coverage.py
+          run "A Markdown link or anchor no longer resolves" python3 tools/check-links.py
           run "The source classifier no longer agrees with its fixtures" \
             python3 tools/test-check-sources.py
 
