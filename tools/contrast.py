@@ -166,7 +166,12 @@ D65 = (0.3127 / 0.3290, 1.0, (1.0 - 0.3127 - 0.3290) / 0.3290)
 def lab(fg, seen=None):
     """CIELAB (D65) of an oklch triple as the display receives it, quantized to 8 bits, or of
     what a dichromat sees of it when `seen` is one of DICHROMACY's matrices."""
-    lin = [_lin(c) for c in quantize(oklch_to_rgb(*fg))]
+    return lab_rgb(quantize(oklch_to_rgb(*fg)), seen)
+
+
+def lab_rgb(rgb, seen=None):
+    """CIELAB (D65) of gamma-encoded sRGB in 0..1, such as a pixel tools/painted.py read."""
+    lin = [_lin(c) for c in rgb]
     if seen:
         lin = [min(max(v, 0.0), 1.0) for v in _mul(seen, lin)]
     xyz = _mul(LIN_SRGB_TO_XYZ, lin)
@@ -935,8 +940,10 @@ def ramp_steps(block):
     return ramps, bad
 
 
-def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
-    """(failures, report lines) for one tools/ramps.py file and ramps/roles.css over it."""
+def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
+    """(failures, report lines) for one tools/ramps.py file and ramps/roles.css over it. A list
+    passed as `pairs` receives every pair certified, as (tier, fg, bg, bar, "ratio" | "de2000")
+    with custom property names, so tools/painted.py renders exactly these and no copy of them."""
     rb, bad = declarations(tokens_path, RAMP_BLOCKS)
     lb, rbad = declarations(roles_path, ROLE_BLOCKS)
     bad += rbad
@@ -963,7 +970,13 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
         if key not in lowest or got < lowest[key][0]:
             lowest[key] = (got, where)
 
-    def measure(fg, bg, bar, key, where, a, b):
+    def certified(tier, fg, bg, bar, kind):
+        if pairs is not None:
+            pairs.append((tier, *(n if n.startswith("--") else f"--hw-{n}" for n in (fg, bg)),
+                          bar, kind))
+
+    def measure(fg, bg, bar, key, where, a, b, tier):
+        certified(tier, fg, bg, bar, "ratio")
         got, got8 = ratio(a, b)
         low(key, min(got, got8), where)
         if got < bar or got8 < bar:
@@ -993,11 +1006,11 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
                 for g in ramps:
                     for i in span:
                         measure(f"{r}-{step}", f"{g}-{i}", floor, step, f"{theme} step {step}",
-                                steps[(r, str(step))], steps[(g, str(i))])
+                                steps[(r, str(step))], steps[(g, str(i))], theme)
         for r in ramps:
             for i in SOLIDS:
                 measure(f"{r}-on-solid", f"{r}-{i}", AA, "label", f"{theme} solid label",
-                        steps[(r, "on-solid")], steps[(r, str(i))])
+                        steps[(r, "on-solid")], steps[(r, str(i))], theme)
         for more in (False, True):
             tier = theme + ("-more" if more else "")
             dark = theme == "dark"
@@ -1023,16 +1036,18 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css"):
                 return raised(b) if more else b
             for fg, floor in ROLE_TEXT.items():
                 for bg in ROLE_GROUNDS + ROLE_FILLS + ROLE_TINTS:
-                    measure(fg, bg, bar_of(floor), "role text", tier, col[fg], col[bg])
+                    measure(fg, bg, bar_of(floor), "role text", tier, col[fg], col[bg], tier)
             for fg in ROLE_EDGES:
                 for bg in ROLE_GROUNDS:
-                    measure(fg, bg, bar_of(NON_TEXT), "role edge", tier, col[fg], col[bg])
+                    measure(fg, bg, bar_of(NON_TEXT), "role edge", tier, col[fg], col[bg], tier)
             for bg in ROLE_GROUNDS:
-                measure(ROLE_DISABLED, bg, NON_TEXT, "role edge", tier, col[ROLE_DISABLED], col[bg])
+                measure(ROLE_DISABLED, bg, NON_TEXT, "role edge", tier, col[ROLE_DISABLED], col[bg],
+                        tier)
             for fg, fills in ROLE_LABELS.items():
                 for bg in fills:
-                    measure(fg, bg, bar_of(AA), "role label", tier, col[fg], col[bg])
+                    measure(fg, bg, bar_of(AA), "role label", tier, col[fg], col[bg], tier)
             for what, a, b, bar, reads in ROLE_BARS:
+                certified(tier, a, b, bar, "de2000")
                 d = painted(col[a], col[b])
                 if d < bar:
                     bad.append(f"{tier}: {a} sits {d:.1f} CIEDE2000 from {b} at 8-bit, below "

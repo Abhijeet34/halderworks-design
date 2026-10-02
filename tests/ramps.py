@@ -18,6 +18,8 @@
   9. ramps.py's floors and contrast.py's are the same set, declared in each file.
   10. Every fifth accent hue through contrast.py's separation bars: hue 150 refused, 262 not.
       Every hue builds (4); this is how many of them read as a state once built.
+  11. The pairs contrast.py --ramps hands tools/painted.py name only declared properties, cover
+      all four tiers and carry every solid's label, since CI cannot run the browser that paints them.
 
     python3 tests/ramps.py [repo-root]
 """
@@ -230,6 +232,25 @@ def roles_resolve(fails):
           f"{len(files)} brands")
 
 
+def painted_pairs_are_complete(fails):
+    roles = (ROOT / "ramps" / "roles.css").read_text(encoding="utf-8")
+    files = sorted((ROOT / "ramps" / "tokens").glob("*.tokens.css"))
+    tiers = ("light", "dark", "light-more", "dark-more")
+    for path in files:
+        pairs = []
+        contrast.certify_ramps(path, pairs=pairs)
+        declared = set(re.findall(r"(--hw-[a-z0-9-]+):", roles + path.read_text(encoding="utf-8")))
+        named = {n for _, fg, bg, _, _ in pairs for n in (fg, bg)}
+        if named - declared:
+            fails.append(f"{path.name}: painted pairs name {sorted(named - declared)}")
+        for tier in tiers:
+            got = {(fg, bg) for t, fg, bg, _, _ in pairs if t == tier}
+            want = {(fg, bg) for fg, fills in contrast.ROLE_LABELS.items() for bg in fills}
+            if not want <= got:
+                fails.append(f"{path.name} {tier}: no painted pair for {sorted(want - got)}")
+    print(f"  painted:      the pairs tools/painted.py renders, complete in {len(files)} brands")
+
+
 def build_and_verify(brand, what, fails):
     try:
         css = ramps.emit(ramps.build(brand), "sweep")
@@ -355,6 +376,7 @@ def main():
     second_instrument_agrees(fails)
     floors_declared_twice(fails)
     roles_resolve(fails)
+    painted_pairs_are_complete(fails)
     step_9_is_brightest(fails)
     malformed_brands_are_refused(fails)
     verify_refuses_a_broken_file(fails)
