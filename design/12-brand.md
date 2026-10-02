@@ -153,15 +153,16 @@ CI builds, certifies and exports every brand on every change.
 ```text
 pair                            ground      accent        fill        ring   display  text   (CIEDE2000 light/dark)
 house / papertrace           3.1/1.8     4.5/4.2     1.9/4.7     3.9/4.1     differ  differ
-house / pointback            4.1/4.3    12.8/14.0    6.6/10.4   13.1/13.0    differ  differ
+house / pointback            4.1/4.3    12.8/14.0    6.6/10.4   13.1/13.0    same    same
 house / quoth                1.4/0.9    54.6/58.0   24.9/25.9   55.5/53.2    differ  same
 papertrace / pointback       1.0/2.8     9.3/9.6     4.7/5.8     9.1/9.1     differ  differ
 papertrace / quoth           4.6/2.5    54.2/58.8   24.5/23.7   55.9/53.0    differ  differ
-pointback / quoth            5.6/5.2    44.6/51.5   23.2/21.1   49.1/45.9    differ  differ
+pointback / quoth            5.6/5.2    44.6/51.5   23.2/21.1   49.1/45.9    differ  same
 ```
 
 It is a report, and it refuses one case only: a pair whose every one of those colours sits under 2.3, the CIELAB just-noticeable difference, in both themes, with the same two faces, which is one brand built twice.
 house and papertrace sit closest, both blue-accented on a near-neutral ground, and they differ in shape and in every face but the mono, IBM Plex Mono in both.
+house and pointback share every face, Archivo and IBM Plex Mono, and are told apart by colour, the accent text 12.8 or more and the ring 13.0 or more in both themes, and by pointback's 2px stroke.
 
 A weighted score with a pass bar was proposed and tested against rendered screens before this shipped, and it failed both ways.
 It passed a pair with a different serif, crisp corners and a 2px stroke, which renders as the house with another serif, 0.64 CIEDE2000 from it at a glance.
@@ -197,7 +198,7 @@ The cool neutral at hue 250 it ships, a blue accent at 252, red at 25, `crisp` c
 ### pointback
 
 **The pencil in the margin, as it ships.**
-Its non-photo blue, `oklch(0.78 0.12 230)`, is the accent's named solid and carries ink; a cool neutral at 260; `house` corners; a 2px stroke, the weight of its pencil rule; the system sans for text and display; the dark theme pinned.
+Its non-photo blue, `oklch(0.78 0.12 230)`, is the accent's named solid and carries ink; a cool neutral at 260; `house` corners; a 2px stroke, the weight of its pencil rule; Archivo for text and display and IBM Plex Mono for code and file names (maintainer decision C4 in pointback's record, 2026-10-02), from the house's vendored `fonts/`; the dark theme pinned.
 
 ### Reserved: treadling, foliot and gates
 
