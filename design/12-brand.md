@@ -42,9 +42,9 @@ An input is a hue or a top-level key other than `note`, and the house and the th
 | key | what it takes | default | what it moves |
 |---|---|---|---|
 | `neutral` | `{"hue", "chroma"}`, chroma 0 to 0.4 | none: every brand names it | the gray ramp: every ground, surface, line and text role |
-| `hues.accent` | `{"hue", "chroma"}`, and optionally `solid`, a lightness per theme for step 9 | none | links, the selected row, the focus ring and the accent solid |
-| `hues.mark` | the same | none | the highlighter, the house signature |
-| `hues.red`, `hues.amber`, `hues.green` | the same | none | the three states, and proof marks |
+| `accent`, under `hues` | `{"hue", "chroma"}`, and optionally `solid`, a lightness per theme for step 9 | none | links, the selected row, the focus ring and the accent solid |
+| `mark`, under `hues` | the same | none | the highlighter, the house signature |
+| `red`, `amber` and `green`, under `hues` | the same | none | the three states, and proof marks |
 | any other name, up to eight hues in all | the same | none | a ramp of the product's own, such as quoth's `live` |
 | `shape` | `crisp` 2/3/6px, `house` 4/6/10px, `moulded` 4/7/12px, `soft` 6/8/14px | `house` | `--hw-radius-sm`, `-md`, `-lg` |
 | `iconStroke` | `1.5px`, `1.75px`, `2px` | `1.5px` | `--hw-icon-stroke` |

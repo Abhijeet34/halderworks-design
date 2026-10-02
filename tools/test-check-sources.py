@@ -138,6 +138,18 @@ A citation after the block: [still read]({live}/refused)
         check("citations after a nested fence are still read",
               f"alive 403  {live}/refused" in out, out)
 
+        # A backticked length or file name has the shape of a host and is neither: probing
+        # `1.5px` or a vendored font file reports a dead source that was never cited.
+        names_root = tmp / "names"
+        names_root.mkdir()
+        book(names_root, [f"{live}/ok"],
+             "A stroke of `1.5px`, a mark at `0.12em`, the file `archivo-latin-wdth-normal.woff2` "
+             "and the face `archivo.ttf`.\n")
+        rc, out = run(names_root, tmp / "names-summary.md")
+        check("a backticked length or file name is not a citation",
+              not any(s in out for s in ("1.5px", "0.12em", "woff2", "archivo.ttf")), out)
+        check("lengths and file names do not fail the run", rc == 0, f"exit {rc}")
+
         # Nothing listening: no status line at all, which is the unreachable case.
         dark_root = tmp / "dark"
         dark_root.mkdir()

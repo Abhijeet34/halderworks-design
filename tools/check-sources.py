@@ -44,9 +44,10 @@ from pathlib import Path
 # Three kinds of citation, because the book cites more by name than by link: a full URL, a bare
 # host or path in backticks, and an npm package at a pinned version.
 SOURCES = ["design/*.md", "README.md", "SKILL.md"]
-# A backticked dotted token is a host only if its last label is not a file extension.
+# A backticked dotted token is a host only if its last label is letters and not a file
+# extension: `1.5px`, `0.12em` and `archivo-latin-wdth-normal.woff2` are a length and a file.
 NOT_TLD = {"md", "py", "css", "json", "js", "yml", "yaml", "txt", "html", "svg",
-           "png", "jpg", "sh", "toml", "lock", "xml"}
+           "png", "jpg", "sh", "toml", "lock", "xml", "ttf", "otf", "woff", "webp"}
 URL = re.compile(r"https?://[A-Za-z0-9._~:/?#@!$&*+,;=%()-]+")
 DOM = re.compile(r"`([a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+"
                  r"(?:/[A-Za-z0-9._~/?#@!$&*+,;=%()-]*)?)`")
@@ -102,7 +103,7 @@ def extract(root: Path) -> list[str]:
             out.add(m.rstrip(".,;:)]"))
         for m in DOM.findall(text):
             tld = m.split("/")[0].rsplit(".", 1)[-1]
-            if tld not in NOT_TLD and len(tld) >= 2 and not tld.isdigit():
+            if tld not in NOT_TLD and len(tld) >= 2 and tld.isalpha():
                 out.add("https://" + m)
         for name, version in NPM.findall(text):
             out.add(f"https://registry.npmjs.org/{name}/{version}")
