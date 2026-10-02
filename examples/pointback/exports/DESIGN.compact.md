@@ -142,4 +142,4 @@ A `-` is a stage size, set by `clamp()` against the viewport as well.
 
 ## font
 
-`--hw-font-sans` system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif  `--hw-font-display` system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif  `--hw-font-display-stretch` 100%  `--hw-font-read` "Literata", "Iowan Old Style", Georgia, "Times New Roman", serif  `--hw-font-mono` "IBM Plex Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace
+`--hw-font-sans` "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif  `--hw-font-display` "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif  `--hw-font-display-stretch` 100%  `--hw-font-read` "Literata", "Iowan Old Style", Georgia, "Times New Roman", serif  `--hw-font-mono` "IBM Plex Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace
