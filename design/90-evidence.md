@@ -727,6 +727,22 @@ Taken: the matrices, which reproduce the house-live-orange audit's deuteranopia 
 0.12 CIEDE2000. Left: the paper's intermediate severities, since a report at full severity is the
 worst case and nothing refuses on it.
 
+## Contrast read from a browser
+
+On 2026-10-02 a browser audit of the component sheets reported white on the accent solid at 4.43:1 to 4.49:1, against the 4.52:1 both instruments certify.
+The browser was not the cause.
+Headless Brave 1.96.60 (Chromium 154) paints `oklch(0.571 0.150 262)` as `68, 116, 207` and its white label as `255, 255, 255`, which is 4.521:1 and the same 8-bit value `contrast.py` and `ramps.py` compute.
+The audit read colours through a canvas, `fillStyle` then `getImageData`, and Brave randomises that read-back on an http origin by up to one code value per channel.
+On one page, white came back as every value from `254, 254, 254` to `255, 255, 255` and the solid as every value from `68, 116, 206` to `69, 117, 207`, so one painted pair measured anywhere from 4.432:1 to 4.531:1.
+A `file://` page read back exactly.
+`docs/brand-tier-record.md` blames the compositor's colour management for a `255, 254, 254` white, which is one of the values this read-back returns for `#FFFFFF`.
+
+Across the 648 ramp steps of the four brands, 20 painted one code value from where the instruments round them, each with an unrounded channel within 0.07 of a half.
+None moved a pair under its floor: `tools/painted.py` renders every pair `contrast.py --ramps` certifies, in both themes, from the attribute and from the operating system, with and without `prefers-contrast: more`, and the closest is 4.521:1 on a 4.5 bar.
+Taken: the screenshot as the only browser reading this repository certifies on, with a known-failing control painted on every page.
+Left: the canvas, which reads a fingerprinting defence rather than the paint.
+The Mobbin read-back in [Shipped accents on state hues](#shipped-accents-on-state-hues) was a canvas over https too; its stated plus or minus 2 already covers a one-unit perturbation.
+
 ## The vivid tier
 
 What the tier of 2026-09-28 in [12-brand.md](12-brand.md#the-vivid-tier) rests on, taken from the product-identities scout of 2026-09-22 and re-measured on this repository's own tools where a number is this repository's.

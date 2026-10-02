@@ -46,6 +46,9 @@ ROUTES = (("light", "light", "dark"), ("light from the OS", None, "light"),
           ("dark", "dark", "light"), ("dark from the OS", None, "dark"))
 CELL, INNER, COLUMNS = 8, 4, 120   # a pair is an 8px ground with its 4px foreground centred
 CONTROL = ("rgb(119, 119, 119)", "#FFFFFF", (119, 119, 119), (255, 255, 255))
+# The page's own colour: a var() that does not resolve to a colour falls back to it, and the
+# probe refuses any name that does, rather than measuring the page behind the pair.
+SENTINEL = "rgb(1, 2, 3)"
 TIMEOUT = 30
 
 
@@ -167,9 +170,9 @@ def page(tokens, pairs):
     cells = [f'<b style="background:{CONTROL[1]}"><i style="color:{CONTROL[0]}"></i></b>']
     cells += [f'<b style="background:var({bg})"><i style="color:var({fg})"></i></b>'
               for fg, bg in pairs]
-    return ("<!doctype html><html><head><meta charset=utf-8>"
-            f'<link rel=stylesheet href="{tokens.as_uri()}"><link rel=stylesheet href="{ROLES.as_uri()}">'
-            f"<style>html,body{{margin:0;background:#000}}body{{display:grid;grid-template-columns:"
+    links = "".join(f'<link rel=stylesheet href="{p.as_uri()}">' for p in (tokens, ROLES))
+    return (f"<!doctype html><html><head><meta charset=utf-8>{links}<style>html,body{{margin:0;"
+            f"background:{SENTINEL};color:{SENTINEL}}}body{{display:grid;grid-template-columns:"
             f"repeat({COLUMNS},{CELL}px);grid-auto-rows:{CELL}px}}b{{display:block}}"
             f"i{{display:block;margin:{(CELL - INNER) // 2}px;width:{INNER}px;height:{INNER}px;"
             "background:currentColor}</style></head><body>" + "".join(cells) + "</body></html>")
@@ -178,7 +181,9 @@ def page(tokens, pairs):
 PROBE = """(names => ({theme: document.documentElement.dataset.theme || null,
   dark: matchMedia("(prefers-color-scheme: dark)").matches,
   more: matchMedia("(prefers-contrast: more)").matches,
-  undeclared: names.filter(n => !getComputedStyle(document.documentElement).getPropertyValue(n).trim())}))"""
+  unresolved: names.filter(n => { const e = document.body.appendChild(document.createElement("s"));
+    e.style.color = `var(${n})`; const c = getComputedStyle(e).color; e.remove();
+    return c === "%s"; })}))""" % SENTINEL
 
 
 def paint(browser, html, path, theme, scheme, more, names, count):
@@ -200,8 +205,8 @@ def paint(browser, html, path, theme, scheme, more, names, count):
     if (got["theme"], got["dark"], got["more"]) != (theme, scheme == "dark", more):
         raise BrowserError(f"asked for data-theme {theme}, {scheme}, more {more}; the page "
                            f"reports {got['theme']}, dark {got['dark']}, more {got['more']}")
-    if got["undeclared"]:
-        raise BrowserError(f"not declared in the page: {', '.join(got['undeclared'])}")
+    if got["unresolved"]:
+        raise BrowserError(f"no colour in the page for {', '.join(got['unresolved'])}")
     shot = browser.call("Page.captureScreenshot", {"format": "png", "clip": {
         "x": 0, "y": 0, "width": COLUMNS * CELL, "height": height, "scale": 1}}, page=True)
     _, rows = pixels(base64.b64decode(shot["data"]))
@@ -225,7 +230,7 @@ def certify(browser, tokens, work):
     """(failures, report lines) for one ramps file, in every route and tier."""
     pairs = []
     bad, _ = contrast.certify_ramps(tokens, pairs=pairs)
-    fails = [f"contrast.py --ramps refuses it: {b}" for b in bad[:3]] if bad else []
+    fails = [f"contrast.py --ramps refuses it, {len(bad)} failures: {bad[0]}"] if bad else []
     report = []
     for name, theme, scheme in ROUTES:
         tone = "dark" if "dark" in name else "light"
@@ -246,12 +251,13 @@ def certify(browser, tokens, work):
             low = {}
             for (fg, bg, bar, kind), (ink, ground) in zip(todo, got[1:]):
                 if kind == "ratio":
-                    v = contrast.ratio_lum(luminance(ink), luminance(ground))
+                    v, unit = contrast.ratio_lum(luminance(ink), luminance(ground)), ":1"
                 else:
-                    v = contrast.de2000(*(contrast.lab_rgb([c / 255 for c in p]) for p in (ink, ground)))
+                    v, unit = contrast.de2000(*(contrast.lab_rgb([c / 255 for c in p])
+                                                for p in (ink, ground))), " CIEDE2000"
                 if v < bar:
                     fails.append(f"{where}: {fg} on {bg} paints {ink} on {ground}, "
-                                 f"{v:.3f} {'CIEDE2000' if kind == 'de2000' else ':1'} below {bar}")
+                                 f"{v:.3f}{unit}, below {bar}{unit}")
                 if kind not in low or v - bar < low[kind][0] - low[kind][1]:
                     low[kind] = (v, bar, fg, bg)
             report.append(f"  {where}: {len(todo)} pairs; " + "; ".join(

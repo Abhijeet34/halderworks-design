@@ -105,8 +105,8 @@ document.getElementById("screen").innerHTML = `
   <div class="field"><label>Fingerprint</label><div class="input error">9f2c1a</div>
     <p class="msg">Expected 64 hex characters. That value is 6.</p></div>
   <div class="actions"><button class="primary">Export</button><button class="secondary">Cancel</button></div></section>`;
-// Every hw- colour as this browser's CSS engine resolves it into sRGB, before any display profile:
-// a canvas read-back goes through the compositor's colour management, which paints white as 254.
+// Every hw- colour as this browser's CSS engine resolves it into sRGB. Not a canvas read-back: Brave
+// randomises getImageData on http origins by a code value per channel, so white reads as 254.
 window.painted = () => {
   const probe = document.body.appendChild(document.createElement("i")), out = {};
   for (const sheet of document.styleSheets) for (const rule of sheet.cssRules)
