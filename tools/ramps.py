@@ -55,6 +55,11 @@ MARGIN = 0.02
 HOVER = 0.04
 REQUIRED = ("accent", "mark", "red", "amber", "green")   # the hues ramps/roles.css names
 MAX_HUES = 8
+# The six chart series, one ramp each, the same hues in every brand: ramps/roles.css names step 8 or
+# 11 of each, so a series holds that step's floor like any role. The hues keep clear of the three
+# states (27, 70, 150); tools/contrast.py --ramps holds the CIEDE2000 bars between them.
+SERIES = {"teal": 180, "blue": 260, "violet": 310, "pink": 355, "olive": 110, "sky": 220}
+SERIES_CHROMA = 0.15
 CHROMA_MAX = 0.4     # CSS Color 4 maps 100% oklch chroma to 0.4
 WHITE = "#FFFFFF"
 
@@ -196,6 +201,9 @@ def brand_errors(brand):
         where = f"hues.{name}"
         if not re.fullmatch(r"[a-z][a-z0-9]*", name) or name == "gray":
             errors.append(f"{where}: a ramp name is lowercase letters and digits, and not 'gray'")
+        if name in SERIES:
+            errors.append(f"{where}: {name!r} is a chart series every brand carries; name the "
+                          f"brand's own hue something else")
         e = keys_errors(spec, where, ("hue", "chroma"), ("solid",))
         errors += e
         if not isinstance(spec, dict):
@@ -250,7 +258,8 @@ def brightest_white_solid(h, C):
 def ramp_specs(brand):
     n = brand["neutral"]
     gray = {"hue": n["hue"], "chroma": n["chroma"], "neutral": True}
-    return {"gray": gray, **brand["hues"]}
+    series = {name: {"hue": h, "chroma": SERIES_CHROMA} for name, h in SERIES.items()}
+    return {"gray": gray, **brand["hues"], **series}
 
 
 def step_chroma(spec, step):

@@ -63,6 +63,15 @@
   --hw-danger-hover: var(--hw-red-10);       /* the destructive solid under the pointer */
   --hw-on-danger: var(--hw-red-on-solid);    /* the label on a destructive solid */
   --hw-scrim: oklch(0.2 0 0 / 0.42);         /* behind a modal dialog; never read on */
+
+  /* ---- chart series, in a fixed order; odd on step 8, even on 11, so neighbours differ in
+     lightness as well as hue. Six series ramps every brand carries, clear of the three states ---- */
+  --hw-chart-1: var(--hw-teal-8);            /* the first series of a chart with two or more */
+  --hw-chart-2: var(--hw-blue-11);           /* the second series */
+  --hw-chart-3: var(--hw-violet-8);          /* the third series */
+  --hw-chart-4: var(--hw-pink-11);           /* the fourth series */
+  --hw-chart-5: var(--hw-olive-8);           /* the fifth series */
+  --hw-chart-6: var(--hw-sky-11);            /* the sixth; a seventh is "Other" or another chart */
 }
 
 [data-theme="dark"] {
@@ -105,6 +114,9 @@
     --hw-success: var(--hw-green-12);
     --hw-warning: var(--hw-amber-12);
     --hw-danger: var(--hw-red-12);
+    --hw-chart-1: var(--hw-teal-11);
+    --hw-chart-3: var(--hw-violet-11);
+    --hw-chart-5: var(--hw-olive-11);
   }
 }
 

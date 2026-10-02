@@ -77,11 +77,21 @@ over all 360 accent hues, every fifth hue at four brand corners and as a vivid k
 failing when no vivid key builds or either buildable arc moves, `tests/mutation_tests.py` over a set of deliberately wrong inputs (its
 own run prints "N cases: N as expected, 0 improved, 0 failed" for the current count) - and two
 further diagnostics, `tests/coverage_probe.py` and `tests/ident_sweep.py`, print rather than
-refuse and are run on demand. A fourth suite, `tests/ramps.py` (86.7 seconds on 2026-10-02),
-checks `tools/ramps.py` from outside: `contrast.py --ramps` certifying the committed files, every
-accent hue building, malformed brand files refused by name, and `contrast.py --ramps` refusing a
-floor missed by under 0.01, a role on the wrong step, an accent equal to the success green and a
-malformed file.
+refuse and are run on demand. A fourth suite, `tests/ramps.py` (205 seconds on 2026-10-02, up
+from 86.7 before the six chart series ramps), checks `tools/ramps.py` from outside:
+`contrast.py --ramps` certifying the committed files, every accent hue building, malformed brand
+files refused by name, and `contrast.py --ramps` refusing a floor missed by under 0.01, a role on
+the wrong step, an accent equal to the success green, a chart series under its mark floor or on
+another series or a state, and a malformed file.
+
+**Validating through no-mistakes, name every suite in `SUITES` in `tests/run.py` as its own
+command, never `tests/run.py` itself:** `tests/invariants.py`, `tests/hue_sweep.py`,
+`tests/mutation_tests.py`, `tests/ramps.py`, `tests/exports.py`, `tests/components.py`, and any
+suite added there since. The aggregate takes 6 to 8 minutes, and the pipeline's test agent
+backgrounds a run longer than about 3 minutes and returns before it finishes, so its verdict rests
+on output that never arrived (measured on PRs 23 to 28). Each suite in the foreground, with an
+explicit timeout of at least 600000 ms, never backgrounded, is evidence; the aggregate there is
+not.
 
 `build.py` and `contrast.py` are deliberately two instruments rather than one, and two things make
 them two. They share no arithmetic: `build.py` inverts the original Oklab matrices, `contrast.py`

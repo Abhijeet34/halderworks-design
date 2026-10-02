@@ -14,12 +14,14 @@
      blocks' agreement, so the re-measure is a check rather than a formality.
   8. tools/contrast.py --ramps refuses a floor missed by under 0.01, a role on the wrong step, a
      dark danger solid or ring back beside the ink under more, an accent equal to the success
-     green, and malformed files, each by name and without a traceback.
+     green, a chart series under its mark floor, on another series or on a state, and malformed
+     files, each by name and without a traceback.
   9. ramps.py's floors and contrast.py's are the same set, declared in each file.
   10. Every fifth accent hue through contrast.py's separation bars: hue 150 refused, 262 not.
       Every hue builds (4); this is how many of them read as a state once built.
   11. The pairs contrast.py --ramps hands tools/painted.py name only declared properties, cover
-      all four tiers and carry every solid's label, since CI cannot run the browser that paints them.
+      all four tiers and carry every solid's label and every chart mark, since CI cannot run the
+      browser that paints them.
 
     python3 tests/ramps.py [repo-root]
 """
@@ -169,6 +171,14 @@ def contrast_refuses(fails):
         ("a dark override under more left out of the media copy",
          ':root:not([data-theme="light"]) {\n    --hw-focus: var(--hw-accent-11);\n',
          ':root:not([data-theme="light"]) {\n', "overrides under more differ"),
+        ("a series on step 7", "--hw-chart-1: var(--hw-teal-8);", "--hw-chart-1: var(--hw-teal-7);",
+         "--hw-chart-1 on"),
+        ("an odd series left on step 8 under more", "    --hw-chart-1: var(--hw-teal-11);\n", "",
+         "light-more: --hw-chart-1 on"),
+        ("two series on one ramp", "--hw-chart-3: var(--hw-violet-8);",
+         "--hw-chart-3: var(--hw-teal-8);", "--hw-chart-1 sits 0.0 CIEDE2000 from --hw-chart-3"),
+        ("a series on the success green", "--hw-chart-2: var(--hw-blue-11);",
+         "--hw-chart-2: var(--hw-green-11);", "--hw-chart-2 sits 0.0 CIEDE2000 from --hw-success"),
     ]
     with tempfile.TemporaryDirectory() as tmp:
         cases = []
@@ -246,6 +256,7 @@ def painted_pairs_are_complete(fails):
         for tier in tiers:
             got = {(fg, bg) for t, fg, bg, _, _ in pairs if t == tier}
             want = {(fg, bg) for fg, fills in contrast.ROLE_LABELS.items() for bg in fills}
+            want |= {(c, g) for c in contrast.CHARTS for g in contrast.ROLE_GROUNDS}
             if not want <= got:
                 fails.append(f"{path.name} {tier}: no painted pair for {sorted(want - got)}")
     print(f"  painted:      the pairs tools/painted.py renders, complete in {len(files)} brands")
@@ -320,6 +331,8 @@ REFUSALS = [
     ("hue 360", with_hues(accent={"hue": 360, "chroma": .1}), "[0, 360)"),
     ("chroma past 0.4", with_hues(accent={"hue": 1, "chroma": .5}), "(0, 0.4]"),
     ("a ramp named gray", with_hues(gray={"hue": 1, "chroma": .1}), "not 'gray'"),
+    ("a ramp named after a chart series", with_hues(teal={"hue": 180, "chroma": .1}),
+     "'teal' is a chart series"),
     ("a null solid", with_hues(mark={"hue": 100, "chroma": .19, "solid": None}),
      "hues.mark.solid must be an object"),
     ("a solid that carries neither label",

@@ -56,8 +56,9 @@ It runs four passes and exits non-zero if any fails:
   the passes above. Per brand and theme: every step floor (8 at 3:1 on steps 1-3 of every ramp,
   11 at 4.5:1 and 12 at 13:1 on steps 1-5) and the label on solids 9 and 10 at 4.5:1; every role
   in ramps/roles.css on the grounds it is read on, at its step's floor and under prefers-contrast:
-  more at the raised bar; pass 3's CIEDE2000 bars carried onto the roles; sRGB and the two dark
-  blocks' agreement. Its floors are declared below, not imported, and a line it cannot read,
+  more at the raised bar; pass 3's CIEDE2000 bars carried onto the roles; the six chart series
+  as marks on every ground, apart from each other and from the three states, with what a
+  dichromat sees of them reported; sRGB and the two dark blocks' agreement. Its floors are declared below, not imported, and a line it cannot read,
   or a role certified by nothing and exempted nowhere, is a failure.
 
     python3 tools/contrast.py [tokens.css] [--extend product.seed.json [--extend-css file]]
@@ -861,6 +862,15 @@ ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill th
     ("fill-ground", s, "--hw-bg", FILL_FROM_GROUND, "a status fill that sinks into the ground")
     for s in STATE_FILLS]
 ROLE_INK_REPORTED = ("--hw-accent-text", ("--hw-success", "--hw-warning", "--hw-danger"))
+# A chart series is a mark: 1.4.11's 3:1 on every ground a chart is drawn on, the raised bar under
+# more, and held CHART_APART from every other series and every state ink, the bar a product colour
+# keeps from a state. Six hues cannot all survive a dichromacy (Machado 2009 puts the closest pair
+# near 3), so that is reported and the word beside a series carries it (70-data-display.md).
+CHART_APART = 14
+ROLE_BARS += [("chart", a, b, CHART_APART, "two series that read as one")
+              for i, a in enumerate(CHARTS) for b in CHARTS[i + 1:]] + [
+    ("chart-state", c, s, CHART_APART, "a series that reads as a state")
+    for c in CHARTS for s in ROLE_INK_REPORTED[1]]
 
 WHITE_OKLCH = (1.0, 0.0, 0.0)   # the reference path returns #FFFFFF from this exactly
 RAMP_DECL = re.compile(r"^(--hw-[a-z][a-z0-9-]*):\s*(.+?);$")
@@ -962,7 +972,7 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
         bad.append("roles.css's prefers-color-scheme: dark overrides under more differ from "
                    "[data-theme=\"dark\"]'s")
     report, lowest = [], {}
-    used = {*ROLE_GROUNDS, *ROLE_FILLS, *ROLE_TINTS, *ROLE_EDGES, *ROLE_TEXT, ROLE_DISABLED,
+    used = {*ROLE_GROUNDS, *ROLE_FILLS, *ROLE_TINTS, *ROLE_EDGES, *ROLE_TEXT, ROLE_DISABLED, *CHARTS,
             *ROLE_LABELS, *(f for fs in ROLE_LABELS.values() for f in fs),
             *(n for bar in ROLE_BARS for n in bar[1:3])}
 
@@ -1040,6 +1050,9 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
             for fg in ROLE_EDGES:
                 for bg in ROLE_GROUNDS:
                     measure(fg, bg, bar_of(NON_TEXT), "role edge", tier, col[fg], col[bg], tier)
+            for fg in CHARTS:
+                for bg in ROLE_GROUNDS:
+                    measure(fg, bg, bar_of(NON_TEXT), "chart mark", tier, col[fg], col[bg], tier)
             for bg in ROLE_GROUNDS:
                 measure(ROLE_DISABLED, bg, NON_TEXT, "role edge", tier, col[ROLE_DISABLED], col[bg],
                         tier)
@@ -1056,6 +1069,9 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
                     low(what, d, tier)
             ink, states = ROLE_INK_REPORTED
             low("ink, reported", min(painted(col[ink], col[s]) for s in states), tier)
+            d, kind, a, b = min((*dichromat_painted(col[a], col[b]), a, b)
+                                for i, a in enumerate(CHARTS) for b in CHARTS[i + 1:])
+            low("chart to a dichromat, reported", d, f"{tier}, {kind}, {a} and {b}")
             # roles.css raises muted text to step 12 under more, so the ladder is reported there.
             step = abs(col["--hw-text"][0] - col["--hw-text-muted"][0])
             if not more and step < ROLE_STEP:
