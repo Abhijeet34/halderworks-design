@@ -54,7 +54,7 @@ It runs four passes and exits non-zero if any fails:
 
   --ramps certifies tools/ramps.py's files instead, which nothing ships yet, and runs none of
   the passes above. Per brand and theme: every step floor (8 at 3:1 on steps 1-3 of every ramp,
-  11 at 4.5:1 and 12 at 13:1 on steps 1-5) and the label on solids 9 and 10 at 4.5:1; every role
+  11 at 4.5:1 and 12 at 13:1 on steps 1-5, a hue's 12 at 7:1) and the label on solids 9 and 10 at 4.5:1; every role
   in ramps/roles.css on the grounds it is read on, at its step's floor and under prefers-contrast:
   more at the raised bar; pass 3's CIEDE2000 bars carried onto the roles; the six chart series
   as marks on every ground, apart from each other and from the three states, with what a
@@ -816,6 +816,8 @@ def extension(themes, ext, seed_path, css_path):
 
 RAMPS_DIR = ROOT / "ramps"
 STEP_FLOORS = {8: (NON_TEXT, (1, 2, 3)), 11: (AA, (1, 2, 3, 4, 5)), 12: (13.0, (1, 2, 3, 4, 5))}
+# A hue's step 12 is read only as text under more, so it holds that bar and not the gray's 13:1.
+HUE_STEP_12 = MORE_BAR[AA]
 SOLIDS = (9, 10)
 RAMP_BLOCKS = {(None, ':root, [data-theme="light"]'): "light", (None, '[data-theme="dark"]'): "dark",
                ("@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])'):
@@ -855,7 +857,8 @@ ROLE_EXEMPT = {"--hw-line": "a divider, never a control boundary",
 STATE_FILLS = ("--hw-success-fill", "--hw-warning-fill", "--hw-danger-fill")
 # A status word keeps its hue against the text beside it in every tier, the bar a product colour
 # keeps from a state: under more in dark every step 12 sat near white, 2.1 from --hw-text.
-STATE_TEXT, STATE_FROM_TEXT = ("--hw-danger",), PRODUCT_FROM_STATE
+STATE_TEXT = ("--hw-danger", "--hw-warning", "--hw-success", "--hw-delete", "--hw-insert")
+STATE_FROM_TEXT = PRODUCT_FROM_STATE
 ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill that reads as a state")
              for s in STATE_FILLS] + [
     ("primary", "--hw-ink", "--hw-danger-solid", ACCENT_BARS[0][4], "a primary that reads as danger"),
@@ -1018,9 +1021,10 @@ def certify_ramps(tokens_path, roles_path=RAMPS_DIR / "roles.css", pairs=None):
                 bad.append(f"{theme} --hw-{r}-{k} oklch{c} falls outside sRGB")
         for step, (floor, span) in STEP_FLOORS.items():
             for r in ramps:
+                bar = HUE_STEP_12 if step == 12 and r != "gray" else floor
                 for g in ramps:
                     for i in span:
-                        measure(f"{r}-{step}", f"{g}-{i}", floor, step, f"{theme} step {step}",
+                        measure(f"{r}-{step}", f"{g}-{i}", bar, step, f"{theme} step {step}",
                                 steps[(r, str(step))], steps[(g, str(i))], theme)
         for r in ramps:
             for i in SOLIDS:

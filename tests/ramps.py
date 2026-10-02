@@ -64,11 +64,13 @@ def floors_declared_twice(fails):
     """The floors ramps.py solves to and the floors contrast.py certifies are two declarations of
     one set, so weakening a floor takes an edit in both files and this check names it."""
     theirs = {k: (v[0], tuple(v[1])) for k, v in contrast.STEP_FLOORS.items()}
-    if theirs != ramps.FLOORS or contrast.SOLIDS != (9, 10) or contrast.AA != ramps.LABEL:
-        fails.append(f"tools/ramps.py solves to {ramps.FLOORS}, label {ramps.LABEL}, and "
-                     f"tools/contrast.py certifies {theirs}, label {contrast.AA}")
-    print(f"  floors:       ramps.py and contrast.py declare the same {len(theirs)} step floors "
-          f"and the {ramps.LABEL}:1 label")
+    if (theirs != ramps.FLOORS or contrast.HUE_STEP_12 != ramps.HUE_12
+            or contrast.SOLIDS != (9, 10) or contrast.AA != ramps.LABEL):
+        fails.append(f"tools/ramps.py solves to {ramps.FLOORS}, hue step 12 {ramps.HUE_12}, label "
+                     f"{ramps.LABEL}, and tools/contrast.py certifies {theirs}, hue step 12 "
+                     f"{contrast.HUE_STEP_12}, label {contrast.AA}")
+    print(f"  floors:       ramps.py and contrast.py declare the same {len(theirs)} step floors, "
+          f"the {ramps.HUE_12}:1 hue step 12 and the {ramps.LABEL}:1 label")
 
 
 def brand_css(tmp, name, brand):

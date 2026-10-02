@@ -16,7 +16,9 @@ The steps, per theme:
   1-7   fixed lightness, the grounds, fills and borders (light 0.985 to 0.820, dark 0.165 to 0.400).
   8     solved to 3:1 against steps 1-3 of every ramp: a control boundary.
   11    solved to 4.5:1 against steps 1-5 of every ramp: secondary text.
-  12    solved to 13:1 against steps 1-5 of every ramp: primary text.
+  12    solved to 13:1 against steps 1-5 of every ramp on the gray: primary text. A hue's step 12
+        is solved to 7:1 instead, the raised text bar of prefers-contrast: more, the one tier that
+        reads it; at 13:1 every dark step 12 sat near white, a status word in the text's colour.
   9     the brightest solid that carries a white label at 4.5:1, the same in both themes, unless
         the brand names the solid's lightness per theme (a yellow or a pencil that carries ink).
   10    step 9 moved 0.04 darker: the hovered solid.
@@ -48,6 +50,11 @@ FIXED = {
 }
 # step -> (floor, the steps of every ramp it is measured against)
 FLOORS = {8: (3.0, (1, 2, 3)), 11: (4.5, (1, 2, 3, 4, 5)), 12: (13.0, (1, 2, 3, 4, 5))}
+HUE_12 = 7.0         # step 12 of every ramp but the gray, measured against the same span
+
+
+def floor_of(step, name):
+    return HUE_12 if step == 12 and name != "gray" else FLOORS[step][0]
 LABEL = 4.5          # WCAG 2.2 SC 1.4.3, for the label on a solid
 # A solve aims this far above its floor. 8-bit rounding is measured directly rather than budgeted,
 # so this covers only a second converter landing a channel one code value the other side.
@@ -289,10 +296,11 @@ def build(brand):
         ramps = {name: {i: colour(L, step_chroma(s, i), s["hue"])
                         for i, L in enumerate(FIXED[theme], start=1)}
                  for name, s in specs.items()}
-        for step, (floor, span) in FLOORS.items():
+        for step, (_, span) in FLOORS.items():
             grounds = {luminance(*r[i]) for r in ramps.values() for i in span}
             for name, s in specs.items():
-                ramps[name][step] = solve(floor, grounds, s["hue"], step_chroma(s, step), theme)
+                ramps[name][step] = solve(floor_of(step, name), grounds, s["hue"],
+                                          step_chroma(s, step), theme)
         ink = ramps["gray"][12 if theme == "light" else 1]
         for name, s in specs.items():
             L9 = s["solid"][theme] if "solid" in s else solids[name]
@@ -371,9 +379,10 @@ def verify(css):
             for i, L in enumerate(FIXED[theme], start=1):
                 if r[i][0] != L:
                     fails.append(f"{theme} {name}-{i} has lightness {r[i][0]}, not the fixed {L}")
-        for step, (floor, span) in FLOORS.items():
+        for step, (_, span) in FLOORS.items():
             grounds = [(f"{g}-{i}", luminance(*ramps[g][i])) for g in ramps for i in span]
             for name, r in ramps.items():
+                floor = floor_of(step, name)
                 y = luminance(*r[step])
                 worst, on = min((ratio(y, gy), g) for g, gy in grounds)
                 lowest[step] = min(lowest.get(step, (99, "")), (worst, f"{theme} {name}"))

@@ -3,7 +3,8 @@
    carries that step's floor from tools/ramps.py, measured against steps 1-5 of every ramp:
      step 8   3:1 on steps 1-3      a control boundary, a focus ring
      step 11  4.5:1 on steps 1-5    secondary text, state text
-     step 12  13:1 on steps 1-5     primary text
+     step 12  13:1 on steps 1-5     primary text, on the gray
+              7:1 on steps 1-5      a hue's, the text under prefers-contrast: more
      9 / 10   carry <ramp>-on-solid at 4.5:1
    The three that name no step sit further from the text than step 1 does, so the floors still
    hold on them: the light surface is white, the dark rail is darker than gray-1, and the scrim
@@ -92,9 +93,10 @@
   }
 }
 
-/* Step 12 holds 13:1 on steps 1-5 of every ramp, gray-1 among them, so a step-12 solid carries a
-   gray-1 label and step-12 text clears 7:1 everywhere step 11 cleared 4.5:1. In dark every step 12
-   is near white, so the dark blocks below move the danger solid and the ring off it. */
+/* Step 12 holds at least 7:1 on steps 1-5 of every ramp, gray-1 among them, so a step-12 solid carries a
+   gray-1 label and step-12 text clears 7:1 everywhere step 11 cleared 4.5:1. A hue's step 12 is
+   held to 7:1 rather than the gray's 13:1 so it keeps its hue, red 12 a red word beside the text
+   in dark as well as light. The dark blocks below move the danger solid and the ring off the ink. */
 @media (prefers-contrast: more) {
   :root {
     --hw-text-muted: var(--hw-gray-12);
@@ -120,7 +122,7 @@
   }
 }
 
-/* Dark under more. Danger text stays on red 12, the only step that clears 7:1, so the ring leaves
+/* Dark under more. Danger text stays on red 12, the only red step that clears 7:1. The ring leaves
    white for accent 11, whose 4.5:1 floor on steps 1-5 is the raised non-text bar itself. The danger
    solid becomes red 7, the brightest red still carrying a gray-12 label at 7:1 (red 8 gives 5.3:1):
    a red block under a white word, not a white block beside the ink one. No colour carries that

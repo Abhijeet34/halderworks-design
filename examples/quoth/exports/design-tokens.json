@@ -791,16 +791,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.21,
-                0.043,
+                0.39,
+                0.081,
                 100
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.028,
+                0.79,
+                0.164,
                 100
               ]
             }
@@ -841,16 +841,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.21,
-                0.043,
+                0.39,
+                0.081,
                 100
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.028,
+                0.79,
+                0.164,
                 100
               ]
             }
@@ -941,16 +941,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.21,
-                0.043,
+                0.39,
+                0.081,
                 100
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.028,
+                0.79,
+                0.164,
                 100
               ]
             }
@@ -1291,16 +1291,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.203,
-                0.055,
+                0.38,
+                0.104,
                 150
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.984,
-                0.025,
+                0.776,
+                0.14,
                 150
               ]
             }
@@ -1391,16 +1391,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.222,
-                0.09,
+                0.412,
+                0.167,
                 27
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.988,
-                0.005,
+                0.804,
+                0.111,
                 27
               ]
             }
@@ -1491,16 +1491,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.203,
-                0.055,
+                0.38,
+                0.104,
                 150
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.984,
-                0.025,
+                0.776,
+                0.14,
                 150
               ]
             }
@@ -1641,16 +1641,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.212,
-                0.045,
+                0.396,
+                0.085,
                 70
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.009,
+                0.799,
+                0.16,
                 70
               ]
             }
@@ -1791,16 +1791,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.222,
-                0.09,
+                0.412,
+                0.167,
                 27
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.988,
-                0.005,
+                0.804,
+                0.111,
                 27
               ]
             }
@@ -1941,8 +1941,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.222,
-                0.09,
+                0.412,
+                0.167,
                 27
               ]
             },
@@ -1991,8 +1991,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.222,
-                0.09,
+                0.412,
+                0.167,
                 27
               ]
             },
