@@ -48,31 +48,31 @@ A house design system: 48 colour roles, each naming a step of a twelve-step ramp
 | `--hw-ink` | `oklch(0.210 0.012 260)` | `oklch(0.987 0.006 260)` | `oklch(0.210 0.012 260)` | `oklch(0.987 0.006 260)` | primary action: ink, not colour |
 | `--hw-on-ink` | `oklch(0.985 0.007 260)` | `oklch(0.165 0.012 260)` | `oklch(0.985 0.007 260)` | `oklch(0.165 0.012 260)` | the label on an ink solid |
 | `--hw-ink-hover` | `oklch(0.494 0.024 260)` | `oklch(0.670 0.024 260)` | `oklch(0.210 0.012 260)` | `oklch(0.987 0.006 260)` | the ink solid under the pointer |
-| `--hw-accent` | `oklch(0.780 0.120 230)` | `oklch(0.780 0.120 230)` | `oklch(0.209 0.041 230)` | `oklch(0.986 0.008 230)` | a solid: brand button, selected switch |
-| `--hw-accent-hover` | `oklch(0.740 0.120 230)` | `oklch(0.740 0.120 230)` | `oklch(0.209 0.041 230)` | `oklch(0.986 0.008 230)` | the accent solid under the pointer |
+| `--hw-accent` | `oklch(0.780 0.120 230)` | `oklch(0.780 0.120 230)` | `oklch(0.387 0.077 230)` | `oklch(0.784 0.120 230)` | a solid: brand button, selected switch |
+| `--hw-accent-hover` | `oklch(0.740 0.120 230)` | `oklch(0.740 0.120 230)` | `oklch(0.387 0.077 230)` | `oklch(0.784 0.120 230)` | the accent solid under the pointer |
 | `--hw-on-accent` | `oklch(0.210 0.012 260)` | `oklch(0.165 0.012 260)` | `oklch(0.985 0.007 260)` | `oklch(0.165 0.012 260)` | the label on an accent solid |
-| `--hw-accent-text` | `oklch(0.489 0.097 230)` | `oklch(0.663 0.120 230)` | `oklch(0.209 0.041 230)` | `oklch(0.986 0.008 230)` | links and accent words |
+| `--hw-accent-text` | `oklch(0.489 0.097 230)` | `oklch(0.663 0.120 230)` | `oklch(0.387 0.077 230)` | `oklch(0.784 0.120 230)` | links and accent words |
 | `--hw-accent-fill` | `oklch(0.948 0.031 230)` | `oklch(0.230 0.037 230)` | `oklch(0.948 0.031 230)` | `oklch(0.230 0.037 230)` | selected row |
 | `--hw-accent-line` | `oklch(0.820 0.070 230)` | `oklch(0.400 0.070 230)` | `oklch(0.820 0.070 230)` | `oklch(0.400 0.070 230)` | the edge of a selected row or chip |
 | `--hw-focus` | `oklch(0.619 0.108 230)` | `oklch(0.516 0.102 230)` | `oklch(0.210 0.012 260)` | `oklch(0.663 0.120 230)` | the focus ring; never removed |
 | `--hw-mark` | `oklch(0.900 0.187 100)` | `oklch(0.880 0.182 100)` | `oklch(0.900 0.187 100)` | `oklch(0.880 0.182 100)` | highlighter: words the product knows |
 | `--hw-on-mark` | `oklch(0.210 0.012 260)` | `oklch(0.165 0.012 260)` | `oklch(0.210 0.012 260)` | `oklch(0.165 0.012 260)` | text on the highlighter solid |
 | `--hw-mark-quiet` | `oklch(0.928 0.072 100)` | `oklch(0.295 0.061 100)` | `oklch(0.928 0.072 100)` | `oklch(0.295 0.061 100)` | a quiet highlight behind running text |
-| `--hw-insert` | `oklch(0.480 0.132 150)` | `oklch(0.655 0.140 150)` | `oklch(0.203 0.055 150)` | `oklch(0.984 0.025 150)` | proof caret and added text |
+| `--hw-insert` | `oklch(0.480 0.132 150)` | `oklch(0.655 0.140 150)` | `oklch(0.380 0.104 150)` | `oklch(0.776 0.140 150)` | proof caret and added text |
 | `--hw-insert-fill` | `oklch(0.948 0.043 150)` | `oklch(0.230 0.043 150)` | `oklch(0.948 0.043 150)` | `oklch(0.230 0.043 150)` | behind added text |
-| `--hw-delete` | `oklch(0.517 0.190 27)` | `oklch(0.692 0.190 27)` | `oklch(0.222 0.090 27)` | `oklch(0.988 0.005 27)` | proof strike and removed text |
+| `--hw-delete` | `oklch(0.517 0.190 27)` | `oklch(0.692 0.190 27)` | `oklch(0.412 0.167 27)` | `oklch(0.804 0.111 27)` | proof strike and removed text |
 | `--hw-delete-fill` | `oklch(0.948 0.025 27)` | `oklch(0.230 0.058 27)` | `oklch(0.948 0.025 27)` | `oklch(0.230 0.058 27)` | behind removed text |
-| `--hw-success` | `oklch(0.480 0.132 150)` | `oklch(0.655 0.140 150)` | `oklch(0.203 0.055 150)` | `oklch(0.984 0.025 150)` | success text and icon |
+| `--hw-success` | `oklch(0.480 0.132 150)` | `oklch(0.655 0.140 150)` | `oklch(0.380 0.104 150)` | `oklch(0.776 0.140 150)` | success text and icon |
 | `--hw-success-fill` | `oklch(0.948 0.043 150)` | `oklch(0.230 0.043 150)` | `oklch(0.948 0.043 150)` | `oklch(0.230 0.043 150)` | behind a success callout or badge |
 | `--hw-success-line` | `oklch(0.820 0.082 150)` | `oklch(0.400 0.082 150)` | `oklch(0.820 0.082 150)` | `oklch(0.400 0.082 150)` | the edge of a success callout |
-| `--hw-warning` | `oklch(0.500 0.108 70)` | `oklch(0.678 0.146 70)` | `oklch(0.212 0.045 70)` | `oklch(0.987 0.009 70)` | warning text and icon |
+| `--hw-warning` | `oklch(0.500 0.108 70)` | `oklch(0.678 0.146 70)` | `oklch(0.396 0.085 70)` | `oklch(0.799 0.160 70)` | warning text and icon |
 | `--hw-warning-fill` | `oklch(0.948 0.038 70)` | `oklch(0.230 0.049 70)` | `oklch(0.948 0.038 70)` | `oklch(0.230 0.049 70)` | behind a warning callout or badge |
 | `--hw-warning-line` | `oklch(0.820 0.094 70)` | `oklch(0.400 0.086 70)` | `oklch(0.820 0.094 70)` | `oklch(0.400 0.086 70)` | the edge of a warning callout |
-| `--hw-danger` | `oklch(0.517 0.190 27)` | `oklch(0.692 0.190 27)` | `oklch(0.222 0.090 27)` | `oklch(0.988 0.005 27)` | error text and icon |
+| `--hw-danger` | `oklch(0.517 0.190 27)` | `oklch(0.692 0.190 27)` | `oklch(0.412 0.167 27)` | `oklch(0.804 0.111 27)` | error text and icon |
 | `--hw-danger-fill` | `oklch(0.948 0.025 27)` | `oklch(0.230 0.058 27)` | `oklch(0.948 0.025 27)` | `oklch(0.230 0.058 27)` | behind an error callout or badge |
 | `--hw-danger-line` | `oklch(0.820 0.100 27)` | `oklch(0.400 0.112 27)` | `oklch(0.820 0.100 27)` | `oklch(0.400 0.112 27)` | the edge of an error callout or field |
-| `--hw-danger-solid` | `oklch(0.589 0.190 27)` | `oklch(0.589 0.190 27)` | `oklch(0.222 0.090 27)` | `oklch(0.400 0.112 27)` | a destructive action's button |
-| `--hw-danger-hover` | `oklch(0.549 0.190 27)` | `oklch(0.549 0.190 27)` | `oklch(0.222 0.090 27)` | `oklch(0.400 0.112 27)` | the destructive solid under the pointer |
+| `--hw-danger-solid` | `oklch(0.589 0.190 27)` | `oklch(0.589 0.190 27)` | `oklch(0.412 0.167 27)` | `oklch(0.400 0.112 27)` | a destructive action's button |
+| `--hw-danger-hover` | `oklch(0.549 0.190 27)` | `oklch(0.549 0.190 27)` | `oklch(0.412 0.167 27)` | `oklch(0.400 0.112 27)` | the destructive solid under the pointer |
 | `--hw-on-danger` | `#FFFFFF` | `#FFFFFF` | `oklch(0.985 0.007 260)` | `oklch(0.987 0.006 260)` | the label on a destructive solid |
 | `--hw-scrim` | `oklch(0.2 0 0 / 0.42)` | `oklch(0 0 0 / 0.6)` | `oklch(0.2 0 0 / 0.42)` | `oklch(0 0 0 / 0.6)` | behind a modal dialog; never read on |
 | `--hw-chart-1` | `oklch(0.610 0.110 180)` | `oklch(0.509 0.092 180)` | `oklch(0.484 0.087 180)` | `oklch(0.655 0.118 180)` | the first series of a chart with two or more |

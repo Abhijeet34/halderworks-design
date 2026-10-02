@@ -64,11 +64,13 @@ def floors_declared_twice(fails):
     """The floors ramps.py solves to and the floors contrast.py certifies are two declarations of
     one set, so weakening a floor takes an edit in both files and this check names it."""
     theirs = {k: (v[0], tuple(v[1])) for k, v in contrast.STEP_FLOORS.items()}
-    if theirs != ramps.FLOORS or contrast.SOLIDS != (9, 10) or contrast.AA != ramps.LABEL:
-        fails.append(f"tools/ramps.py solves to {ramps.FLOORS}, label {ramps.LABEL}, and "
-                     f"tools/contrast.py certifies {theirs}, label {contrast.AA}")
-    print(f"  floors:       ramps.py and contrast.py declare the same {len(theirs)} step floors "
-          f"and the {ramps.LABEL}:1 label")
+    if (theirs != ramps.FLOORS or contrast.HUE_STEP_12 != ramps.HUE_12
+            or contrast.SOLIDS != (9, 10) or contrast.AA != ramps.LABEL):
+        fails.append(f"tools/ramps.py solves to {ramps.FLOORS}, hue step 12 {ramps.HUE_12}, label "
+                     f"{ramps.LABEL}, and tools/contrast.py certifies {theirs}, hue step 12 "
+                     f"{contrast.HUE_STEP_12}, label {contrast.AA}")
+    print(f"  floors:       ramps.py and contrast.py declare the same {len(theirs)} step floors, "
+          f"the {ramps.HUE_12}:1 hue step 12 and the {ramps.LABEL}:1 label")
 
 
 def brand_css(tmp, name, brand):
@@ -107,9 +109,10 @@ def contrast_refuses(fails):
     grays = [blocks["light"][g][i] for g in blocks["light"] for i in range(1, 4)]
     texts = [blocks["light"][g][i] for g in blocks["light"] for i in range(1, 6)]
     near = [just_under(house, tok, light, under, bar) for tok, under, bar in (
-        ("--hw-accent-8", grays, 3.0), ("--hw-red-11", texts, 4.5), ("--hw-gray-12", texts, 13.0))]
+        ("--hw-accent-8", grays, 3.0), ("--hw-red-11", texts, 4.5), ("--hw-gray-12", texts, 13.0),
+        ("--hw-red-12", texts, 7.0))]
     fails += [f"the near miss on {bar} is {miss:.4f} under, not under 0.01"
-              for (_, miss), bar in zip(near, (3.0, 4.5, 13.0)) if not 0 < miss < 0.01]
+              for (_, miss), bar in zip(near, (3.0, 4.5, 13.0, 7.0)) if not 0 < miss < 0.01]
     green = copy.deepcopy(HOUSE)
     green["hues"]["accent"] = dict(green["hues"]["green"])
     at150 = copy.deepcopy(HOUSE)
@@ -119,6 +122,7 @@ def contrast_refuses(fails):
         (f"step 8 missing 3:1 by {near[0][1]:.4f}", near[0][0], "accent-8 on"),
         (f"step 11 missing 4.5:1 by {near[1][1]:.4f}", near[1][0], "red-11 on"),
         (f"step 12 missing 13:1 by {near[2][1]:.4f}", near[2][0], "gray-12 on"),
+        (f"a hue's step 12 missing 7:1 by {near[3][1]:.4f}", near[3][0], "red-12 on"),
         ("a white label on the mark", tampered(house, "--hw-mark-on-solid: var(--hw-gray-12);",
                                                "--hw-mark-on-solid: #FFFFFF;"), "mark-on-solid on"),
         ("a dark block the media copy disagrees with",
@@ -156,14 +160,21 @@ def contrast_refuses(fails):
         ("a dark override left out of the media copy",
          "    --hw-mark-quiet: var(--hw-mark-5);\n    --hw-scrim: oklch(0 0 0 / 0.6);\n  }\n}",
          "    --hw-scrim: oklch(0 0 0 / 0.6);\n  }\n}", "dark overrides differ"),
-        ("the dark danger solid back on step 12 under more",
+        ("the dark danger solid on the ink under more",
          '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n    --hw-danger-solid: '
          'var(--hw-red-7);\n    --hw-danger-hover: var(--hw-red-7);\n    --hw-on-danger: '
-         'var(--hw-gray-12);\n', '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n',
-         "--hw-ink sits"),
-        ("the dark ring back near white under more",
+         'var(--hw-gray-12);\n', '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n'
+         '    --hw-danger-solid: var(--hw-gray-12);\n    --hw-danger-hover: var(--hw-gray-12);\n'
+         '    --hw-on-danger: var(--hw-gray-1);\n', "--hw-ink sits"),
+        ("the dark ring on the error red under more",
          '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);',
-         '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-12);', "--hw-focus sits"),
+         '[data-theme="dark"] {\n    --hw-focus: var(--hw-red-12);', "--hw-focus sits"),
+        ("danger text back near white in dark under more",
+         '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);',
+         '[data-theme="dark"] {\n    --hw-danger: var(--hw-gray-12);\n'
+         '    --hw-focus: var(--hw-accent-11);', "--hw-danger sits"),
+        ("warning text on the text's own step under more", "    --hw-warning: var(--hw-amber-12);\n",
+         "    --hw-warning: var(--hw-gray-12);\n", "--hw-warning sits"),
         ("the dark solid one step too bright for its label under more",
          '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n    --hw-danger-solid: '
          'var(--hw-red-7);', '[data-theme="dark"] {\n    --hw-focus: var(--hw-accent-11);\n'
