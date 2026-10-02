@@ -131,9 +131,9 @@ jobs:
             fi
             printf -- '---\n\n'
             printf 'What this run did **not** check: it did not re-screen the field, judge\n'
-            printf 'whether a value is still correct, render a single screen, or re-run the\n'
+            printf 'whether a value is still correct, render a single screen, or check that\n'
             # shellcheck disable=SC2016 # backticks here are Markdown, not substitutions
-            printf 'coverage cross-check. `README.md` states the boundary in full.\n'
+            printf 'the book is complete. `AGENTS.md` states the boundary in full.\n'
           } > "$body"
 
           # One open issue, updated rather than duplicated, so a persistent failure does not

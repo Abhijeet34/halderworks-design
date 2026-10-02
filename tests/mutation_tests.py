@@ -17,11 +17,9 @@ A case declares "caught" or "green", and the exit code is the point:
   - expected "caught" and the tools stayed green  -> FAIL. Something the book claims is not
     checked by anything.
   - expected "green" and the tools caught it      -> reported as IMPROVED, not as a failure.
-    A case expects green only where the gap is real, named and accepted: C1's four refusal
-    phrasings, which #7 chose not to chase because rule 4 now asks for a `covered-by`
-    declaration rather than guessing a row, so a phrasing it misses costs a missing demand
-    rather than a wrong answer; and C4, a limit check-coverage.py's own docstring discloses. When a change closes one, its case reports IMPROVED and its
-    expectation must be flipped to "caught" in the same change, because a green expectation
+    A case expects green where nothing is wrong, as the controls R0 and R8 are, or where a gap
+    is real, named and accepted. When a change closes such a gap, its case reports IMPROVED and
+    its expectation must be flipped to "caught" in the same change, because a green expectation
     passes whether or not the tools catch it.
 
 The cases against the solver tools/build.py retired with it; the brand file, the roster, the
@@ -45,7 +43,7 @@ CHECKS = [("ramps", ("tools/ramps.py", "--check")), ("contrast", ("tools/contras
           ("export", ("tools/export.py",)),
           *[(f"export-{b}", ("tools/export.py", f"examples/{b}")) for b in BRANDS],
           ("faces", ("tools/faces.py", "--vendored")),
-          ("check-coverage", ("tools/check-coverage.py",)),
+          ("check-links", ("tools/check-links.py",)),
           ("invariants", ("tests/invariants.py",)),
           ("distinct", ("tools/distinct.py",))]
 
@@ -144,7 +142,7 @@ case("R4 pointback.tokens.css gains a role in its brand block", "caught",
      lambda r: edit_text(r, "ramps/tokens/pointback.tokens.css", "  --hw-icon-stroke: 2px;",
                          "  --hw-icon-stroke: 2px;\n  --hw-accent-text: oklch(0.5 0.1 230);"),
      by="contrast", says="--hw-accent-text is in the brand block",
-     note="95-extending.md: a brand names inputs, never a token")
+     note="12-brand.md: a brand names inputs, never a token")
 
 case("R5 quoth's brand file names a display face the roster does not carry", "caught",
      lambda r: edit_json(r, "ramps/brands/quoth.json",
@@ -216,119 +214,49 @@ case("F4 a face file lands in fonts/ with no roster entry", "caught",
      by="faces", says="fonts/archivo/Archivo-Bold.woff2 is in no roster entry")
 
 
-# ---------------------------------------------------------------- check-coverage.py
-def cov_edit(repo, fn):
-    p = repo / "design" / "05-coverage.md"
-    p.write_text(fn(p.read_text(encoding="utf-8")), encoding="utf-8")
-
-
-def c0(repo):
-    with (repo / "design" / "35-layout.md").open("a") as fh:
-        fh.write("\nThere is no zoetrope carousel.\n")
-
-
-case("C0 control: a rule file gains 'There is no zoetrope carousel.'", "caught", c0)
-
-for phrase in ("This system does not ship a zoetrope carousel.", "A zoetrope carousel is refused.",
-               "We exclude the zoetrope carousel.", "Zoetrope carousels are out of scope."):
-    def c1(repo, phrase=phrase):
-        with (repo / "design" / "35-layout.md").open("a") as fh:
-            fh.write("\n" + phrase + "\n")
-    case(f"C1 a rule file gains the refusal {phrase!r}", "green", c1,
-         note="a residual #7 chose and documents: a phrasing rule 4 misses is a missing demand")
-
-
-def c2(repo):
+# ---------------------------------------------------------------- check-links.py
+def l1(repo):
     with (repo / ".github" / "PULL_REQUEST_TEMPLATE.md").open("a") as fh:
         fh.write("\nSee [the rules](../design/does-not-exist.md).\n")
     (repo / "exports" / "README.md").write_text("[gone](../design/nope.md)\n", encoding="utf-8")
 
 
-case("C2 a dead link in .github/PULL_REQUEST_TEMPLATE.md and in a new exports/README.md",
-     "caught", c2, note="audit finding 8, closed by #7: the link check opens every Markdown file")
+case("L1 a dead link in .github/PULL_REQUEST_TEMPLATE.md and in a new exports/README.md",
+     "caught", l1, by="check-links", says=("PULL_REQUEST_TEMPLATE.md", "exports/README.md"),
+     note="audit finding 8: the link check opens every Markdown file, wherever it sits")
 
 
-def c3(repo):
+def l2(repo):
     with (repo / "README.md").open("a") as fh:
         fh.write('\n[titled](design/nope.md "a title")\n\n[ref style][x]\n\n'
                  '[x]: design/also-nope.md\n\n<a href="design/nope-3.md">html</a>\n')
 
 
-case("C3 README.md gains a titled link, a reference-style link and an <a href>, all dead",
-     "caught", c3, note="audit finding 8, closed by #7: titled, reference and <a href> links are read")
+case("L2 README.md gains a titled link, a reference-style link and an <a href>, all dead",
+     "caught", l2, by="check-links", says=("design/nope.md", "design/also-nope.md",
+                                           "design/nope-3.md"),
+     note="audit finding 8: titled, reference and <a href> links are read")
 
 
-def c4(repo):
-    def f(text):
-        lines = text.splitlines(keepends=True)
-        i = next(n for n, line in enumerate(lines) if line.startswith("|") and "| covered |" in line)
-        cells = lines[i].split("|")
-        heads = sorted(re.findall(r"^#+ (.+)$",
-                                  (repo / "design" / "00-brand-book.md").read_text(encoding="utf-8"),
-                                  re.M))
-        cells[3] = " `00-brand-book.md#" + heads[0].lower().replace(" ", "-") + "` "
-        lines[i] = "|".join(cells)
-        return "".join(lines)
-    cov_edit(repo, f)
+def l3(repo):
+    with (repo / "SKILL.md").open("a") as fh:
+        fh.write("\n[a section](design/10-color.md#the-three-bars-the-accent-is-held-to)\n")
 
 
-case("C4 a covered row is re-pointed at an unrelated section that exists", "green", c4,
-     note="a limit the tool's own docstring discloses: it proves a section exists, not that it answers")
+case("L3 SKILL.md links to a section of 10-color.md that the cut removed", "caught", l3,
+     by="check-links", says="10-color.md has no such section",
+     note="an anchor is a claim too: the file existing is not the section existing")
 
 
-def c5(repo):
-    """One more covered row and a counts line that moved with it, as a real inventory change
-    does; README.md is the copy left behind."""
-    def f(text):
-        text = re.sub(r"\*\*(\d+) surfaces, (\d+) covered",
-                      lambda m: f"**{int(m[1]) + 1} surfaces, {int(m[2]) + 1} covered", text)
-        row = next(l for l in text.splitlines() if "| covered |" in l)
-        return text.replace(row, row + "\n| Zoetrope carousel |" + row.split("|", 2)[2], 1)
-    cov_edit(repo, f)
-    p = repo / "SKILL.md"
-    p.write_text(re.sub(r"\b(\d+)(\**\s+(?:inventoried\s+)?surfaces)",
-                        lambda m: f"{int(m[1]) + 1}{m[2]}", p.read_text(encoding="utf-8")),
-                 encoding="utf-8")
+def l4(repo):
+    with (repo / "docs" / "publication-record.md").open("a") as fh:
+        fh.write("\n[a file the cut removed](../design/05-coverage.md)\n")
 
 
-case("C5 the inventory gains a row, and README.md keeps the old surface count", "caught", c5,
-     note="#10 found three stale copies in three review rounds; rule 8 holds every copy")
-
-
-def c6(repo):
-    """A true status claim is written against a partial row, then the row moves to covered with
-    the counts line moving with it, and the claim is left as it was."""
-    inv = (repo / "design" / "05-coverage.md").read_text(encoding="utf-8")
-    # A partial row that names a section, so moving it to covered is otherwise a valid row.
-    surface = re.search(r"^\| ([^|]+?) \| partial \| `[^`]+#[^`]+` \|", inv, re.M)[1]
-    with (repo / "design" / "35-layout.md").open("a") as fh:
-        fh.write(f"\n{surface} is still a named gap. <!-- status: {surface} is partial -->\n")
-
-    def f(text):
-        text = re.sub(r"\*\*(\d+) surfaces, (\d+) covered, (\d+) partial",
-                      lambda m: f"**{m[1]} surfaces, {int(m[2]) + 1} covered, {int(m[3]) - 1} partial",
-                      text)
-        return text.replace(f"| {surface} | partial |", f"| {surface} | covered |")
-    cov_edit(repo, f)
-
-
-case("C6 a partial row becomes covered, and prose declared against it still calls it a named gap",
-     "caught", c6, note="#11 rebased green while the book still called the high-contrast theme a gap")
-
-
-def c7(repo):
-    """The checklist gains a question, numbered in turn, and SKILL.md keeps the old count."""
-    p = repo / "design" / "80-anti-patterns.md"
-    text = p.read_text(encoding="utf-8")
-    last = max(int(n) for n in re.findall(r"^(\d+)\. ", text, re.M))
-    line = next(l for l in text.splitlines() if l.startswith(f"{last}. "))
-    p.write_text(text.replace(line, line + f"\n{last + 1}. Is this a zoetrope carousel?", 1),
-                 encoding="utf-8")
-
-
-case("C7 the ship checklist gains a question, and SKILL.md keeps the old count", "caught", c7,
-     by="check-coverage", says="Every copy of its size moves with it",
-     note="rule 9: five questions added at once left seven copies of the old count unread")
+case("L4 a dated record in docs/ links to a book file the cut removed", "caught", l4,
+     by="check-links", says="05-coverage.md does not exist",
+     note="docs/ is not maintained, and its links must still resolve: a removed file is pinned "
+          "to the commit before the cut")
 
 
 # ---------------------------------------------------------------- the CI workflow's own body

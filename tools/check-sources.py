@@ -53,18 +53,12 @@ DOM = re.compile(r"`([a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+"
 NPM = re.compile(r"`(@?[a-z0-9][a-z0-9._/-]*)@(\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?)`")
 FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
 
-# Sources the book itself records as unreachable, each with the entry that says so, and account
-# handles that only look like hosts. Checking them would report the finding the book already
-# carries, or a host that was never cited, every week.
+# Sources the book itself records as unreachable, each with the entry that says so. Checking
+# them would report the finding the book already carries every week.
 SKIP = {
-    "https://eightshapes.com",
-    "https://figma.expert",
     # design/00-brand-book.md, "The mark": the domain is registered and its mail resolves,
     # and no web host answers the apex yet. The book says so where it names it.
     "https://halderworks.com",
-    "https://height.app",
-    "https://refero.design/web",
-    "https://ui.ux.jam",
 }
 
 REFUSING = {401, 403, 429}
@@ -181,8 +175,8 @@ def main() -> int:
         report += (
             "\nA dead link is not automatically a wrong claim: the source may have\n"
             "moved, and a package version may simply have been unpublished. Find where\n"
-            "it went and update the citation, or record in\n"
-            "`design/85-considered-and-declined.md` that it is now unreachable.\n\n")
+            "it went and update the citation, or record in the Sources table of the\n"
+            "file that cites it that it is now unreachable.\n\n")
     if args.report:
         args.report.write_text(report, encoding="utf-8")
 

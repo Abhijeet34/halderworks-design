@@ -8,7 +8,7 @@ published - so that a reader can tell which claims in this repository were re-ve
 which were inherited.
 
 It is a one-off record of the publication, not a changelog.
-[design/90-evidence.md](../design/90-evidence.md) is where the system's own numbers live, and it is
+[design/90-evidence.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/90-evidence.md) is where the system's own numbers live, and it is
 maintained; this file is not.
 
 ## 1. The scrub
@@ -118,7 +118,7 @@ Two further findings came out of running it, both real:
 ## 3. The build tool, which makes a published promise true
 
 Three documents instructed a reader to run `tools/build.py`, and
-[design/95-extending.md](../design/95-extending.md) told a product to regenerate the palette with it
+[design/95-extending.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/95-extending.md) told a product to regenerate the palette with it
 to adopt its own accent. **It did not exist.** A published instruction nobody can run is a false
 statement, and it could not ship that way.
 
@@ -219,19 +219,19 @@ not, with the reason.
 
 | absorbed | where it landed |
 |---|---|
-| The ARIA Authoring Practices Guide - 30 patterns, 381 bindings, and the practice page whose sections are the missing artefact | [design/72-keyboard.md](../design/72-keyboard.md), a new file, plus a one-line keyboard field on each interactive component card |
-| Input modality as a peer axis of form factor, from Apple's HIG | the split stated at the top of [design/36-form-factors.md](../design/36-form-factors.md) |
-| Nine theme pairs across five vendors, zero tokens added or removed | [design/90-evidence.md](../design/90-evidence.md), and it **corrects an inherited number**: expect 28 to 78% of colour tokens to move in a high-contrast theme, not "roughly a quarter" |
-| The two opposite high-contrast strategies | the high-contrast row's note and the open decision in [design/05-coverage.md](../design/05-coverage.md) |
+| The ARIA Authoring Practices Guide - 30 patterns, 381 bindings, and the practice page whose sections are the missing artefact | [design/72-keyboard.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/72-keyboard.md), a new file, plus a one-line keyboard field on each interactive component card |
+| Input modality as a peer axis of form factor, from Apple's HIG | the split stated at the top of [design/36-form-factors.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/36-form-factors.md) |
+| Nine theme pairs across five vendors, zero tokens added or removed | [design/90-evidence.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/90-evidence.md), and it **corrects an inherited number**: expect 28 to 78% of colour tokens to move in a high-contrast theme, not "roughly a quarter" |
+| The two opposite high-contrast strategies | the high-contrast row's note and the open decision in [design/05-coverage.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/05-coverage.md) |
 | A seed-to-token algorithm as the architecture for the missing build | `tools/build.py` |
-| Contrast as integer arithmetic on the token name | screened and **declined**, in [design/85-considered-and-declined.md](../design/85-considered-and-declined.md), on transferability rather than correctness |
-| Shipped dismissal and stacking constants | [design/74-interaction-constants.md](../design/74-interaction-constants.md), a new file, with this system's own durations substituted and the difference stated |
+| Contrast as integer arithmetic on the token name | screened and **declined**, in [design/85-considered-and-declined.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/85-considered-and-declined.md), on transferability rather than correctness |
+| Shipped dismissal and stacking constants | [design/74-interaction-constants.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/74-interaction-constants.md), a new file, with this system's own durations substituted and the difference stated |
 | Two independent sources shipping the reduced-motion error this book's rule was written against | [design/40-motion.md](../design/40-motion.md), which now has two shipped counter-examples behind it |
-| The easing quarter-point axis | [design/90-evidence.md](../design/90-evidence.md), and `--hw-ease-standard` now records in its own usage string that it is Tailwind's default |
-| A density counter-example: shrink the glyph and raise the leading ratio | [design/45-density.md](../design/45-density.md), recorded as a choice rather than an oversight |
-| The 34-row coverage cross-check | 13 surfaces built, 18 written down as excluded, 3 named as compositions, and the manifest in [design/05-coverage.md](../design/05-coverage.md) |
-| A 14-name marketing-section catalogue | a checklist in [design/36-form-factors.md](../design/36-form-factors.md), **not** 14 inventory rows |
-| The illustration measurements, and one licence that decides an option | [design/55-iconography.md](../design/55-iconography.md) and the open decisions |
+| The easing quarter-point axis | [design/90-evidence.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/90-evidence.md), and `--hw-ease-standard` now records in its own usage string that it is Tailwind's default |
+| A density counter-example: shrink the glyph and raise the leading ratio | [design/45-density.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/45-density.md), recorded as a choice rather than an oversight |
+| The 34-row coverage cross-check | 13 surfaces built, 18 written down as excluded, 3 named as compositions, and the manifest in [design/05-coverage.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/05-coverage.md) |
+| A 14-name marketing-section catalogue | a checklist in [design/36-form-factors.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/36-form-factors.md), **not** 14 inventory rows |
+| The illustration measurements, and one licence that decides an option | [design/55-iconography.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/55-iconography.md) and the open decisions |
 
 **Left out of that round, with the reason:**
 
@@ -247,7 +247,7 @@ not, with the reason.
   adding rows would be the bloat the system is explicitly built against.
 - **Two named candidates that were never opened** - a micro-interaction library and a paid
   design-engineering resource. They are recorded as unscreened with what makes each interesting, in
-  [design/85-considered-and-declined.md](../design/85-considered-and-declined.md), rather than listed
+  [design/85-considered-and-declined.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/85-considered-and-declined.md), rather than listed
   as if they had been evaluated.
 - **A correction about the outbound links on three account profiles.** Genuine, and not carried, because the
   book never made that claim and repeating it would reintroduce private screening detail for no
@@ -264,7 +264,7 @@ designing a screen**.
 
 The measured base of the book - breakpoints, container widths, measure, control heights, icon
 geometry, interaction-state selectors, the hue study. Carried whole and unchanged. Every count in
-[design/90-evidence.md](../design/90-evidence.md) that names a number of sites comes from these.
+[design/90-evidence.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/90-evidence.md) that names a number of sites comes from these.
 
 ### Two inherited numbers, corrected
 
@@ -303,7 +303,7 @@ Measured rather than asserted:
 ```
 
 and, over the type ramp, **0 of 10 line boxes land on the unit** - none within half a pixel.
-[design/32-rhythm.md](../design/32-rhythm.md) is the answer: the unit governs the space *between*
+[design/32-rhythm.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/32-rhythm.md) is the answer: the unit governs the space *between*
 things, type governs the space *inside* them, a baseline grid is refused with the two leading
 values it would have forced, and a worked screen is measured gap by gap.
 
@@ -379,7 +379,7 @@ rule - a rule with no reason attached is itself a default, and adding rules does
 - which is how "master design system" and "not bloat" turn out to be one requirement.
 
 **Essence and style** cannot be measured directly, and the honest proxy was already in the book.
-[design/80-anti-patterns.md](../design/80-anti-patterns.md) now says plainly what its thirty-question
+[design/80-anti-patterns.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/80-anti-patterns.md) now says plainly what its thirty-question
 checklist does and does not do: a screen that fails one item is reliably generic, and a screen that
 answers all thirty is not automatically good. The list removes failures; it does not supply
 judgement. Claiming otherwise would have been the same kind of unsourced superlative the repository
@@ -387,7 +387,7 @@ refuses one section earlier.
 
 ## 6. The open decisions
 
-[design/05-coverage.md](../design/05-coverage.md#open-decisions) holds them, and it is maintained where this file is not.
+[design/05-coverage.md](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/05-coverage.md#open-decisions) holds them, and it is maintained where this file is not.
 Six were open at publication, and two further things that are not decisions: right-to-left and localisation have no coverage row, and there is no logomark or wordmark.
 
 ## 7. What was not done here, so nobody assumes it was

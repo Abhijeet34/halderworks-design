@@ -10,11 +10,11 @@ A house design system: 48 colour roles, each naming a step of a twelve-step ramp
 2. Use a role, never a ramp step: a role carries its step's contrast floor, and a step chosen by eye carries none.
 3. The primary action is hw-ink and carries no hue. There is exactly one per screen.
 4. Every state carries a word and every chart series a direct label, never a colour alone.
-5. No gradient behind text, no backdrop-filter, no shadow on anything that cannot be dismissed. A patterned ground carries only ink certified against its own worst pixel.
-6. Type, space and control sizes are rem, so the text-size setting moves them; never set one in px. Page gutters, breakpoints and the 44px touch floor are the px exceptions.
-7. Uppercase exists at one step, xs, for a column head or an eyebrow.
+5. No gradient wash behind text, no backdrop-filter, and an elevation shadow only on what floats; a box-shadow drawn as a ring or an edge is a border. A patterned ground carries only ink certified against its own worst pixel.
+6. Type, space and control sizes are rem, so the text-size setting moves them; never set one in px. Page gutters, breakpoints, containers, icon sizes and the 44px touch floor are the px exceptions.
+7. Sentence case everywhere, column heads and eyebrows included; only an avatar's initials are set in capitals.
 8. Every column of figures takes tabular-nums.
-9. Left-aligned by default. Centre only a single-element empty state or a dialog action row.
+9. Left-aligned by default, an empty state included. A dialog's actions sit at the end of its row, the primary last.
 10. The focus ring is never removed.
 11. No invented quotes, logos, metrics or placeholder data presented as real.
 
@@ -23,7 +23,7 @@ A house design system: 48 colour roles, each naming a step of a twelve-step ramp
 | when | what moves |
 |---|---|
 | `[data-theme="dark"]`, or `prefers-color-scheme: dark` when the page names no theme | the dark set |
-| `prefers-contrast: more` | muted text, lines, the focus ring, solids and state text move to step 12, which clears 7:1; in dark the ring moves to accent 11 and the danger solid to red 7 under a light label, off the ink; chart series 1, 3 and 5 move to step 11, which clears 4.5:1 |
+| `prefers-contrast: more` | muted text, the focus ring, solids and state text move to step 12, which clears 7:1, and the lines darken to steps 8 and 11; in dark the ring moves to accent 11 and the danger solid to red 7 under a light label, off the ink; chart series 1, 3 and 5 move to step 11, which clears 4.5:1 |
 | `data-text-size="s|m|l|xl|xxl"` on `html` | the root size, so every rem step moves |
 | `data-density="compact"` on any ancestor | control height, row height and vertical cell and field padding |
 | `pointer: coarse` | a control never measures under 44px, compact or not, at any text size |
@@ -242,6 +242,6 @@ A self-hosted face loads from `fonts/fonts.css`, which serves the vendored files
 
 ## What this file does not carry
 
-The ramp steps themselves (`--hw-<hue>-1` to `-12`, in `variables.css`, named only through a role), the reasoning, the measurements every value was solved against, the component anatomies, the anti-pattern list and the spec sheet of named assets. Those are the numbered files beside this one; `README.md` says which answers what.
+The ramp steps themselves (`--hw-<hue>-1` to `-12`, in `variables.css`, named only through a role), the reasoning, the sources every value was taken from, and the component anatomies. Those are the book, `design/` in the repository this file was exported from, whose `design/64-component-sheets.md` documents every component; `SKILL.md` there says which file answers what.
 
 Per-step letter-spacing and weight are a stated gap: the rem type ramp ships a size and a leading for each step and nothing for `--hw-tracking-*` or `--hw-weight-*`, so this export carries neither.

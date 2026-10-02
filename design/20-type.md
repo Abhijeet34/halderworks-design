@@ -39,48 +39,63 @@ The faces are vendored and declared with `font-display: swap`, so a fallback sho
 - **Literata falls back to Iowan Old Style and Georgia**, both reading serifs at similar proportions.
 - **IBM Plex Mono falls back to the platform mono**, SF Mono on macOS at a 0.618em advance and JetBrains Mono or Menlo at 0.600em, against Plex Mono's 0.600em, so a column of digits keeps its width within 3% through the swap.
 
-## Figures, which is the rule most often missed
+## Figures
 
 Archivo and Literata both ship proportional figures by default: at 100px a run of ten `1`s is 9% narrower than ten `0`s in Archivo, 521.3px against 572.7px, and a third narrower in Literata, 407px against 602px.
+A column of durations, costs, counts or timestamps set without `font-variant-numeric: tabular-nums` visibly jitters row to row.
 
-A column of durations, costs, counts or timestamps set without `font-variant-numeric: tabular-nums` will visibly jitter row to row.
+**Every number that sits in a column, or that a reader compares with the number above it, takes `tabular-nums`**, which the component layer's `.hw-num` class sets, and a numeric table cell is right-aligned as well.
+Running prose keeps proportional figures, which read better inside a sentence, and a monospace face is tabular by construction.
 
-**Every number that sits in a column, or that a reader will compare against the number above it, gets `tabular-nums`.** Running prose keeps the proportional figures, which are better inside a sentence.
+## The ramp
 
-A monospace face is tabular by construction.
+Eight steps in rem, in `ramps/scales.css`, with the px each sets at the default text size M:
 
-## The scale
+| step | px at M | for |
+|---|---:|---|
+| `--hw-text-xs` | 12 | labels, captions, column heads; `max(0.8rem, 11px)`, so never under 11px |
+| `--hw-text-sm` | 13 | secondary lines and controls |
+| `--hw-text-md` | 15 | content |
+| `--hw-text-lg` | 17 | a lead, a row title in a reading view |
+| `--hw-text-xl` | 21 | a section title |
+| `--hw-text-2xl` | 28 | a page title |
+| `--hw-text-3xl` | 36 to 54 | a stage headline, `clamp()`ed against the viewport |
+| `--hw-text-4xl` | 48 to 112.5 | a stage poster, `clamp()`ed against the viewport |
 
-Nine distinct sizes. Both display steps use the display face; everything else uses the sans.
-The one exception is [the mixed-face headline](75-spec-sheet.md#the-mixed-face-headline), a display step set in the sans around one term in the reading face.
+Four leadings go with them: `--hw-leading-tight` 1.1 for a stage size and the page title, `--hw-leading-snug` 1.3 for a section heading and a subheading, `--hw-leading` 1.5 for interface text and `--hw-leading-read` 1.62 for running prose.
+The two stage sizes are the display face's, and only a stage sets them.
 
-| step | size | line-height | tracking | weight | where |
-|---|---:|---:|---:|---:|---|
-| `display-1` | 56px | 1.02 | -0.022em | 500 | one page-defining headline, marketing or release only |
-| `display-2` | 40px | 1.08 | -0.020em | 500 | a section opener on a marketing surface |
-| `title-1` | 28px | 1.15 | -0.018em | 600 | the screen's own name, one per screen |
-| `title-2` | 21px | 1.25 | -0.012em | 600 | a section inside a screen |
-| `title-3` | 17px | 1.35 | -0.006em | 600 | a card header or a form group |
-| `body-lg` | 17px | 1.6 | 0 | 400 | long-form running text in docs and release notes |
-| `body` | 15px | 1.55 | 0 | 400 | the default for product UI |
-| `body-sm` | 13px | 1.5 | 0 | 400 | table cells, list rows, control labels, help text |
-| `label` | 12px | 1.35 | 0.01em | 500 | a control's own label, a hint, a badge |
-| `micro` | 11px | 1.2 | 0.06em | 600 | column heads and eyebrows, set uppercase |
+**Nothing renders under 11px**, at any text size: `tests/exports.py` holds every step at S to XXL, and `tests/components.py` refuses text in the component layer smaller than 1em that is not held to 11px with `max()`.
+If 11px is too big for the space, the space is wrong.
 
-17px appears twice on purpose: `title-3` and `body-lg` are the same size doing different jobs, separated by weight and line-height.
-Nothing smaller than 11px exists. If 11px is too big for the space, the space is wrong.
+A screen takes a type style rather than a size and a weight: `components/components.css` sets `.hw-headline`, `.hw-title`, `.hw-heading`, `.hw-subheading`, `.hw-lead`, `.hw-body`, `.hw-small` and `.hw-label`, each a step, a leading, a weight and a tracking together, and its sheets name the style each component uses.
+Weight carries hierarchy before size does, so a title is heavier before it is larger.
 
-The display tracking is not a taste call either. Measured across the reference set, display type is set between -0.010em and -0.060em with the cluster at -0.020em: Linear -0.022, 21st.dev -0.022, Family -0.020, Superlist -0.020, Stripe -0.020, Railway -0.036.
-Display line-height in the same set runs 0.909 to 1.20. Both steps here sit inside those ranges.
+## The text-size setting
+
+The reader chooses the text size, and everything moves with it.
+`data-text-size` on `html` takes five values, and `ramps/scales.css` sets the root size for each as a percentage of the browser's default, so a reader who raised the browser's own default keeps that raise on top:
+
+| `data-text-size` | root at the browser's default 16px |
+|---|---:|
+| `s` | 13px |
+| `m`, the default | 15px |
+| `l` | 17px |
+| `xl` | 19px |
+| `xxl` | 22px |
+
+Type, space, control heights and every component's inner space are in rem or em, so a larger setting grows the box with its text rather than overflowing it.
+Page gutters, breakpoints, container widths and the 44px touch floor stay in px, because the viewport decides those, not the text.
+`tests/exports.py` holds the five roots and the type floor in every export.
+
+WCAG 2.2's 1.4.4 asks that text resize to 200% without loss.
+XXL is 1.47 times M, so XXL plus the browser's own zoom is the route past 200%, and a sixth step is open if a product needs one.
+1.4.10, reflow at 320 CSS pixels, is the layout's intent ([30-space.md](30-space.md#layout)) and is certified by no tool here: a screen is looked at that wide before it ships.
 
 ## Measure
 
-| context | measure | evidence |
-|---|---|---|
-| product UI text | **56ch** | reference product columns measure 29 to 45ch, which is too narrow for a settings description; 56ch is the top of comfortable and the bottom of long-form |
-| long-form: docs, release notes, reports | **68ch** | measured on five documentation sites: Stripe 50ch, shadcn 64ch, Radix 67ch, Tailwind 76ch, Vercel 80ch, median 67ch |
-
-Measure is a real `ch` measurement of the rendered paragraph divided by the width of `0` in its own font, not a character count, because a character count means nothing for a proportional face.
+Running text inside product UI is held to `--hw-measure-ui`, 56ch, and long-form reading text to `--hw-measure-prose`, 68ch, both in `ramps/scales.css`; `.hw-body` and `.hw-lead` set the second.
+A measure is in `ch` because a pixel width means nothing until the face is known, and a container width and a measure are separate constraints that a page needs both of.
 
 ## A brand's faces
 
@@ -98,7 +113,8 @@ The solver's `displayFrom`, `displayScale` and `quote` inputs retired with it; t
 
 A face is an entry in the roster in `ramps/roster.json`, and an entry is a face **plus its delivery**:
 
-- **self-hosted**: the product ships the file. The roster cites the upstream file by URL and pins its sha256, and cites the family's `OFL.txt` and pins that too, so the metrics below were read from a file a reader can fetch and check and the licence that ships beside it is the one the roster read.
+- **self-hosted**: the product ships the file.
+  The roster cites the upstream file by URL and pins its sha256, and cites the family's `OFL.txt` and pins that too, so the metrics below were read from a file a reader can fetch and check and the licence that ships beside it is the one the roster read.
 - **system**: a named stack that loads nothing, for a product that makes no network request and ships no font, which is what papertrace's report and pointback's chrome both promise.
 
 An entry may also carry a width or a style, which the build writes beside the family in every class that sets it: **Archivo Expanded** is Archivo's own file at `font-stretch: 125%`, the named instance at the end of its width axis, and **Instrument Serif Italic** sets `font-style: italic`.
@@ -127,9 +143,11 @@ Field's renders set its screen title at 110%, its welcome headline at 112% and, 
 A native app takes the TTF or OTF: quoth's pill registers Martian Mono with CoreText, which the woff2 a webview loads does not serve, and the pinned `MartianMono[wdth,wght].ttf` is that file with both axes.
 A webview or a site takes woff2, converted from the pinned file or taken from upstream, which the OFL permits for every face here with one exception, below.
 
-The x-heights are the fonts' own `OS/2` values at their default instance, and eleven of the thirteen files draw their `x` to that height to three places; Instrument Serif Italic draws it at 0.516 and Shantell Sans at 0.497, an italic's and a hand's overshoot, and the roster keeps the header value the browser's `font-size-adjust` reads. Newsreader reads 0.426 from its file against 44.0 measured in a browser at 100px, a variable face whose optical-size axis the browser sets per size.
+The x-heights are the fonts' own `OS/2` values at their default instance, and eleven of the thirteen files draw their `x` to that height to three places; Instrument Serif Italic draws it at 0.516 and Shantell Sans at 0.497, an italic's and a hand's overshoot, and the roster keeps the header value the browser's `font-size-adjust` reads.
+Newsreader reads 0.426 from its file against 44.0 measured in a browser at 100px, a variable face whose optical-size axis the browser sets per size.
 Public Sans, a roster face and the house's until 2026-10-02, reads 0.517 from its file and 51.7 in the browser, the same number two ways, which is what makes the file reading trustworthy.
-Martian Mono's is the outlier, 0.600, with a 0.750em advance against Plex Mono's 0.600em, and its fallbacks are narrower: macOS's own files measure 0.618em for SF Mono and 0.602em for Menlo. A column of its digits reflows by a fifth if the file fails to load, so a product that sets Martian Mono self-hosts it rather than relying on the stack.
+Martian Mono's is the outlier, 0.600, with a 0.750em advance against Plex Mono's 0.600em, and its fallbacks are narrower: macOS's own files measure 0.618em for SF Mono and 0.602em for Menlo.
+A column of its digits reflows by a fifth if the file fails to load, so a product that sets Martian Mono self-hosts it rather than relying on the stack.
 
 **A sans other than Archivo is held to Archivo's x-height.**
 Every size in the scale above was derived from the house face's x-height, so a text face with a smaller one would set every row half a step small.
@@ -154,7 +172,7 @@ Each roster entry's `vendored` list pins every file by sha256, and `tools/faces.
 
 **Every roster face is under the SIL Open Font License 1.1.**
 `tools/ramps.py` refuses a roster entry whose `licence` is anything else, and one that pins no licence text, before it builds anything.
-The reason is the product-identities scout's licensing survey of 2026-09-22, in [90-evidence.md](90-evidence.md#font-licensing-per-platform): of twelve licence sources read from their own pages, the OFL is the only one that lets the same file ship in a sold Mac app with woff2 in a WKWebView, on iOS, on Windows, on a self-hosted site and in static art, subset and converted, with no fee and no per-app licence.
+The reason is the product-identities scout's licensing survey of 2026-09-22, recorded in [the evidence file as it stood on 2026-10-02](https://github.com/Abhijeet34/halderworks-design/blob/a95ed0fed0c544fc12483031a2066f3eecc6b535/design/90-evidence.md#font-licensing-per-platform): of twelve licence sources read from their own pages, the OFL is the only one that lets the same file ship in a sold Mac app with woff2 in a WKWebView, on iOS, on Windows, on a self-hosted site and in static art, subset and converted, with no fee and no per-app licence.
 Adobe Fonts forbids embedding and self-hosting outright, Grilli Type's app licence prohibits `@font-face`, and Apple's and Microsoft's system faces may be named in a stack and never shipped, which is what the two system entries do.
 No face is bought: the one paid display face the scout weighed, Klim's, does not publish whether its App licence ships woff2 and forbids reformatting, so the WKWebView path needs the foundry's written answer before it could be considered.
 
@@ -166,11 +184,14 @@ The other twelve licence texts declare none, which `tools/faces.py` reports for 
 
 ## Rules
 
-- **Weight carries hierarchy before size does.** 400 for text, 500 for a label or a control, 600 for a heading. 700 exists in the variable font and this system does not use it.
-- **Uppercase is only for `micro`**, and only for a column head or an eyebrow. An uppercase button label is shouting.
-- **A mono `micro` is lowercase.** A brand whose mono is its identity may set `micro` in it, as Field's labels are, and then sets it in lowercase: mono capitals are one product's signature, 53.8% of Nothing's labels against 0% on eleven other sites measured for quoth's D-054, and mixed case keeps word shape at 11px.
-- **Italic is for a term being defined or a quoted title**, never for emphasis. Emphasis is weight. In a mixed-face headline the face does the italic's job, and the term is not also italic.
-- **Headings get `text-wrap: balance`.** Long body text does not; balancing a paragraph makes its last lines ragged.
-- **Never letterspace lowercase text positively**, except `label` at 0.01em, which is there to keep 12px from closing up.
+- **No style is set in capitals.**
+  A column head and an eyebrow are `--hw-text-xs` in muted, in sentence case; an avatar's initials are the one uppercase transform in the layer, because initials are capitals.
+- **A mono label is lowercase.**
+  A brand whose mono is its identity may set labels in it, as Field's are, and sets them lowercase: mixed case keeps word shape at 11px.
+- **Italic is for a term being defined or a quoted title**, never for emphasis.
+  Emphasis is weight.
+- **Titles balance.**
+  `.hw-headline` and `.hw-title` set `text-wrap: balance`; body text takes `text-wrap: pretty` instead, because balancing a paragraph makes its last lines ragged.
+- **Lowercase is never letterspaced positively**, except the label style at 0.01em, which keeps 12px from closing up.
 
 Set type to be read for an hour, not to be seen for a second.

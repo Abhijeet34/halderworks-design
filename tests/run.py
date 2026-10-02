@@ -15,10 +15,8 @@ A test file nobody runs is not a check, which is the only reason this file exist
 shell-driven repository discovers tests, so the gate has to name them. .github/workflows/
 consistency.yml calls this file, and ci.yml's `checks` aggregate depends on that job.
 
-Two diagnostics are deliberately not here, because they print rather than refuse and what they
-measure belongs to another task's findings:
+One diagnostic is deliberately not here, because it prints rather than refuses:
 
-    python3 tests/coverage_probe.py          # which row each refusal resolved to, and by what word
     python3 tests/ident_sweep.py . HEAD      # identifiers in a tree, with a per-pattern hit count
 """
 import subprocess
