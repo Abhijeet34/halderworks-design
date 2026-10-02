@@ -19,7 +19,7 @@ assumed, found **three defects that had shipped**:
 | `hw-success` on `hw-success-quiet`, dark | 4.46:1, below AA | 4.61:1 |
 | `hw-accent-ring` solved against the ground only | **2.56:1 on `hw-surface-raised`**, a focus ring inside a dialog | re-solved against the surface closest to it in lightness; 3.05:1 at its worst |
 
-All three came from the same habit the solver exists to prevent: checking a pair against a
+All three came from the same habit the solver existed to prevent: checking a pair against a
 convenient ground rather than against the worst one it is permitted to sit on. The token build
 now refuses to emit unless the whole matrix holds.
 

@@ -97,7 +97,7 @@ the build refuses to emit when the matrix does not hold - a discipline that caug
 eyeball found ([90-evidence.md](90-evidence.md#the-solver)).
 
 A generator that returns a pleasant ramp with no contrast target hands back the problem the solver
-exists to remove. The reel that recommended both tools demonstrates it on its own swatches:
+existed to remove. The reel that recommended both tools demonstrates it on its own swatches:
 `#4927B3`, `#824EBE`, `#9B75C9`, `#B49CD4` measure `oklch(0.4170 0.2029 284.51)` to
 `oklch(0.7334 0.0835 303.99)`, so the hue drifts 19.5 degrees across four steps of what is presented
 as one colour, and the base sits at 284.5, inside the 245-296 corridor

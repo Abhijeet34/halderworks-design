@@ -65,7 +65,7 @@ The last row is the one place the house rule deliberately departs from measured 
 ## The solver
 
 Colour was not chosen and then checked.
-For each token the solver binary-searches lightness until the token hits its contrast target against the worst surface it is permitted to sit on, then clamps chroma to the in-gamut maximum at that lightness and hue.
+For each token the solver binary-searched lightness until the token hit its contrast target against the worst surface it was permitted to sit on, then clamped chroma to the in-gamut maximum at that lightness and hue.
 
 Five defects it has caught that no eyeball would have, the first two in the first pass and the last three in this one:
 
