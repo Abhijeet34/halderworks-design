@@ -250,7 +250,7 @@ That sentence is worth more than a correct-looking screen with `28px` written in
 No font is loaded from a font service: three of the products this system serves make no network request or refuse one by policy, and a system that told them to load a stylesheet from a CDN was a system they could not follow.
 
 Nothing else is required.
-There is no component library to install, no build step, and no runtime: the system is a token file, a set of rules, and the discipline to report a gap rather than invent a value. <!-- covered-by: A shipped component library -->
+Nothing is installed and nothing is built. The component layer is two more files loaded the same way, [components/components.css](../components/components.css) after the variables and [components/radiogroup.js](../components/radiogroup.js) once, and [64-component-sheets.md](64-component-sheets.md#the-component-layer) shows the three lines.
 
 ## For an agent building against this system
 

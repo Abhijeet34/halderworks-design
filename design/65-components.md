@@ -6,6 +6,9 @@ each carried by at least one external component library and most by three.
 
 Each card is a rule plus the tokens it uses, not an implementation: the markup and the accessibility
 wiring stay in the product.
+The implementation now exists: [64-component-sheets.md](64-component-sheets.md) is the shipped
+layer, forty-one components in plain CSS, and where a sheet there and a card here differ the sheet
+is the later decision.
 
 Four layers are shared across every component and are not repeated per card:
 [60-states.md](60-states.md) owns the nine interaction states,

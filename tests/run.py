@@ -8,7 +8,8 @@ the two instruments are still two, that every hue the build accepts survives the
 that a wrong input is actually refused rather than merely believed to be. They are adopted from the
 2026-09-21 audit, which ran them against this repository and found 17 of 21 wrong inputs leaving
 every tool green. The fourth checks tools/ramps.py, which lands beside the build, and the fifth cascades the
-CSS exports in every theme, contrast, pointer, motion and text-size condition they answer.
+CSS exports in every theme, contrast, pointer, motion and text-size condition they answer, and the
+sixth holds the component layer to the tokens it reads and the pairs tools/contrast.py certifies.
 
 A test file nobody runs is not a check, which is the only reason this file exists: nothing in a
 shell-driven repository discovers tests, so the gate has to name them. .github/workflows/
@@ -33,6 +34,7 @@ SUITES = [
     ("mutations", "a wrong input is refused by something", "mutation_tests.py"),
     ("ramps", "the twelve-step ramps hold every floor, every hue open", "ramps.py"),
     ("exports", "the CSS exports cascade right in every condition they answer", "exports.py"),
+    ("components", "the component layer names only house tokens and paints only certified pairs", "components.py"),
 ]
 
 
