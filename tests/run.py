@@ -41,7 +41,7 @@ SUITES = [
 def main():
     failed = []
     for name, what, script in SUITES:
-        print(f"\n{'=' * 78}\n== {name}: {what}\n{'=' * 78}")
+        print(f"\n{'=' * 78}\n== {name}: {what}\n{'=' * 78}", flush=True)
         t0 = time.monotonic()
         rc = subprocess.run([sys.executable, str(HERE / script)]).returncode
         print(f"-- {name}: exit {rc} in {time.monotonic() - t0:.1f}s")
