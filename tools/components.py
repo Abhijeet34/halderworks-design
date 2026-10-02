@@ -222,6 +222,7 @@ def page(key, title, groups, comps, rules):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Components: {title}</title>
+<link rel="stylesheet" href="../../fonts/fonts.css">
 <link id="hw-vars" rel="stylesheet" href="../../exports/variables.css">
 <link rel="stylesheet" href="../components.css">
 <script>{BENCH}</script>
@@ -253,9 +254,10 @@ Where a sheet and an older card in [65-components.md](65-components.md) differ, 
 
 ## The component layer
 
-Load it after the variables a brand exports, and load the script once:
+Load it after the faces and the variables a brand exports, and load the script once:
 
 ```html
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="exports/variables.css">
 <link rel="stylesheet" href="components/components.css">
 <script src="components/radiogroup.js" defer></script>
@@ -299,8 +301,10 @@ def markdown(groups, comps, rules):
 
 
 def stamp_inputs():
-    """The files a render is a picture of: the layer, its script and every generated page."""
-    files = [CSS, COMP / "radiogroup.js", *sorted(SHEETS.glob("*.html"))]
+    """The files a render is a picture of: the layer, its script, every generated page, and the
+    house variables and faces those pages load."""
+    files = [CSS, COMP / "radiogroup.js", *sorted(SHEETS.glob("*.html")),
+             ROOT / "exports" / "variables.css", *sorted((ROOT / "fonts").rglob("*.*"))]
     return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
 
 

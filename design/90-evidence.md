@@ -76,10 +76,13 @@ Five defects it has caught that no eyeball would have, the first two in the firs
 5. `hw-accent-ring` was solved against the ground alone and measured **2.56:1 on `hw-surface-raised`** in dark theme: a keyboard focus ring inside a dialog, at roughly half the bar it is supposed to clear.
 
 The final run: **108 text pairs across both themes, 0 below AA; 90 non-text pairs held to 3:1, 0 below it; 33 colour tokens, 0 outside sRGB.**
-`tools/build.py` emits `tokens/tokens.json` and `tokens/tokens.css` from `tokens/tokens.seed.json`, re-measures every floor against the formatted strings before it writes them, and refuses to write either unless that holds.
-Rebuilt at the shipped hue it re-solves three tokens, because the solver now targets the bar plus a margin rather than the bar: a value solved to land exactly on its floor is a value that rounding, a second converter or an 8-bit display can each take below it.
-`tools/build.py --check` reproducing the two committed files byte for byte is the regression that proves the shipped set satisfies its own spec.
-Rebuilt at hue 318 it re-solves five tokens and the matrix still holds, and a sweep of all 360 accent hues finds 145 buildable, all 145 accepted by `tools/contrast.py` and none carrying a pair below its bar on an exact reading.
+`tools/build.py` emitted `tokens/tokens.json` and `tokens/tokens.css` from `tokens/tokens.seed.json`, re-measured every floor against the formatted strings before it wrote them, and refused to write either unless that held.
+It targeted the bar plus a margin rather than the bar, because a value solved to land exactly on its floor is a value that rounding, a second converter or an 8-bit display can each take below it.
+At hue 318 it re-solved five tokens and the matrix still held, and a sweep of all 360 accent hues found 145 buildable, all 145 accepted by `tools/contrast.py`.
+
+The solver was retired on 2026-10-02 for the twelve-step ramps of `tools/ramps.py`, which keep its lessons as construction rather than as a search.
+Every text and boundary step is solved against steps 1 to 5 of every ramp, which includes the ground closest to it, defect 2's rule; every solve aims 0.02 above its floor; and the written file is parsed back and measured again before it reaches disk.
+The brand files in `ramps/brands/`, `ramps/roles.css` and `ramps/scales.css` are now the one source, and every file in `ramps/tokens/` and `exports/` is generated from them.
 
 ## Measurements taken directly
 
@@ -266,7 +269,7 @@ The first asks for a stronger palette and a per-role re-solve answers it. The se
 thrown away, and the one-line `outline: <width> solid transparent` rule answers it.
 One theme cannot answer both, and this is the first time the distinction has been measured inside a
 token file rather than inferred from a media query.
-Both now ship: the per-role re-solve in `tokens/tokens.css`, specified in
+Both now ship: the per-role re-point in `ramps/roles.css`, specified in
 [75-spec-sheet.md](75-spec-sheet.md#high-contrast-which-answers-prefers-contrast-more-and-nothing-else),
 and the transparent border in [50-surface-texture.md](50-surface-texture.md#under-forced-colours).
 
@@ -321,8 +324,8 @@ Three readings, none of which was available before:
   confirmation any single value here has.
 - **`--hw-ease-standard` is byte-identical to Tailwind's default.** [40-motion.md](40-motion.md)
   says so of the curve while arguing against it, and then ships it under a house name. The
-  token now records the inheritance in its own `usage` string, so a reader of
-  `tokens/tokens.json` can tell the value is inherited rather than chosen.
+  token recorded the inheritance in its own `usage` string, so a reader could tell the value was
+  inherited rather than chosen, until it retired from the exports with `--hw-ease-in`.
 
 ### Shipped interaction constants, which this system had none of
 
@@ -357,8 +360,8 @@ node -e "const {theme}=require('antd');
 ```
 
 A 9.4x expansion from a published function, with dark and compact as alternative algorithms over the
-same seed. That is the architecture `tools/build.py` now has, and [95-extending.md](95-extending.md)
-describes.
+same seed. That was the architecture of the retired solver, and the ramps keep it: one brand file
+expands to twelve steps per hue per theme, as [95-extending.md](95-extending.md) describes.
 
 `compactAlgorithm` on the same seed changes **exactly 30 of 443 tokens**, and every one is a font
 size, a line height, a font height, a spacing step or a control height. No colour, no radius, no
@@ -538,10 +541,10 @@ counted:
    gap; 2px now carries the badge inset it actually has in [65-components.md](65-components.md).
 2. **"exactly two off-grid values in the system" was wrong.** Counted within the unit's scope there
    are **seven**, of which four are consequences of a height token rather than choices. All seven
-   are now listed with the reason each cannot be on the unit, and `tools/build.py` refuses to emit
-   an eighth that is not declared - and refuses a declared exception whose value has since moved
-   back onto the unit, because a stale entry in that list is what makes the next drift look
-   legitimate.
+   were listed with the reason each cannot be on the unit, and `tests/exports.py` now refuses an
+   undeclared one - and a declared exception whose value has since moved back onto the unit,
+   because a stale entry in that list is what makes the next drift look legitimate. Five remain:
+   `--hw-space-2` retired, and the icon stroke is a brand's line weight rather than a size.
 
 ## The motion source, screened
 
@@ -738,7 +741,7 @@ A `file://` page read back exactly.
 `docs/brand-tier-record.md` blames the compositor's colour management for a `255, 254, 254` white, which is one of the values this read-back returns for `#FFFFFF`.
 
 Across the 648 ramp steps of the four brands, 20 painted one code value from where the instruments round them, each with an unrounded channel within 0.07 of a half.
-None moved a pair under its floor: `tools/painted.py` renders every pair `contrast.py --ramps` certifies, in both themes, from the attribute and from the operating system, with and without `prefers-contrast: more`, and the closest is 4.521:1 on a 4.5 bar.
+None moved a pair under its floor: `tools/painted.py` renders every pair `contrast.py` certifies, in both themes, from the attribute and from the operating system, with and without `prefers-contrast: more`, and the closest is 4.521:1 on a 4.5 bar.
 Taken: the screenshot as the only browser reading this repository certifies on, with a known-failing control painted on every page.
 Left: the canvas, which reads a fingerprinting defence rather than the paint.
 The Mobbin read-back in [Shipped accents on state hues](#shipped-accents-on-state-hues) was a canvas over https too; its stated plus or minus 2 already covers a one-unit perturbation.
@@ -788,7 +791,7 @@ With the dark card step on, a dark ground builds up to 0.17 and is refused from 
 
 Before the tier, 127 accent hues built: 113 to 115, 187 to 219 and 265 to 355.
 After it, 155 build: 100 to 124, 184 to 219 and 265 to 358.
-`tests/hue_sweep.py` records the new arc and fails if it moves.
+`tests/hue_sweep.py` recorded that arc until the solver retired on 2026-10-02.
 
 ### Sunken depth
 

@@ -1,0 +1,16 @@
+/* The house faces, vendored so a page makes no request off its own origin for them. Each is the
+   latin subset Fontsource publishes on npm, copied byte for byte; the sha256 of every file here
+   is pinned in ramps/roster.json and held to it by `python3 tools/faces.py --vendored`. Each
+   directory carries the face's SIL Open Font License 1.1 text, the google/fonts OFL.txt the
+   roster pins. Load this before exports/variables.css; a family names the face by the roster's
+   own name, so --hw-font-sans and its siblings pick these up with no other change. */
+
+/* Archivo, wdth 62-125% and wght 100-900: npm @fontsource-variable/archivo 5.3.0, files/archivo-latin-wdth-normal.woff2 */
+@font-face { font-family: "Archivo"; font-style: normal; font-display: swap; font-weight: 100 900; font-stretch: 62% 125%; src: url("archivo/archivo-latin-wdth-normal.woff2") format("woff2"); }
+
+/* Literata, opsz 7-72 and wght 200-900: npm @fontsource-variable/literata 5.3.0, files/literata-latin-opsz-normal.woff2 */
+@font-face { font-family: "Literata"; font-style: normal; font-display: swap; font-weight: 200 900; src: url("literata/literata-latin-opsz-normal.woff2") format("woff2"); }
+
+/* IBM Plex Mono 400 and 500: npm @fontsource/ibm-plex-mono 5.3.0, files/ibm-plex-mono-latin-400-normal.woff2 and -500-normal.woff2 */
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-display: swap; font-weight: 400; src: url("ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-display: swap; font-weight: 500; src: url("ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }

@@ -15,7 +15,7 @@ The alternatives were screened on the same basis, and their licences fetched the
 |---|---|---|---|
 | **Lucide** | ISC | 24, stroke 2, round caps and joins | **chosen** |
 | Phosphor | MIT | 256 | a 256 grid means hinting decisions were made for a size we do not use, and the weight axis is five variants we would have to pick one of anyway |
-| Tabler | MIT | 24, stroke 2 | a genuine alternative. Lucide is chosen on continuity: it is the Feather line, which is the drawing style closest to Public Sans' terminals |
+| Tabler | MIT | 24, stroke 2 | a genuine alternative. Lucide is chosen on continuity: it is the Feather line, which is the drawing style closest to the house sans's terminals |
 | Heroicons | MIT | 24, stroke 1.5 | two sets, outline and solid, and its 20px "mini" set is a second grid |
 | Feather | MIT | 24, stroke 2 | unmaintained since 2020. Lucide is its maintained fork |
 | Octicons | MIT | 16 and 24 | drawn for GitHub's own vocabulary, which is not ours |
@@ -181,7 +181,7 @@ It is a product's, never the house's: the house draws pictograms and diagrams of
 8. **Human-made.** Nothing machine-generated goes into an asset. A source is drawn in house, commissioned, or taken from a human-made library whose licence allows use in a sold app, and it is named with what was taken from it.
 
 The outline holds **3:1 on its patch in both themes**, the non-text bar, because it is what says where the figure is.
-`tools/build.py --extend` solves a product colour against the house surfaces and does not yet solve a pair between two product colours, so that floor is the product's own test until it does.
+`tools/contrast.py` certifies a product hue's steps against every ramp's grounds and does not yet certify a pair between two product colours, so that floor is the product's own test until it does.
 
 ### Dark mode: only the patch changes
 

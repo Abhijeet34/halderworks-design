@@ -109,8 +109,7 @@ using the fraction of the change already done at the quarter point. Three readin
   this system's `--hw-ease-out`, arrived at independently by a published design system. That is
   the strongest confirmation any single value in this book has.
 - **`--hw-ease-standard` is byte-identical to Tailwind's default**, which the paragraph above says
-  while arguing against the curve and which the token itself did not record. It now does, in its
-  own `usage` string in `tokens/tokens.json`, so a reader of the token can tell the value is
-  inherited rather than chosen.
+  while arguing against the curve and which the token itself did not record. It later did, in its
+  own `usage` string, and the token then retired from the exports: the house ships one ease-out.
 
 Remove the movement, keep the answer.

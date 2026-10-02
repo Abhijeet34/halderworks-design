@@ -1,7 +1,20 @@
 /* Halderworks ramps, generated from ramps/brands/quoth.json by tools/ramps.py.
-   Twelve steps per hue per theme; tools/ramps.py measures every floor on the 8-bit
-   value written here and refuses to emit if one does not hold. Do not hand-edit:
-   edit the brand file and rebuild. Load before ramps/roles.css. */
+   The brand's faces, shape and stroke, then twelve steps per hue per theme;
+   tools/ramps.py measures every floor on the 8-bit value written here and refuses
+   to emit if one does not hold. Do not hand-edit: edit the brand file and rebuild.
+   Load before ramps/roles.css. */
+:root {
+  --hw-font-sans: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;  /* interface and body text: Archivo */
+  --hw-font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;  /* the stage voice: Archivo Expanded */
+  --hw-font-display-stretch: 125%;  /* the display face's width, as font-stretch: Archivo Expanded */
+  --hw-font-read: "Literata", "Iowan Old Style", Georgia, "Times New Roman", serif;  /* running prose and quoted words: Literata */
+  --hw-font-mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;  /* code, keys and figures: Martian Mono */
+  --hw-radius-sm: 4px;  /* the moulded register; things inside other things: badges, checkboxes, swatches, the status dot */
+  --hw-radius-md: 7px;  /* the moulded register; interactive controls: buttons, inputs, selects, menu items, tabs */
+  --hw-radius-lg: 12px;  /* the moulded register; containers: cards, panels, dialogs, popovers, toasts */
+  --hw-icon-stroke: 1.5px;  /* stroke weight at 16px and 20px */
+}
+
 :root, [data-theme="light"] {
   --hw-gray-1: oklch(0.985 0.008 95);
   --hw-gray-2: oklch(0.968 0.008 95);

@@ -1,7 +1,20 @@
 /* Halderworks ramps, generated from ramps/brands/papertrace.json by tools/ramps.py.
-   Twelve steps per hue per theme; tools/ramps.py measures every floor on the 8-bit
-   value written here and refuses to emit if one does not hold. Do not hand-edit:
-   edit the brand file and rebuild. Load before ramps/roles.css. */
+   The brand's faces, shape and stroke, then twelve steps per hue per theme;
+   tools/ramps.py measures every floor on the 8-bit value written here and refuses
+   to emit if one does not hold. Do not hand-edit: edit the brand file and rebuild.
+   Load before ramps/roles.css. */
+:root {
+  --hw-font-sans: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;  /* interface and body text: system serif, held to the house x-height with font-size-adjust: 0.526 */
+  --hw-font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;  /* the stage voice: system serif */
+  --hw-font-display-stretch: 100%;  /* the display face's width, as font-stretch: system serif */
+  --hw-font-read: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;  /* running prose and quoted words: system serif */
+  --hw-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;  /* code, keys and figures: IBM Plex Mono */
+  --hw-radius-sm: 2px;  /* the crisp register; things inside other things: badges, checkboxes, swatches, the status dot */
+  --hw-radius-md: 3px;  /* the crisp register; interactive controls: buttons, inputs, selects, menu items, tabs */
+  --hw-radius-lg: 6px;  /* the crisp register; containers: cards, panels, dialogs, popovers, toasts */
+  --hw-icon-stroke: 1.5px;  /* stroke weight at 16px and 20px */
+}
+
 :root, [data-theme="light"] {
   --hw-gray-1: oklch(0.985 0.005 250);
   --hw-gray-2: oklch(0.968 0.005 250);

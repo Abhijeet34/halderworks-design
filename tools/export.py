@@ -11,17 +11,19 @@ are the forms agents actually consume:
   exports/variables.css        plain CSS custom properties, with every theme and media block
   exports/design-tokens.json   W3C DTCG format, $value / $type / $description per token
 
-Four files, composed and never re-solved:
+Three files, composed and never re-solved:
 
-  ramps/tokens/<brand>.tokens.css   the twelve-step ramps, generated and floored by tools/ramps.py
+  ramps/tokens/<brand>.tokens.css   the brand's faces, radii and icon stroke, and the twelve-step
+                                    ramps, generated and floored by tools/ramps.py
   ramps/roles.css                   the colour roles every brand shares, with their theme blocks
   ramps/scales.css                  the type, space, control and motion scales, the text-size
-                                    setting, and the density, touch and reduced-motion blocks
-  <dir>/tokens/tokens.json          the brand's faces, shape and layout, which ramps/ does not carry
+                                    setting, the density, touch and reduced-motion blocks, and
+                                    the strokes, icons, layout, stacking and shadows every brand
+                                    shares
 
-This is NOT tools/build.py or tools/ramps.py: it only re-expresses values that are already
-solved, so it can never invent one. It proves that by parsing back what it wrote and refusing
-if any block, condition or value differs from them.
+This is NOT tools/ramps.py: it only re-expresses values that are already solved, so it can
+never invent one. It proves that by parsing back what it wrote and refusing if any block,
+condition or value differs from them.
 
     python3 tools/export.py [design-system-dir]
     python3 tools/export.py examples/quoth      # quoth's set, into examples/quoth/exports/
@@ -32,46 +34,18 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+SYSTEM = "Halderworks Instrument"
 
-# Families tokens.json still owns and the export carries unchanged. Everything in SUPERSEDED
-# (and the per-style type tokens) now comes from ramps/roles.css or ramps/scales.css, so a
-# tokens.css property in neither list is a token this export would silently drop.
-CARRIED = ("radius", "shadow", "layout", "icon", "zIndex", "stroke")
-SUPERSEDED = ("color", "spacing", "duration", "easing", "density")
-TYPE_PARTS = ("text", "leading", "tracking", "weight")
-
-# Every "color" name ramps/roles.css replaces, each under a name of its own (surface -> bg,
-# border -> line, quiet -> fill, ring -> focus...): no literal match is expected for one of
-# these, so membership here stands in for one. Any other colour tokens.json declares must be a
-# role under the same name (the six chart series are); one that is neither is new and
-# unaccounted for, so check_sources refuses it by name instead of folding it in by family.
-RENAMED_COLOR = frozenset({
-    "hw-accent", "hw-accent-hover", "hw-accent-quiet", "hw-accent-ring",
-    "hw-border", "hw-border-strong", "hw-danger", "hw-danger-quiet", "hw-ground",
-    "hw-ink", "hw-ink-active", "hw-ink-hover", "hw-ink-text", "hw-scrim",
-    "hw-success", "hw-success-quiet", "hw-surface", "hw-surface-active",
-    "hw-surface-hover", "hw-surface-raised", "hw-surface-sunken", "hw-text",
-    "hw-text-disabled", "hw-text-muted", "hw-text-secondary", "hw-warning",
-    "hw-warning-quiet",
-})
-
-# spacing, duration and easing names ramps/scales.css declares under the same name tokens.json
-# uses, so these are checked by literal presence rather than an allowlist; RETIRED is what is
-# left over once that check runs - the decided scales are 8 rem space steps and 3 durations
-# with one ease-out, and no product uses these five (quoth only re-defines them in its own
-# vendored copy).
-RETIRED = frozenset({
-    "hw-space-2", "hw-space-96", "hw-duration-instant", "hw-ease-in", "hw-ease-standard",
-})
-
-# The per-style type tokens, same renaming as colour: ten per-component steps (body, title-1,
-# display-1...) become eight abstract sizes and four leadings under the rem ramp's own names, so
-# text and leading are checked the way colour is. tracking and weight carry no role at all: the
-# rem ramp ships size and leading only, a stated gap (design/75-spec-sheet.md).
-TYPE_STYLES = ("body", "body-lg", "body-sm", "display-1", "display-2", "label", "micro",
-               "title-1", "title-2", "title-3")
-RENAMED_TYPE = frozenset(f"hw-{part}-{s}" for part in ("text", "leading") for s in TYPE_STYLES)
-TYPE_UNROLED = frozenset(f"hw-{part}-{s}" for part in ("tracking", "weight") for s in TYPE_STYLES)
+# Every non-colour property's family, by the prefix of its name, in the order the briefs and the
+# DTCG document carry them. A property no prefix claims is a density value: a control or row size.
+FAMILIES = [("type", ("--hw-text-", "--hw-leading")), ("spacing", ("--hw-space-",)),
+            ("density", ()), ("duration", ("--hw-duration-",)), ("easing", ("--hw-ease-",)),
+            ("radius", ("--hw-radius-",)), ("shadow", ("--hw-shadow-",)),
+            ("layout", ("--hw-bp-", "--hw-gutter-", "--hw-column", "--hw-container-",
+                        "--hw-measure-", "--hw-rail", "--hw-panel-")),
+            ("icon", ("--hw-icon",)), ("zIndex", ("--hw-z-",)),
+            ("stroke", ("--hw-border-w", "--hw-focus-w", "--hw-focus-offset", "--hw-tab-active-w")),
+            ("font", ("--hw-font-",))]
 
 TEXT_SIZES = ("s", "m", "l", "xl", "xxl")
 # Every condition a product needs answered. Without one, a product that loads the export loses
@@ -109,6 +83,7 @@ VAR = re.compile(r"var\((--[a-z0-9-]+)\)")
 RELATIVE = re.compile(rf"^oklch\(from (oklch\([^)]*\)) calc\(l - ({NUM})\) c h\)$")
 COMMENT = re.compile(r"/\*.*?\*/", re.S)
 DESCRIBED = re.compile(r"^\s*(--hw-[a-z0-9-]+):[^;]+;\s*/\*\s*(.*?)\s*\*/", re.M)
+BRAND_BLOCK = (None, ":root")   # the faces, radii and stroke, at the top of a ramps file
 
 
 def num(text):
@@ -196,7 +171,7 @@ def at_root(value, root_px):
     return None
 
 
-# --- the three sources --------------------------------------------------------------------
+# --- the two sources ----------------------------------------------------------------------
 
 def sources(root):
     brand = "house" if root.resolve() == ROOT else root.resolve().name
@@ -204,61 +179,36 @@ def sources(root):
     if not ramp.exists():
         raise ValueError(f"no ramps for brand {brand!r}: {ramp.relative_to(ROOT)} does not exist; "
                          f"add ramps/brands/{brand}.json and run tools/ramps.py")
-    tokens = json.loads((root / "tokens" / "tokens.json").read_text(encoding="utf-8"))
-    # roles.css is colour only, which tools/contrast.py --ramps certifies block by block;
-    # scales.css carries every size, the text-size setting and the blocks that move them.
-    # Both are shared by every brand, so they are one source here, roles first.
+    # roles.css is colour only, which tools/contrast.py certifies block by block; scales.css
+    # carries every size, the text-size setting and the blocks that move them. Both are shared by
+    # every brand, so they are one source here, roles first.
     shared = [(ROOT / "ramps" / f).read_text(encoding="utf-8") for f in ("roles.css", "scales.css")]
-    return {"brand": brand, "tokens": tokens, "ramp": body(ramp.read_text(encoding="utf-8")),
-            "carried": carried_css(tokens), "roles": "\n".join(body(t) for t in shared),
-            "describe": {k: v for t in shared for k, v in DESCRIBED.findall(t)}}
-
-
-def carried(tokens):
-    for fam in CARRIED:
-        yield from ((fam, e) for e in tokens[fam]["tokens"])
-
-
-def carried_css(tokens):
-    out = [":root {"]
-    out += [f"  --hw-font-{k}: {v};" for k, v in tokens["type"]["families"].items()]
-    out += [f"  --{e['name']}: {e['value']};" for _, e in carried(tokens)
-            if isinstance(e["value"], str)]
-    out.append("}")
-    themed = [e for _, e in carried(tokens) if isinstance(e["value"], dict)]
-    for sel, theme, indent in ((':root, [data-theme="light"]', "light", ""),
-                               ('[data-theme="dark"]', "dark", ""),
-                               (':root:not([data-theme="light"])', "dark", "  ")):
-        if indent:
-            out.append("@media (prefers-color-scheme: dark) {")
-        out.append(f"{indent}{sel} {{")
-        out += [f"{indent}  --{e['name']}: {e['value'][theme]};" for e in themed]
-        out.append(f"{indent}}}")
-        if indent:
-            out.append("}")
-    return "\n".join(out) + "\n"
+    ramp_text = ramp.read_text(encoding="utf-8")
+    return {"brand": brand, "ramp": body(ramp_text), "roles": "\n".join(body(t) for t in shared),
+            "describe": {k: v for t in (*shared, ramp_text) for k, v in DESCRIBED.findall(t)}}
 
 
 def runtime_css(src):
     return "\n".join([
-        f"/* ---- the ramps every role names, from ramps/tokens/{src['brand']}.tokens.css ---- */",
+        f"/* ---- the brand's faces, radii and stroke, and the ramps every role names, from "
+        f"ramps/tokens/{src['brand']}.tokens.css ---- */",
         src["ramp"],
-        "/* ---- faces, shape and layout, from tokens/tokens.json ---- */",
-        src["carried"],
         "/* ---- roles and scales, with every media block, from ramps/roles.css and ramps/scales.css ---- */",
         src["roles"]])
 
 
 def expected_blocks(src):
-    return blocks(src["ramp"]) + blocks(src["carried"]) + blocks(src["roles"])
+    return blocks(src["ramp"]) + blocks(src["roles"])
 
 
 def roles(src):
-    """[(name, raw value)] declared on :root by ramps/roles.css then ramps/scales.css, in order."""
+    """[(name, raw value)] declared on :root by ramps/roles.css and ramps/scales.css, then by the
+    brand's own block of its ramps file, in that order."""
     out = {}
-    for m, s, d in blocks(src["roles"]):
-        if m is None and s == ":root":
-            out.update(d)
+    for part in ("roles", "ramp"):
+        for m, s, d in blocks(src[part]):
+            if (m, s) == BRAND_BLOCK:
+                out.update(d)
     return list(out.items())
 
 
@@ -284,7 +234,8 @@ def text_sizes(src):
 
 
 def conditions(src):
-    """{property: {condition: value}} for every non-colour role a block other than :root moves."""
+    """{property: {condition: value}} for every role a block other than :root moves, colour and
+    shadow aside, which carry their value per mode instead."""
     out = {}
     for media, sel, decls in blocks(src["roles"]):
         if (media, sel) == (None, ":root") or sel.startswith("html"):
@@ -297,81 +248,16 @@ def conditions(src):
 
 # --- the checks, which are why this file is allowed to write anything ----------------------
 
-CSS_VAR = re.compile(r"^\s*(--hw-[a-z0-9-]+):\s*([^;]+);")
-BASE_SELECTORS = {':root, [data-theme="light"]': "light",
-                  '[data-theme="dark"]': "dark", ":root": "root"}
-
-
-def base_blocks(path):
-    """The three UNCONDITIONAL blocks of tokens.css, keyed by theme."""
-    out, cur, depth = {"light": {}, "dark": {}, "root": {}}, None, 0
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        s = line.strip()
-        if s.endswith("{"):
-            # Only a top-level selector declares. The light selector also opens a block inside
-            # @media (prefers-contrast: more), and reading that one would overwrite the default.
-            cur = BASE_SELECTORS.get(s[:-1].strip()) if depth == 0 else None
-            depth += 1
-            continue
-        if s.startswith("}"):
-            depth -= 1
-            cur = None
-            continue
-        m = CSS_VAR.match(line)
-        if m and cur:
-            out[cur][m.group(1)] = m.group(2).strip()
-    return out
-
-
-def check_sources(src, root):
+def check_sources(src):
     """What must hold before anything is written."""
     bad = []
-    tokens = src["tokens"]
-    # 1. tokens.css is still the file a product on the old set loads: every property it declares
-    # is either carried here with the same value, or one roles.css now owns.
-    css = base_blocks(root / "tokens" / "tokens.css")
-    mine = {}
-    for media, sel, decls in blocks(src["carried"]):
-        if media is None:
-            theme = BASE_SELECTORS[sel]
-            mine.setdefault(theme, {}).update(decls)
-    role_names = {k for k, _ in roles(src)}
-    owned = set()
-    colors = {e["name"] for e in tokens["color"]["tokens"]}
-    accounted = (colors & RENAMED_COLOR) | {n for n in colors if f"--{n}" in role_names}
-    owned |= {"--" + n for n in accounted}
-    bad += [f"--{n} is a colour token ramps/roles.css neither renames nor declares"
-            for n in sorted(colors - accounted)]
-    for fam in (f for f in SUPERSEDED if f != "color"):
-        names = {e["name"] for e in tokens[fam]["tokens"]}
-        accounted = {n for n in names if f"--{n}" in role_names} | (names & RETIRED)
-        owned |= {"--" + n for n in accounted}
-        bad += [f"--{n} is a {fam} token ramps/scales.css neither declares nor lists RETIRED"
-                for n in sorted(names - accounted)]
-    type_names = {f"hw-{part}-{s}" for part in TYPE_PARTS for s in TYPE_STYLES}
-    owned |= {"--" + n for n in type_names & (RENAMED_TYPE | TYPE_UNROLED)}
-    bad += [f"--{n} is a type token ramps/scales.css neither renames nor declares TYPE_UNROLED"
-            for n in sorted(type_names - RENAMED_TYPE - TYPE_UNROLED)]
-    for theme, props in css.items():
-        for k, v in props.items():
-            if k in owned:
-                continue
-            got = mine.get(theme, {}).get(k)
-            if got is None:
-                bad.append(f"{k} [{theme}] is in tokens.css and neither carried by the export nor "
-                           f"owned by ramps/roles.css or ramps/scales.css")
-            elif got != v:
-                bad.append(f"{k} [{theme}]: tokens.css {v!r} != export {got!r}")
-    # 2. The three sources are disjoint: a name declared on :root by two of them would let load
-    # order, not the system, decide its value.
-    seen = {}
-    for part in ("ramp", "carried", "roles"):
-        names = {k for m, s, d in blocks(src[part]) for k in d if k.startswith("--")}
-        for k in names:
-            if k in seen:
-                bad.append(f"{k} is declared by both {seen[k]} and {part}")
-            seen.setdefault(k, part)
-    # 3. Every role resolves to a value in every mode, so no var() names a step the brand lacks.
+    # 1. The two sources are disjoint: a name declared by both would let load order, not the
+    # system, decide its value.
+    names = {part: {k for m, s, d in blocks(src[part]) for k in d if k.startswith("--")}
+             for part in ("ramp", "roles")}
+    bad += [f"{k} is declared by both the ramps file and ramps/roles.css or ramps/scales.css"
+            for k in sorted(names["ramp"] & names["roles"])]
+    # 2. Every role resolves to a value in every mode, so no var() names a step the brand lacks.
     for mode, env in modes(src).items():
         for k, _ in roles(src):
             try:
@@ -388,7 +274,7 @@ def check_written(src, written):
         got = [b for b in blocks(written[name]) if not b[1].startswith("@theme")]
         if got != want:
             bad.append(f"exports/{name}: its {len(got)} blocks are not the {len(want)} of "
-                       f"ramps, tokens.json, ramps/roles.css and ramps/scales.css, in that order")
+                       f"the ramps file, ramps/roles.css and ramps/scales.css, in that order")
         present = {(m, s) for m, s, _ in got}
         bad += [f"exports/{name} has no {s} block{' under ' + m if m else ''}"
                 for m, s in REQUIRED if (m, s) not in present]
@@ -403,8 +289,8 @@ def check_written(src, written):
 # --- emitters -----------------------------------------------------------------------------
 
 def emit_variables_css(src):
-    return (f"/* {src['tokens']['name']}, brand {src['brand']} - plain CSS custom properties.\n"
-            "   Generated by tools/export.py from ramps/ and tokens/tokens.json. Do not hand-edit.\n"
+    return (f"/* {SYSTEM}, brand {src['brand']} - plain CSS custom properties.\n"
+            "   Generated by tools/export.py from ramps/. Do not hand-edit.\n"
             "   Light by default; [data-theme] and prefers-color-scheme for dark, "
             "prefers-contrast: more,\n"
             "   [data-density=\"compact\"], (pointer: coarse), prefers-reduced-motion and "
@@ -428,9 +314,9 @@ def tw_name(name, value):
 
 def emit_theme_css(src):
     env = modes(src)["light"]
-    names = [k for k, _ in roles(src)] + [k for _, _, d in blocks(src["carried"]) for k in d]
-    out = [f"/* {src['tokens']['name']}, brand {src['brand']} - Tailwind v4.",
-           "   Generated by tools/export.py from ramps/ and tokens/tokens.json. Do not hand-edit.",
+    names = [k for k, _ in roles(src)]
+    out = [f"/* {SYSTEM}, brand {src['brand']} - Tailwind v4.",
+           "   Generated by tools/export.py from ramps/. Do not hand-edit.",
            "   @theme cannot sit inside a media query, so the runtime variables come first with",
            "   every block, and `@theme inline` points each utility at one of them: bg-surface",
            "   then follows dark, contrast more, text size, density and touch like var() does. */",
@@ -514,6 +400,13 @@ def dtcg_node(fam, value):
     """The `$type` and `$value` of one CSS value, as the 2025.10 module defines them."""
     if fam == "shadow":
         return {"$type": "shadow", "$value": as_shadow(value)}
+    if fam == "font" and value.endswith("%"):
+        # A face's width is a percentage of its normal one, which the module has no type for.
+        return {"$type": "number", "$value": num(value[:-1]),
+                "$extensions": {"halderworks": {"css": value}}}
+    if fam == "font":
+        # A fontFamily is an ordered list of names, not one CSS string.
+        return {"$type": "fontFamily", "$value": [n.strip().strip('"') for n in value.split(",")]}
     m = BEZIER.match(value)
     if m:
         return {"$type": "cubicBezier", "$value": [num(g) for g in m.groups()]}
@@ -545,22 +438,17 @@ def dtcg_node(fam, value):
 def role_family(name, value):
     if is_colour(value):
         return "color"
-    for prefix, fam in (("--hw-text-", "type"), ("--hw-leading", "type"),
-                        ("--hw-space-", "spacing"), ("--hw-duration-", "duration"),
-                        ("--hw-ease-", "easing")):
-        if name.startswith(prefix):
-            return fam
-    return "density"
+    return next((fam for fam, prefixes in FAMILIES if name.startswith(prefixes)), "density")
 
 
 def emit_dtcg(src):
     every, cond = modes(src), conditions(src)
     env = every["light"]
     doc = {"$description": (
-        f"{src['tokens']['name']}, brand {src['brand']}. Generated by tools/export.py to the "
-        "Design Tokens Format Module 2025.10. A colour carries its value in every mode under "
-        "$extensions.halderworks.modes, and $value is light; a size or duration that a density, "
-        "the touch floor or reduced motion moves carries those values under "
+        f"{SYSTEM}, brand {src['brand']}. Generated by tools/export.py to the "
+        "Design Tokens Format Module 2025.10. A colour or a shadow carries its value in every "
+        "mode under $extensions.halderworks.modes, and $value is light; a size or duration that "
+        "a density, the touch floor or reduced motion moves carries those values under "
         "$extensions.halderworks.conditions.")}
     for name, raw in roles(src):
         value = resolve(env[name], env)
@@ -570,40 +458,28 @@ def emit_dtcg(src):
         ext = node.setdefault("$extensions", {}).setdefault("halderworks", {})
         if fam == "color":
             ext["modes"] = {m: as_color(resolve(e[name], e)) for m, e in every.items()}
+        elif fam == "shadow":
+            ext["modes"] = {m: as_shadow(resolve(e[name], e)) for m, e in every.items()}
         elif name in cond:
             ext["conditions"] = cond[name]
         if not ext:
             del node["$extensions"]
-        doc.setdefault(fam, {"$description": f"{fam} tokens"})[name[len("--hw-"):]] = node
+        # font.sans rather than font.font-sans: the path the document has always carried.
+        key = name[len("--hw-font-" if fam == "font" else "--hw-"):]
+        doc.setdefault(fam, {"$description": f"{fam} tokens"})[key] = node
     sizes = {"$description": "the text-size setting: the root size at the browser's default "
                              f"{BROWSER_DEFAULT_PX}px, set by html[data-text-size]"}
     for setting, css, px in text_sizes(src):
         sizes[setting] = {"$type": "dimension", "$value": {"value": num(round(px, 4)), "unit": "px"},
+                          "$description": f"the root at text size {setting.upper()}, "
+                                          f"html[data-text-size=\"{setting}\"]"
+                                          + ("; the default" if setting == "m" else ""),
                           "$extensions": {"halderworks": {"css": css}}}
     doc["textSize"] = sizes
-    for fam in CARRIED:
-        group = {"$description": f"{fam} tokens"}
-        for e in src["tokens"][fam]["tokens"]:
-            v = e["value"]
-            node = dtcg_node(fam, v if isinstance(v, str) else v["light"])
-            node["$description"] = e.get("usage", "")
-            if isinstance(v, dict):
-                node.setdefault("$extensions", {}).setdefault("halderworks", {})["modes"] = {
-                    t: dtcg_node(fam, x)["$value"] for t, x in v.items()}
-            group[e["name"][len("hw-"):]] = node
-        doc[fam] = group
-    doc["font"] = {"$description": "font families", **{
-        k: {"$type": "fontFamily", "$value": font_stack(src["tokens"], k)}
-        for k in src["tokens"]["type"]["families"]}}
     bad = dtcg_violations(doc)
     if bad:
         raise ValueError("; ".join(bad))
     return json.dumps(doc, indent=2) + "\n"
-
-
-def font_stack(tokens, family):
-    """A DTCG fontFamily is an ordered list of names, not one CSS string."""
-    return [n.strip().strip('"') for n in tokens["type"]["families"][family].split(",")]
 
 
 # Every $type below is a type the module defines, and every check is its $value syntax. The
@@ -692,14 +568,14 @@ def fmt_px(v):
 
 
 def emit_design_md(src, compact):
-    tokens, every = src["tokens"], modes(src)
+    every = modes(src)
     env, sizes = every["light"], text_sizes(src)
     m_px = dict((s, px) for s, _, px in sizes)["m"]
     rs = [(k, resolve(env[k], env)) for k, _ in roles(src)]
     colours = [(k, v) for k, v in rs if is_colour(v)]
-    out = [f"# {tokens['name']}, brand {src['brand']} - DESIGN.md",
+    out = [f"# {SYSTEM}, brand {src['brand']} - DESIGN.md",
            "",
-           "Generated by `tools/export.py` from `ramps/` and `tokens/tokens.json`. Do not hand-edit.",
+           "Generated by `tools/export.py` from `ramps/`. Do not hand-edit.",
            "",
            f"A house design system: {len(colours)} colour roles, each naming a step of a "
            f"twelve-step ramp that carries its contrast floor, in two themes and a "
@@ -732,7 +608,7 @@ def emit_design_md(src, compact):
         out.append(f"| `{s}` | {px:g} ({css}) | " + " | ".join(
             fmt_px(at_root(raw, px) and round(at_root(raw, px), 1)) for _, raw in steps) + " |")
     out += ["", "A `-` is a stage size, set by `clamp()` against the viewport as well.", ""]
-    for fam in ("type", "spacing", "density", "duration", "easing"):
+    for fam, _ in FAMILIES:
         rows = [(k, v) for k, v in rs if not is_colour(v) and role_family(k, v) == fam]
         out += [f"## {fam}", ""]
         if compact:
@@ -742,28 +618,10 @@ def emit_design_md(src, compact):
         out += [f"| `{k}` | `{v}` | {fmt_px(at_root(v, m_px))} | {desc.get(k, '')} |"
                 for k, v in rows]
         out.append("")
-    for fam in CARRIED:
-        entries = tokens[fam]["tokens"]
-        out += [f"## {fam}", ""]
-        val = lambda e: e["value"] if isinstance(e["value"], str) else e["value"]["light"]
-        if compact:
-            out += ["  ".join(f"`--{e['name']}` {val(e)}" for e in entries), ""]
-            continue
-        out += ["| token | value | role |", "|---|---|---|"]
-        out += [f"| `--{e['name']}` | `{val(e)}` | {e.get('usage', '')} |" for e in entries]
-        out.append("")
+        if fam == "font":
+            out += ["A self-hosted face loads from `fonts/fonts.css`, which serves the vendored "
+                    "files beside it with their licences; a system face loads nothing.", ""]
     if not compact:
-        out += ["## Faces", ""]
-        face = tokens["type"].get("faceDeclarations", {})
-        for key, stack in tokens["type"]["families"].items():
-            out.append(f"- **{key}**: `--hw-font-{key}`, `{stack}`"
-                       + (f", with `{face[key]}`" if key in face else ""))
-        if tokens["type"].get("quoteSizeAdjust"):
-            out.append(f"- The quote face sets the words a person said or wrote, inside a step, "
-                       f"with `font-size-adjust: {tokens['type']['quoteSizeAdjust']}`.")
-        if tokens["type"].get("sansSizeAdjust"):
-            out.append(f"- The text face is held to the house x-height: set `font-size-adjust: "
-                       f"{tokens['type']['sansSizeAdjust']}` wherever `--hw-font-sans` is set.")
         out += ["", "## What this file does not carry", "",
                 "The ramp steps themselves (`--hw-<hue>-1` to `-12`, in `variables.css`, named "
                 "only through a role), the reasoning, the measurements every value was solved "
@@ -783,9 +641,7 @@ def main() -> int:
     except ValueError as exc:
         print(f"FAIL  {exc}", file=sys.stderr)
         return 1
-    tokens = src["tokens"]
-
-    bad = check_sources(src, root)
+    bad = check_sources(src)
     if bad:
         for b in bad:
             print("FAIL  " + b, file=sys.stderr)
@@ -821,9 +677,9 @@ def main() -> int:
         return 1
 
     n_blocks = len(expected_blocks(src))
-    print(f"brand {src['brand']}: {len(roles(src))} roles and scales from ramps/roles.css and ramps/scales.css, "
-          f"resolved in {len(MODES)} modes; {sum(1 for _ in carried(tokens))} carried from "
-          f"tokens.json.")
+    print(f"brand {src['brand']}: {len(roles(src))} roles and scales from ramps/roles.css, "
+          f"ramps/scales.css and ramps/tokens/{src['brand']}.tokens.css, resolved in "
+          f"{len(MODES)} modes.")
     for name in written:
         print(f"  exports/{name:20s} {len(written[name]):7,d} bytes")
     print(f"\n{n_blocks} CSS blocks re-read from both CSS exports, 0 divergent, "

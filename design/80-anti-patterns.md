@@ -20,7 +20,7 @@ Organised by surface, because that is how a screen is reviewed.
 
 | the tell | why models produce it | the house rule |
 |---|---|---|
-| **Warm cream ground, serif display, terracotta accent** | it is the highest-probability palette, and it looks warm and expensive in a thumbnail | neutral ground at chroma 0.003, accent at hue 198, and `hw-ink` rather than a chromatic colour for the primary action. A display serif is used here, but on a cool ground with a teal accent, which breaks the pattern at two of its three legs. Newsreader is a low-contrast reading serif, not the high-contrast display serif of that cluster |
+| **Warm cream ground, serif display, terracotta accent** | it is the highest-probability palette, and it looks warm and expensive in a thumbnail | neutral ground at chroma 0.003, accent at hue 198, and `hw-ink` rather than a chromatic colour for the primary action. The display face is a sans, Archivo, and the one serif, Literata, is a low-contrast reading face for running prose, not the high-contrast display serif of that cluster |
 | **Near-black with a lone acid-green or vermilion pop** | one saturated colour on a dark ground is the cheapest way to look designed | the dark ground exists, but colour is spent on four defined jobs in both themes, and `hw-accent` is not an acid colour: chroma 0.096, roughly half of what the gamut allows at that lightness |
 | **Purple-to-blue gradient hero on white** | the default hero of every AI product page since 2023 | no gradients. There is no gradient token and there is no plan to add one. 14 of 44 measured sites paint a gradient on a large element; none of the ones this system took principles from paints one behind text <!-- covered-by: Texture, grain, gradient, glass --> |
 | **A blue-violet accent between hue 245 and 296** | it is where the whole developer-tool field already is | hue 198, chosen by measuring the field and staying out of it. 17 of 29 accents sampled across the reference set fall in that corridor |
@@ -34,11 +34,11 @@ Organised by surface, because that is how a screen is reviewed.
 
 | the tell | why models produce it | the house rule |
 |---|---|---|
-| **Inter, or Space Grotesk, as the safe face** | they are genuinely good, which is why 5 of 14 measured products use Inter | Public Sans for interface, with the size compensation its 5.3% smaller x-height requires written down in [20-type.md](20-type.md) |
-| **A high-contrast display serif for headings over a sans body** | it is the "editorial" signal and costs no design work | Newsreader is a low-contrast reading serif, used at two steps only, on marketing and docs surfaces only |
+| **Inter, or Space Grotesk, as the safe face** | they are genuinely good, which is why 5 of 14 measured products use Inter | Archivo for interface, with the x-height the scale was derived on written down in [20-type.md](20-type.md) |
+| **A high-contrast display serif for headings over a sans body** | it is the "editorial" signal and costs no design work | the display face is the sans, Archivo, and the one serif, Literata, is a low-contrast reading face for running prose |
 | **Twenty-four type sizes** | each screen got the size it needed at the moment it was written | nine steps. quoth's own audit found 24 sizes and 34 spacing values in use |
 | **Uppercase button labels with wide tracking** | it reads as "premium" | uppercase exists at one step, `micro`, for a column head or an eyebrow. An uppercase button label is shouting |
-| **A number column without `tabular-nums`** | the default figures look fine in a single row | in Public Sans a `1` is a third narrower than a `0`: 407px against 606px per ten digits at 100px. Any column of figures jitters |
+| **A number column without `tabular-nums`** | the default figures look fine in a single row | in Archivo a `1` is 9% narrower than a `0`, 521.3px against 572.7px per ten digits at 100px, and a third in Literata. Any column of figures jitters |
 | **Centred headings over centred body text** | it looks composed in a screenshot | left-aligned by default. See Layout below |
 | **A 95-character measure because the container was wide** | the container was the only constraint applied | 56ch in product, 68ch in long-form. A container width and a measure are different constraints and a page needs both |
 | **A numeral set large beside a headline that never refers to it** | a big number makes any block look like a system | delete the numeral and read what is left. If the headline is still a whole sentence and nothing was lost, the numeral was a decorative marker set at 56px. [75-spec-sheet.md](75-spec-sheet.md) has the three tests |

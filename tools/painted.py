@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Certify the ramps on the pixels a browser paints, not on a converter's prediction of them.
 
-tools/contrast.py --ramps measures every pair on its own oklch-to-sRGB conversion. This renders
+tools/contrast.py measures every pair on its own oklch-to-sRGB conversion. This renders
 exactly the pairs it certifies, collected from contrast.certify_ramps rather than declared again,
 in a headless Chromium (Brave first), screenshots them and measures the 8-bit pixels: a ratio
 pair against its floor, a CIEDE2000 pair against its bar. Per brand it renders both themes, each
@@ -230,7 +230,7 @@ def certify(browser, tokens, work):
     """(failures, report lines) for one ramps file, in every route and tier."""
     pairs = []
     bad, _ = contrast.certify_ramps(tokens, pairs=pairs)
-    fails = [f"contrast.py --ramps refuses it, {len(bad)} failures: {bad[0]}"] if bad else []
+    fails = [f"contrast.py refuses it, {len(bad)} failures: {bad[0]}"] if bad else []
     report = []
     for name, theme, scheme in ROUTES:
         tone = "dark" if "dark" in name else "light"

@@ -50,7 +50,7 @@ The rail's items, and the same anatomy for a header's nav on a page with no rail
 
 | part | token |
 |---|---|
-| item height | `--hw-control-h` - 32px comfortable, 24px compact, and 44px under `(pointer: coarse)` by the rebind in `tokens/tokens.css` |
+| item height | `--hw-control-h` - 32px comfortable, 24px compact, and 44px under `(pointer: coarse)` by the rebind in `ramps/scales.css` |
 | horizontal padding | `--hw-space-8`, which is the rail's own inset |
 | label | `body-sm` (13px) in `--hw-text-secondary` at rest |
 | icon | `--hw-icon` 16px at `--hw-icon-gap` 6px before the label, `currentColor` |

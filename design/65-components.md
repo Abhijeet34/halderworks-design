@@ -142,7 +142,7 @@ Column heads at `micro` (11px/600, 0.06em, uppercase) in `hw-text-muted`. Cells 
 
 ### DataTable: rules
 
-- **Every numeric column is right-aligned and set with `font-variant-numeric: tabular-nums`.** In Public Sans a `1` is a third narrower than a `0`, so a column without it visibly jitters. This is the rule broken most often.
+- **Every numeric column is right-aligned and set with `font-variant-numeric: tabular-nums`.** In Archivo a `1` is 9% narrower than a `0`, and a third narrower in Literata, so a column without it visibly jitters. This is the rule broken most often.
 - Identifiers, hashes and timestamps are set in `var(--font-mono)` at 12px. They are read character by character, not as words.
 - Zebra striping is not used. A 1px border per row is quieter and does the same job; striping adds a surface that means nothing.
 - The head is sticky when the table scrolls, on `hw-surface` with its border, so it does not become transparent over the rows.

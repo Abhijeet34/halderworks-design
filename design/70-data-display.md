@@ -27,7 +27,7 @@ If nobody compares column to column, a table is a list with rules drawn on it.
 | a single icon or a checkbox | centre in a fixed-width column | it has no text edge to align to |
 
 **Every numeric column is right-aligned and carries `font-variant-numeric: tabular-nums`.**
-In Public Sans a `1` is a third narrower than a `0`: at 100px, `1111111111` measures 407px and `0000000000` measures 606px, so a column without it visibly jitters row to row.
+In Archivo a `1` is 9% narrower than a `0`: at 100px, `1111111111` measures 521.3px and `0000000000` measures 572.7px, and in Literata 407px against 602px, so a column without it visibly jitters row to row.
 
 This is where the house rule deliberately departs from measured practice, and it is worth saying so.
 Across 777 table cells sampled on 15 sites in the capture, **0 set `tabular-nums` and 3 were right-aligned**.
@@ -100,7 +100,7 @@ Six chart colours, `--hw-chart-1` to `--hw-chart-6`, held to the same 3:1 non-te
 
 Adjacent series alternate in lightness, by 0.20 in light and 0.15 in dark, so series two, four and six are the strong members in both themes.
 Every chart colour sits at least 8.0 in oklab distance times 100 from `--hw-success`, `--hw-warning` and `--hw-danger`, the bar the accent was held to before [three painted bars](10-color.md#the-three-bars-the-accent-is-held-to) replaced it, and the closest chart pair sits 15.4 apart in light and 10.2 in dark.
-Until 2026-09-21 series four, five and six sat 1.6, 2.5 and 3.7 from danger, warning and success in light, because the chart hues rotate with the accent while the semantics stay put; `tools/build.py` now refuses an accent hue that would put any series that close.
+Until 2026-09-21 series four, five and six sat 1.6, 2.5 and 3.7 from danger, warning and success in light, because the chart hues rotate with the accent while the semantics stay put; the series are now six ramps of their own that do not rotate, and `tools/contrast.py` holds each 14 CIEDE2000 from every state.
 
 Rules:
 

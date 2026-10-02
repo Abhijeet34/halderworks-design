@@ -9,10 +9,10 @@
    The three that name no step sit further from the text than step 1 does, so the floors still
    hold on them: the light surface is white, the dark rail is darker than gray-1, and the scrim
    is never read on.
-   Colour only: tools/contrast.py --ramps certifies every block here. The sizes, text-size
-   setting, densities, touch floor and motion are ramps/scales.css. tools/export.py reads both
-   into exports/; never load either beside tokens/tokens.css, whose names overlap. The comment
-   on each line is the role description the exports carry. */
+   Colour only: tools/contrast.py certifies every block here. The sizes, text-size setting,
+   densities, touch floor, motion and the shared constants are ramps/scales.css. tools/export.py
+   reads both into exports/. The comment on each line is the role description the exports
+   carry. */
 
 :root {
   /* ---- neutral ---- */

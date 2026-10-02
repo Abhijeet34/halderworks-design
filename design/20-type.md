@@ -1,58 +1,58 @@
 # Type
 
-Three faces with three jobs in the house set, each an open-licensed file a product hosts itself, so no screen waits on a font service; a brand fills the same roles, and an optional fourth, from [the roster](#a-brands-faces).
+Three faces with four jobs in the house set, each an open-licensed file vendored in `fonts/` and served from the product's own origin, so no screen waits on a font service; a brand fills the same four families from [the roster](#a-brands-faces).
 
-| role | face | what it does |
+| family | face | what it does |
 |---|---|---|
-| interface and text | **Public Sans** | every screen, every control, every paragraph of product copy |
-| display | **Newsreader** | the two largest steps, on marketing, docs and release surfaces only |
-| machine output | **IBM Plex Mono** | hashes, run ids, timestamps, durations, costs, CLI output, code |
+| `sans`: interface and text | **Archivo** | every screen, every control, every paragraph of product copy |
+| `display`: the stage voice | **Archivo** | the stage sizes, on marketing, docs, release surfaces and a stage |
+| `read`: running prose | **Literata** | long-form reading text and quoted words |
+| `mono`: machine output | **IBM Plex Mono** | hashes, run ids, timestamps, durations, costs, CLI output, code |
 
-## Why not Inter
+## Why Archivo and Literata
 
-Inter is the safe answer, and five of the fourteen reference products use it: Linear, Family, Railway, Superlist and Resend all set their body in it.
-That is exactly why it is not the house face. A system whose type is the most common choice in its own category has spent nothing on identity.
+Public Sans and Newsreader were the house faces until 2026-10-02, when the maintainer approved the house design review's recommendation to replace them.
+quoth already ships Archivo, and its width axis gives a condensed stage voice, the app voice and Archivo Expanded from one 90 KB WOFF2, so a product that sets all three loads one file.
+Literata takes the reading job Newsreader held on docs and release surfaces, and IBM Plex Mono stays.
 
-Public Sans is a Libre Franklin derivative drawn for the US Web Design System, which means it was designed for dense public-information interfaces rather than for a marketing page.
-None of the fourteen references use it.
+Inter is still not the house face, and for the same reason: five of the fourteen reference products set their body in it, Linear, Family, Railway, Superlist and Resend, and a system whose type is the most common choice in its own category has spent nothing on identity.
 
-It costs one adjustment, and here is the number. Measured in a real browser with the faces loaded, at 100px:
+Archivo's x-height is 0.526, read from its file, against Inter's 0.546 and Public Sans's 0.517.
+The scale was derived from Public Sans's x-height, which is why the product body step is **15px, not 14px**, and the dense step 13px rather than 12px; Archivo's x-height is 1.7% larger than the one the scale was built on, so it sets the same sizes a shade fuller and never smaller.
 
-| face | x-height | cap height | x/cap | width of a 35-character line |
+| face | x-height | cap height | `1111111111` at 100px | `0000000000` at 100px |
 |---|---:|---:|---:|---:|
-| Public Sans | 51.7 | 72.3 | 0.715 | 1563 |
-| Inter | 54.6 | 72.8 | 0.750 | 1594 |
-| Libre Franklin | 53.0 | 74.2 | 0.714 | 1561 |
-| Newsreader | 44.0 | 67.6 | 0.651 | 1425 |
-| IBM Plex Mono | 51.6 | 69.8 | 0.739 | 2100 |
-| JetBrains Mono | 55.0 | 73.0 | 0.753 | 2100 |
+| Archivo | 0.526 | 0.686 | 521.3 | 572.7 |
+| Archivo Expanded, at 125% | 0.526 | 0.686 | 642.0 | 739.5 |
+| Literata | 0.507 | 0.700 | 407.0 | 602.0 |
+| IBM Plex Mono | 0.516 | | 600.0 | 600.0 |
 
-Public Sans has a 5.3% smaller x-height than Inter, so it reads about half a step smaller at the same size.
-That is why the product body step here is **15px, not 14px**, and the dense step is 13px rather than 12px.
-Set Public Sans at Inter's sizes and it will look thin and slightly too small, and you will blame the face instead of the size.
+The heights are read by `tools/faces.py` from each roster entry's pinned TTF, whose sha256 matched on 2026-10-02.
+The widths were measured the same day in headless Brave from the layout of a span in each vendored file, loaded through `fonts/fonts.css`.
+Newsreader, the display face before them, measured a cap height of 0.676 and ten digits of 567px at 100px in the browser.
 
 ## Why these fallbacks
 
-The fallback stacks were chosen on measured metrics rather than on familiarity.
+The faces are vendored and declared with `font-display: swap`, so a fallback shows only until the file arrives from the product's own origin.
 
-- **Public Sans falls back to Libre Franklin**, its own parent, which sets a 35-character line within 0.2% of it (1561 against 1563). A fallback flash barely reflows the page.
-- **IBM Plex Mono falls back to JetBrains Mono**, which shares its 0.6em advance exactly (600 against 600 at 100px), so a column of digits keeps its width through the swap.
-- **Newsreader falls back to Iowan Old Style and Source Serif 4**, both low-contrast reading serifs at similar proportions. It is display-only, so a few percent of drift costs nothing.
+- **Archivo falls back to the platform's interface sans**, `-apple-system`, `Segoe UI` or Roboto, which every product already draws its window chrome in.
+- **Literata falls back to Iowan Old Style and Georgia**, both reading serifs at similar proportions.
+- **IBM Plex Mono falls back to the platform mono**, SF Mono on macOS at a 0.618em advance and JetBrains Mono or Menlo at 0.600em, against Plex Mono's 0.600em, so a column of digits keeps its width within 3% through the swap.
 
 ## Figures, which is the rule most often missed
 
-Public Sans ships proportional figures by default, and the spread is large: at 100px, `1111111111` measures 407px while `0000000000` measures 606px. A `1` is a third narrower than a `0`.
+Archivo and Literata both ship proportional figures by default: at 100px a run of ten `1`s is 9% narrower than ten `0`s in Archivo, 521.3px against 572.7px, and a third narrower in Literata, 407px against 602px.
 
 A column of durations, costs, counts or timestamps set without `font-variant-numeric: tabular-nums` will visibly jitter row to row.
 
 **Every number that sits in a column, or that a reader will compare against the number above it, gets `tabular-nums`.** Running prose keeps the proportional figures, which are better inside a sentence.
 
-Newsreader's figures are already tabular (567 against 567), and a monospace face is tabular by construction.
+A monospace face is tabular by construction.
 
 ## The scale
 
-Nine distinct sizes. Both display steps use Newsreader; everything else uses Public Sans.
-The one exception is [the mixed-face headline](75-spec-sheet.md#the-mixed-face-headline), a display step set in Public Sans around one Newsreader term.
+Nine distinct sizes. Both display steps use the display face; everything else uses the sans.
+The one exception is [the mixed-face headline](75-spec-sheet.md#the-mixed-face-headline), a display step set in the sans around one term in the reading face.
 
 | step | size | line-height | tracking | weight | where |
 |---|---:|---:|---:|---:|---|
@@ -84,19 +84,19 @@ Measure is a real `ch` measurement of the rendered paragraph divided by the widt
 
 ## A brand's faces
 
-A brand fills four roles from the roster ([12-brand.md](12-brand.md#the-inputs)), and names any it leaves to the house:
+A brand fills four families from the roster with `faces` in its brand file ([12-brand.md](12-brand.md#the-inputs)), and leaves any it does not name to the house:
 
-| role | input | house face | what it sets |
-|---|---|---|---|
-| display | `display` | Newsreader | the display steps, from `display-2` up or, with `displayFrom: title-1`, from `title-1` up |
-| text | `text` | Public Sans | every other step |
-| mono | `mono` | IBM Plex Mono | machine output, and the numbers and labels of a brand whose mono is its identity; a monospaced face only |
-| quote | `quote` | none | the words a person said or wrote, through `.hw-quote` inside a step class; optional |
+| family | house face | what it sets |
+|---|---|---|
+| `sans` | Archivo | every screen, every control, every paragraph of product copy: `--hw-font-sans` |
+| `display` | Archivo | the stage sizes: `--hw-font-display`, with its width in `--hw-font-display-stretch` |
+| `read` | Literata | running prose and the words a person said or wrote: `--hw-font-read` |
+| `mono` | IBM Plex Mono | machine output, and the numbers and labels of a brand whose mono is its identity; a monospaced face only: `--hw-font-mono` |
 
-The mono face is one per product, so every hash and timestamp on a screen is set alike; it stopped being one for the fleet when quoth's Field identity took Martian Mono as its voice (D-039 in quoth's record), and the roster refuses a proportional face in the role: an entry says `monospaced`, `tools/faces.py --check` holds that claim to the file's own `post.isFixedPitch`, and the build takes nothing else as `mono`.
-`displayScale` multiplies `display-1` and `display-2` by 0.9, 1.0 or 1.25, to whole px, 70px and 50px at the top; every step below them was derived from the text face's x-height and does not move.
+The mono face is one per product, so every hash and timestamp on a screen is set alike; it stopped being one for the fleet when quoth's Field identity took Martian Mono as its voice (D-039 in quoth's record), and the roster refuses a proportional face in the role: an entry says `monospaced`, `tools/faces.py --check` holds that claim to the file's own `post.isFixedPitch`, and `tools/ramps.py` takes nothing else as `mono`.
+The solver's `displayFrom`, `displayScale` and `quote` inputs retired with it; the stage sizes are the house's in every brand, and the reading face carries quoted words.
 
-A face is an entry in the roster in `tokens/tokens.seed.json`, and an entry is a face **plus its delivery**:
+A face is an entry in the roster in `ramps/roster.json`, and an entry is a face **plus its delivery**:
 
 - **self-hosted**: the product ships the file. The roster cites the upstream file by URL and pins its sha256, and cites the family's `OFL.txt` and pins that too, so the metrics below were read from a file a reader can fetch and check and the licence that ships beside it is the one the roster read.
 - **system**: a named stack that loads nothing, for a product that makes no network request and ships no font, which is what papertrace's report and pointback's chrome both promise.
@@ -127,27 +127,33 @@ Field's renders set its screen title at 110%, its welcome headline at 112% and, 
 A native app takes the TTF or OTF: quoth's pill registers Martian Mono with CoreText, which the woff2 a webview loads does not serve, and the pinned `MartianMono[wdth,wght].ttf` is that file with both axes.
 A webview or a site takes woff2, converted from the pinned file or taken from upstream, which the OFL permits for every face here with one exception, below.
 
-The x-heights are the fonts' own `OS/2` values at their default instance, and eleven of the thirteen files draw their `x` to that height to three places; Instrument Serif Italic draws it at 0.516 and Shantell Sans at 0.497, an italic's and a hand's overshoot, and the roster keeps the header value the browser's `font-size-adjust` reads. Newsreader reads 0.426 from its file against 44.0 in the browser table above, a variable face whose optical-size axis the browser sets per size.
-Public Sans reads 0.517 from its file and 51.7 in the browser, the same number two ways, which is what makes the file reading trustworthy.
+The x-heights are the fonts' own `OS/2` values at their default instance, and eleven of the thirteen files draw their `x` to that height to three places; Instrument Serif Italic draws it at 0.516 and Shantell Sans at 0.497, an italic's and a hand's overshoot, and the roster keeps the header value the browser's `font-size-adjust` reads. Newsreader reads 0.426 from its file against 44.0 measured in a browser at 100px, a variable face whose optical-size axis the browser sets per size.
+Public Sans, a roster face and the house's until 2026-10-02, reads 0.517 from its file and 51.7 in the browser, the same number two ways, which is what makes the file reading trustworthy.
 Martian Mono's is the outlier, 0.600, with a 0.750em advance against Plex Mono's 0.600em, and its fallbacks are narrower: macOS's own files measure 0.618em for SF Mono and 0.602em for Menlo. A column of its digits reflows by a fifth if the file fails to load, so a product that sets Martian Mono self-hosts it rather than relying on the stack.
 
-**A text face other than Public Sans is held to Public Sans's x-height.**
-Every size in the scale above was derived from that x-height, so a text face with a smaller one would set every row half a step small.
-A brand whose text face differs gets `font-size-adjust: 0.517` on every `.hw-*` type class of the text family in its `tokens.css`, which scales whatever face renders, a system face included, until its x-height is the house's.
-The quote face is held the same way on `.hw-quote`, always, because it sits on a line beside the text face: Instrument Serif's 0.510 and Shantell Sans's 0.485 would otherwise set a spoken line visibly smaller than the typed one beside it.
-A product that sets `--hw-font-sans` or `--hw-font-quote` outside those classes sets the same declaration beside it.
+**A sans other than Archivo is held to Archivo's x-height.**
+Every size in the scale above was derived from the house face's x-height, so a text face with a smaller one would set every row half a step small.
+A brand whose sans differs sets `font-size-adjust: 0.526` beside `--hw-font-sans`, which scales whatever face renders, a system face included, until its x-height is the house's; `tools/ramps.py` names the value in the description of the brand's `--hw-font-sans`.
+No export carries it as a value of its own yet, and the type classes that once applied it retired with the solver, so it is a stated gap: a product sets the declaration itself.
 
 ```bash
-python3 tools/faces.py --check PublicSans[wght].ttf    # the file's x-height, pitch and sha256 against its roster entry
+python3 tools/faces.py --check Archivo[wdth,wght].ttf  # the file's x-height, pitch and sha256 against its roster entry
 python3 tools/faces.py --check OFL.txt                 # the licence text's sha256 and Reserved Font Name
+python3 tools/faces.py --vendored                      # fonts/ holds exactly the pinned files, and fonts.css loads only them
 ```
 
-The display face is a brand's to choose because it is the one face the brand is recognised by; the text face is a brand's too, because quoth already ships Instrument Sans as its interface and papertrace sets its report in a serif, and a tier that took either away would delete an identity each product already has.
+The display face is a brand's to choose because it is the one face the brand is recognised by; the sans is a brand's too, because papertrace sets its report in a serif and pointback its chrome in the system sans, and a rule that took either away would delete an identity each product already has.
+
+### The faces the house ships
+
+The three house faces are vendored in `fonts/` as WOFF2, the latin subsets Fontsource 5.3.0 publishes on npm, the same source quoth installs its Archivo from, each beside the `OFL.txt` the roster pins.
+`fonts/fonts.css` declares them with `font-display: swap` and relative URLs, so a page loads them from its own origin and nowhere else.
+Each roster entry's `vendored` list pins every file by sha256, and `tools/faces.py --vendored`, which CI runs, refuses a changed byte, a licence text off its pin, a file no entry accounts for, and a `fonts.css` that loads anything off its own origin.
 
 ### The licence rule
 
 **Every roster face is under the SIL Open Font License 1.1.**
-`tools/build.py` refuses a roster entry whose `licence` is anything else, and one that pins no licence text, before it solves anything.
+`tools/ramps.py` refuses a roster entry whose `licence` is anything else, and one that pins no licence text, before it builds anything.
 The reason is the product-identities scout's licensing survey of 2026-09-22, in [90-evidence.md](90-evidence.md#font-licensing-per-platform): of twelve licence sources read from their own pages, the OFL is the only one that lets the same file ship in a sold Mac app with woff2 in a WKWebView, on iOS, on Windows, on a self-hosted site and in static art, subset and converted, with no fee and no per-app licence.
 Adobe Fonts forbids embedding and self-hosting outright, Grilli Type's app licence prohibits `@font-face`, and Apple's and Microsoft's system faces may be named in a stack and never shipped, which is what the two system entries do.
 No face is bought: the one paid display face the scout weighed, Klim's, does not publish whether its App licence ships woff2 and forbids reformatting, so the WKWebView path needs the foundry's written answer before it could be considered.

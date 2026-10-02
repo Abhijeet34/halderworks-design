@@ -47,7 +47,7 @@ There is no third setting, and a product that wants one has a screen problem rat
 32px compact is the same text with 6px above and below.
 
 **44px is also the accessible pointer-target floor**, which is why the comfortable row and not the compact one is the default.
-On a coarse pointer that floor applies to controls too, and `--hw-control-h` rebinds to it; [36-form-factors.md](36-form-factors.md) owns the rule and `tokens/tokens.css` carries the media query.
+On a coarse pointer that floor applies to controls too, and `--hw-control-h` rebinds to it; [36-form-factors.md](36-form-factors.md) owns the rule and `ramps/scales.css` carries the media query.
 A compact row of 32px is below that floor, so a compact table's row actions carry their own 32px-wide hit area rather than relying on the row.
 
 ## When to use compact

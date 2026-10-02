@@ -1,8 +1,11 @@
 {
+  "note": "pointback, the pencil in the margin: its shipped non-photo blue, oklch(0.78 0.12 230), is the accent's named solid and carries ink, on a cool neutral at 260, with a 2px stroke and the system sans. The product pins the dark theme; both themes are built and certified.",
+  "iconStroke": "2px",
+  "faces": {"sans": "system sans", "display": "system sans"},
   "neutral": {"hue": 260, "chroma": 0.012},
   "hues": {
     "accent": {"hue": 230, "chroma": 0.12, "solid": {"light": 0.78, "dark": 0.78}},
-    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.90, "dark": 0.88}},
+    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.9, "dark": 0.88}},
     "red": {"hue": 27, "chroma": 0.19},
     "amber": {"hue": 70, "chroma": 0.16},
     "green": {"hue": 150, "chroma": 0.14}

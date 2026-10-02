@@ -198,7 +198,7 @@ def check_files():
 
 
 def ramp_envs():
-    """{brand: {theme: env}} built the way contrast.py --ramps builds them."""
+    """{brand: {theme: env}} built the way contrast.py builds them."""
     out = {}
     lb, _ = contrast.declarations(contrast.RAMPS_DIR / "roles.css", contrast.ROLE_BLOCKS)
     for tokens in sorted((contrast.RAMPS_DIR / "tokens").glob("*.tokens.css")):

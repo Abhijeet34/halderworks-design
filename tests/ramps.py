@@ -2,7 +2,7 @@
 """The claims tools/ramps.py makes, checked from outside it.
 
   1. The committed ramps/tokens/*.tokens.css are what the brand files build (`--check`).
-  2. tools/contrast.py --ramps certifies them: every floor, solid label and role re-measured by a
+  2. tools/contrast.py certifies them: every floor, solid label and role re-measured by a
      converter that shares no arithmetic with tools/ramps.py, on the float and the 8-bit value.
   3. Every var() in ramps/roles.css resolves in every brand, so a role cannot name a step a brand
      does not emit.
@@ -12,14 +12,14 @@
   6. A malformed brand file is refused with a sentence, never a traceback.
   7. verify() refuses a written file that breaks a floor, a label, a fixed step or the two dark
      blocks' agreement, so the re-measure is a check rather than a formality.
-  8. tools/contrast.py --ramps refuses a floor missed by under 0.01, a role on the wrong step, a
+  8. tools/contrast.py refuses a floor missed by under 0.01, a role on the wrong step, a
      dark danger solid or ring back beside the ink under more, an accent equal to the success
      green, a chart series under its mark floor, on another series or on a state, and malformed
      files, each by name and without a traceback.
   9. ramps.py's floors and contrast.py's are the same set, declared in each file.
   10. Every fifth accent hue through contrast.py's separation bars: hue 150 refused, 262 not.
       Every hue builds (4); this is how many of them read as a state once built.
-  11. The pairs contrast.py --ramps hands tools/painted.py name only declared properties, cover
+  11. The pairs contrast.py hands tools/painted.py name only declared properties, cover
       all four tiers and carry every solid's label and every chart mark, since CI cannot run the
       browser that paints them.
 
@@ -51,12 +51,12 @@ def committed_files_are_fresh(fails):
 
 
 def second_instrument_agrees(fails):
-    """The committed files certified by tools/contrast.py --ramps, which re-measures every floor,
+    """The committed files certified by tools/contrast.py, which re-measures every floor,
     label and role by the CSS Color 4 path rather than ramps.py's own."""
-    r = subprocess.run([sys.executable, str(CONTRAST), "--ramps"], capture_output=True, text=True)
+    r = subprocess.run([sys.executable, str(CONTRAST)], capture_output=True, text=True)
     if r.returncode or "Traceback" in r.stderr:
-        fails.append(f"tools/contrast.py --ramps exited {r.returncode}:\n{r.stderr}")
-    print(f"  second view:  tools/contrast.py --ramps exit {r.returncode}, "
+        fails.append(f"tools/contrast.py exited {r.returncode}:\n{r.stderr}")
+    print(f"  second view:  tools/contrast.py exit {r.returncode}, "
           f"{r.stdout.count('0 failed')} brands certified")
 
 
@@ -101,7 +101,7 @@ def just_under(css, token, theme_head, under, bar):
 
 
 def contrast_refuses(fails):
-    """tools/contrast.py --ramps against inputs that must fail, each by the sentence it names."""
+    """tools/contrast.py against inputs that must fail, each by the sentence it names."""
     house = (ROOT / "ramps" / "tokens" / "house.tokens.css").read_text(encoding="utf-8")
     roles = (ROOT / "ramps" / "roles.css").read_text(encoding="utf-8")
     light = ':root, [data-theme="light"] {'
@@ -141,6 +141,17 @@ def contrast_refuses(fails):
          "a block this does not certify"),
         ("no dark block", house[:house.index(dark_head)], "has no dark block"),
         ("a truncated file", house[:len(house) // 2], "has no media-dark block"),
+        ("radii off every register", tampered(house, "--hw-radius-md: 6px;", "--hw-radius-md: 5px;"),
+         "none of the house's registers"),
+        ("a display width the house does not carry",
+         tampered(house, "--hw-font-display-stretch: 100%;", "--hw-font-display-stretch: 150%;"),
+         "--hw-font-display-stretch is 150%"),
+        ("a stroke the house does not carry",
+         tampered(house, "--hw-icon-stroke: 1.5px;", "--hw-icon-stroke: 3px;"),
+         "--hw-icon-stroke is 3px"),
+        ("a role in the brand block",
+         tampered(house, "--hw-icon-stroke: 1.5px;", "--hw-icon-stroke: 1.5px;\n  --hw-accent: red;"),
+         "--hw-accent is in the brand block"),
     ]
     role_cases = [
         ("muted text one step light", "--hw-text-muted: var(--hw-gray-11);",
@@ -196,7 +207,7 @@ def contrast_refuses(fails):
         for what, text, expect in token_cases:
             path = Path(tmp) / "case.tokens.css"
             path.write_text(text, encoding="utf-8")
-            r = subprocess.run([sys.executable, str(CONTRAST), "--ramps", str(path)],
+            r = subprocess.run([sys.executable, str(CONTRAST), str(path)],
                                capture_output=True, text=True)
             cases.append((what, r.returncode, r.stderr, expect))
         for what, old, new, expect in role_cases:
@@ -212,10 +223,10 @@ def contrast_refuses(fails):
             cases.append((what, 1 if bad else 0, "\n".join(bad), expect))
     for what, rc, err, expect in cases:
         if rc != 1 or expect not in err or "Traceback" in err:
-            fails.append(f"contrast.py --ramps on {what}: exit {rc}, expected 1 naming "
+            fails.append(f"contrast.py on {what}: exit {rc}, expected 1 naming "
                          f"{expect!r}; got: {err.strip()[:300]}")
     print(f"  refuses:      {len(cases)} wrong ramp files, roles and brands, each refused by "
-          f"tools/contrast.py --ramps naming what broke; floors missed by "
+          f"tools/contrast.py naming what broke; floors missed by "
           + ", ".join(f"{miss:.4f}" for _, miss in near))
 
 
@@ -349,6 +360,18 @@ REFUSALS = [
     ("a solid that carries neither label",
      with_hues(accent={"hue": 262, "chroma": .15, "solid": {"light": .62, "dark": .62}}),
      "under 4.5:1"),
+    ("a shape register the roster lacks", json.dumps({**HOUSE, "shape": "pill"}),
+     "shape 'pill' is not one of crisp, house, moulded, soft"),
+    ("an icon stroke the roster lacks", json.dumps({**HOUSE, "iconStroke": "3px"}),
+     "iconStroke '3px' is not one of"),
+    ("a face the roster lacks", json.dumps({**HOUSE, "faces": {"sans": "Comic Sans MS"}}),
+     "faces.sans 'Comic Sans MS' is not a roster face"),
+    ("a proportional mono", json.dumps({**HOUSE, "faces": {"mono": "Archivo"}}),
+     "faces.mono 'Archivo' is not one of IBM Plex Mono, Martian Mono"),
+    ("a family the house does not set", json.dumps({**HOUSE, "faces": {"quote": "Literata"}}),
+     "faces.quote is not a family"),
+    ("a token named directly", json.dumps({**HOUSE, "--hw-radius-sm": "5px"}),
+     "unknown key '--hw-radius-sm'"),
 ]
 
 

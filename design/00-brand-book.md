@@ -31,7 +31,7 @@ Instruments earn trust by being boring in the same way every time.
 ## How to build with it
 
 Read this file, then [README.md](../README.md), which says which file answers the task in front of you.
-Load `tokens/tokens.json` for the values and `tokens/tokens.css` for the compiled custom properties.
+Load `exports/variables.css` for the custom properties and `fonts/fonts.css` for the faces; `exports/design-tokens.json` carries the same values for a tool.
 Names are prefixed `hw-`, so a token reads `var(--hw-accent)` in any product without colliding with a framework's own variables.
 
 Three rules cover most of what goes wrong:
@@ -46,7 +46,7 @@ Three rules cover most of what goes wrong:
 | | |
 |---|---|
 | **Colour** | 33 tokens per theme. Ground and five surfaces, two borders, four text weights including a solved disabled, an ink triple for primary action, four accent tokens, three semantics with their fills, a six-step chart ramp and a scrim. 108 text pairs checked, 0 below AA; 90 non-text pairs at 3:1, 0 below it; 0 outside sRGB. Accent hue 198. |
-| **Type** | Public Sans for interface and text, Newsreader for display, IBM Plex Mono for machine output, all self-hosted. A brand may name its own display and text face. Nine distinct sizes. Running text at 56ch in product, 68ch in long-form. |
+| **Type** | Archivo for interface, text and display, Literata for reading, IBM Plex Mono for machine output, all self-hosted from `fonts/`. A brand may name its own face for each. Nine distinct sizes. Running text at 56ch in product, 68ch in long-form. |
 | **Space** | Base unit 4px, ten steps, 2px for one case only. |
 | **Radius** | Three sizes and a pill, each bound to a role, in one of three registers a brand may take. |
 | **Elevation** | Border first. Two shadows exist, light-theme only inside a window, and kept in both themes for a panel floating over the user's desktop. |

@@ -8,9 +8,10 @@ Where a sheet and an older card in [65-components.md](65-components.md) differ, 
 
 ## The component layer
 
-Load it after the variables a brand exports, and load the script once:
+Load it after the faces and the variables a brand exports, and load the script once:
 
 ```html
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="exports/variables.css">
 <link rel="stylesheet" href="components/components.css">
 <script src="components/radiogroup.js" defer></script>

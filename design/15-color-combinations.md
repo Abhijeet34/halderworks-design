@@ -97,9 +97,9 @@ A row of coloured dots with no labels fails for the roughly 8% of men with a col
 
 ## The vivid tier
 
-A brand that opens the vivid tier ([12-brand.md](12-brand.md#the-vivid-tier)) gets five more pairings, and these are all of them.
+The vivid tier retired with the solver on 2026-10-02 ([12-brand.md](12-brand.md#the-vivid-tier)), and no brand emits its tokens; this is the record of the five pairings it certified.
 A vivid fill takes one label and nothing else, and the label is always `hw-text` or `hw-ink-text`, whichever the build found clears higher.
-Measured on quoth's Field identity, `tests/fixtures/field/`, the one set in this repository that opens the tier; the raised tier moves none of them, because every label already clears 7:1:
+Measured on quoth's Field identity as the solver built it, the one set that opened the tier; the raised tier moves none of them, because every label already clears 7:1:
 
 | pair | floor | light | dark |
 |---|---|---:|---:|
