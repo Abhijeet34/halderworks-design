@@ -32,10 +32,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "tools"))
-# The pairs tools/contrast.py --ramps reports as gaps rather than refusing. Read from there, not
-# copied, so the brief a product reads names exactly the gaps the instrument tolerates.
-from contrast import ROLE_GAPS  # noqa: E402
 
 # Families tokens.json still owns and the export carries unchanged. Everything in SUPERSEDED
 # (and the per-style type tokens) now comes from ramps/roles.css or ramps/scales.css, so a
@@ -385,9 +381,6 @@ def check_sources(src, root):
                 resolve(env[k], env)
             except KeyError as exc:
                 bad.append(f"{k} [{mode}] names {exc.args[0]}, which no source declares")
-    gap_roles = {r for brand, _, a, b in ROLE_GAPS if brand == src["brand"] for r in (a, b)}
-    bad += [f"tools/contrast.py ROLE_GAPS names {r}, which ramps/roles.css does not declare"
-            for r in sorted(gap_roles - role_names)]
     bad += [f"--{n} is UNROLED but ramps/roles.css declares it" for n in sorted(UNROLED)
             if f"--{n}" in role_names]
     return bad
@@ -686,7 +679,9 @@ ANSWERS = [
     ('`[data-theme="dark"]`, or `prefers-color-scheme: dark` when the page names no theme',
      "the dark set"),
     ("`prefers-contrast: more`", "muted text, lines, the focus ring, solids and state text "
-                                 "move to step 12, which clears 7:1"),
+                                 "move to step 12, which clears 7:1; in dark the ring moves to "
+                                 "accent 11 and the danger solid to red 7 under a light label, "
+                                 "off the ink"),
     ('`data-text-size="s|m|l|xl|xxl"` on `html`', "the root size, so every rem step moves"),
     ('`data-density="compact"` on any ancestor', "control height, row height and vertical "
                                                  "cell and field padding"),
@@ -786,14 +781,6 @@ def emit_design_md(src, compact):
                 "Per-step letter-spacing and weight are the same kind of gap: the rem type ramp "
                 "ships a size and a leading for each step and nothing for `--hw-tracking-*` or "
                 "`--hw-weight-*`, so this export carries neither.", ""]
-        gaps = sorted({(tier, a, b) for brand, tier, a, b in ROLE_GAPS if brand == src["brand"]})
-        if gaps:
-            out += ["Two role pairs fall under their separation bar and are reported, not "
-                    "refused, by `tools/contrast.py --ramps` until `ramps/roles.css` chooses "
-                    "(house-contrast-more-danger-r7): in dark under `prefers-contrast: more` every "
-                    "step 12 is near white, so the danger solid and danger text land on the ink "
-                    "and the focus ring.", ""]
-            out += [f"- {tier}: `{a}` against `{b}`" for tier, a, b in gaps] + [""]
     return "\n".join(out)
 
 
