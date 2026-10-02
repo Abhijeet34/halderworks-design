@@ -853,6 +853,9 @@ ROLE_EXEMPT = {"--hw-line": "a divider, never a control boundary",
 # hue fails first. The primary bar holds --hw-ink, the primary action, and not the accent solid,
 # as pass 3 holds --hw-ink and not --hw-brand.
 STATE_FILLS = ("--hw-success-fill", "--hw-warning-fill", "--hw-danger-fill")
+# A status word keeps its hue against the text beside it in every tier, the bar a product colour
+# keeps from a state: under more in dark every step 12 sat near white, 2.1 from --hw-text.
+STATE_TEXT, STATE_FROM_TEXT = ("--hw-danger",), PRODUCT_FROM_STATE
 ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill that reads as a state")
              for s in STATE_FILLS] + [
     ("primary", "--hw-ink", "--hw-danger-solid", ACCENT_BARS[0][4], "a primary that reads as danger"),
@@ -860,7 +863,9 @@ ROLE_BARS = [("fill", "--hw-accent-fill", s, ACCENT_BARS[1][4], "a brand fill th
     ("ring-border", "--hw-focus", "--hw-line-strong", RING_FROM_BORDER,
      "a focused control that reads as a bordered one")] + [
     ("fill-ground", s, "--hw-bg", FILL_FROM_GROUND, "a status fill that sinks into the ground")
-    for s in STATE_FILLS]
+    for s in STATE_FILLS] + [
+    ("state-text", s, "--hw-text", STATE_FROM_TEXT, "a status word in the text's own colour")
+    for s in STATE_TEXT]
 ROLE_INK_REPORTED = ("--hw-accent-text", ("--hw-success", "--hw-warning", "--hw-danger"))
 # A chart series is a mark: 1.4.11's 3:1 on every ground a chart is drawn on, the raised bar under
 # more, and held CHART_APART from every other series and every state ink, the bar a product colour
