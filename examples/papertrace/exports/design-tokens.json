@@ -399,7 +399,7 @@
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.52,
+                0.521,
                 0.01,
                 250
               ]
@@ -433,7 +433,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.52,
+                0.521,
                 0.01,
                 250
               ]
@@ -441,7 +441,7 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.495,
+                0.494,
                 0.01,
                 250
               ]
@@ -463,7 +463,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.213,
+          0.21,
           0.005,
           250
         ]
@@ -475,7 +475,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -491,7 +491,7 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -513,7 +513,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.495,
+          0.494,
           0.01,
           250
         ]
@@ -525,7 +525,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.495,
+                0.494,
                 0.01,
                 250
               ]
@@ -541,7 +541,7 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -583,7 +583,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.52,
+                0.521,
                 0.01,
                 250
               ]
@@ -599,7 +599,7 @@
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.52,
+                0.521,
                 0.01,
                 250
               ]
@@ -613,7 +613,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.213,
+          0.21,
           0.005,
           250
         ]
@@ -625,7 +625,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -641,7 +641,7 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -713,7 +713,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.495,
+          0.494,
           0.01,
           250
         ]
@@ -725,7 +725,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.495,
+                0.494,
                 0.01,
                 250
               ]
@@ -741,7 +741,7 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -791,8 +791,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.214,
-                0.064,
+                0.21,
+                0.062,
                 252
               ]
             },
@@ -841,8 +841,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.214,
-                0.064,
+                0.21,
+                0.062,
                 252
               ]
             },
@@ -916,7 +916,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.496,
+          0.494,
           0.12,
           252
         ]
@@ -928,7 +928,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.496,
+                0.494,
                 0.12,
                 252
               ]
@@ -944,8 +944,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.214,
-                0.064,
+                0.21,
+                0.062,
                 252
               ]
             },
@@ -1066,7 +1066,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.625,
+          0.624,
           0.108,
           252
         ]
@@ -1078,7 +1078,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.625,
+                0.624,
                 0.108,
                 252
               ]
@@ -1086,7 +1086,7 @@
             "dark": {
               "colorSpace": "oklch",
               "components": [
-                0.52,
+                0.521,
                 0.108,
                 252
               ]
@@ -1094,7 +1094,7 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -1166,7 +1166,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.213,
+          0.21,
           0.005,
           250
         ]
@@ -1178,7 +1178,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -1194,7 +1194,7 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.213,
+                0.21,
                 0.005,
                 250
               ]
@@ -1266,7 +1266,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.481,
+          0.48,
           0.132,
           150
         ]
@@ -1278,7 +1278,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.481,
+                0.48,
                 0.132,
                 150
               ]
@@ -1294,8 +1294,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.207,
-                0.057,
+                0.203,
+                0.055,
                 150
               ]
             },
@@ -1394,16 +1394,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.224,
-                0.09,
+                0.221,
+                0.089,
                 25
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.006,
+                0.988,
+                0.005,
                 25
               ]
             }
@@ -1466,7 +1466,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.481,
+          0.48,
           0.132,
           150
         ]
@@ -1478,7 +1478,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.481,
+                0.48,
                 0.132,
                 150
               ]
@@ -1494,8 +1494,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.207,
-                0.057,
+                0.203,
+                0.055,
                 150
               ]
             },
@@ -1616,7 +1616,7 @@
       "$value": {
         "colorSpace": "oklch",
         "components": [
-          0.501,
+          0.5,
           0.108,
           70
         ]
@@ -1628,7 +1628,7 @@
             "light": {
               "colorSpace": "oklch",
               "components": [
-                0.501,
+                0.5,
                 0.108,
                 70
               ]
@@ -1644,8 +1644,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.216,
-                0.046,
+                0.212,
+                0.045,
                 70
               ]
             },
@@ -1794,16 +1794,16 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.224,
-                0.09,
+                0.221,
+                0.089,
                 25
               ]
             },
             "dark-more": {
               "colorSpace": "oklch",
               "components": [
-                0.987,
-                0.006,
+                0.988,
+                0.005,
                 25
               ]
             }
@@ -1944,8 +1944,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.224,
-                0.09,
+                0.221,
+                0.089,
                 25
               ]
             },
@@ -1994,8 +1994,8 @@
             "light-more": {
               "colorSpace": "oklch",
               "components": [
-                0.224,
-                0.09,
+                0.221,
+                0.089,
                 25
               ]
             },
@@ -2114,6 +2114,306 @@
                 0
               ],
               "alpha": 0.6
+            }
+          }
+        }
+      }
+    },
+    "chart-1": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.61,
+          0.11,
+          180
+        ]
+      },
+      "$description": "the first series of a chart with two or more",
+      "$extensions": {
+        "halderworks": {
+          "modes": {
+            "light": {
+              "colorSpace": "oklch",
+              "components": [
+                0.61,
+                0.11,
+                180
+              ]
+            },
+            "dark": {
+              "colorSpace": "oklch",
+              "components": [
+                0.509,
+                0.092,
+                180
+              ]
+            },
+            "light-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.484,
+                0.087,
+                180
+              ]
+            },
+            "dark-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.655,
+                0.118,
+                180
+              ]
+            }
+          }
+        }
+      }
+    },
+    "chart-2": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.499,
+          0.15,
+          260
+        ]
+      },
+      "$description": "the second series",
+      "$extensions": {
+        "halderworks": {
+          "modes": {
+            "light": {
+              "colorSpace": "oklch",
+              "components": [
+                0.499,
+                0.15,
+                260
+              ]
+            },
+            "dark": {
+              "colorSpace": "oklch",
+              "components": [
+                0.673,
+                0.15,
+                260
+              ]
+            },
+            "light-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.499,
+                0.15,
+                260
+              ]
+            },
+            "dark-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.673,
+                0.15,
+                260
+              ]
+            }
+          }
+        }
+      }
+    },
+    "chart-3": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.64,
+          0.135,
+          310
+        ]
+      },
+      "$description": "the third series",
+      "$extensions": {
+        "halderworks": {
+          "modes": {
+            "light": {
+              "colorSpace": "oklch",
+              "components": [
+                0.64,
+                0.135,
+                310
+              ]
+            },
+            "dark": {
+              "colorSpace": "oklch",
+              "components": [
+                0.535,
+                0.135,
+                310
+              ]
+            },
+            "light-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.511,
+                0.15,
+                310
+              ]
+            },
+            "dark-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.687,
+                0.15,
+                310
+              ]
+            }
+          }
+        }
+      }
+    },
+    "chart-4": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.514,
+          0.15,
+          355
+        ]
+      },
+      "$description": "the fourth series",
+      "$extensions": {
+        "halderworks": {
+          "modes": {
+            "light": {
+              "colorSpace": "oklch",
+              "components": [
+                0.514,
+                0.15,
+                355
+              ]
+            },
+            "dark": {
+              "colorSpace": "oklch",
+              "components": [
+                0.69,
+                0.15,
+                355
+              ]
+            },
+            "light-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.514,
+                0.15,
+                355
+              ]
+            },
+            "dark-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.69,
+                0.15,
+                355
+              ]
+            }
+          }
+        }
+      }
+    },
+    "chart-5": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.62,
+          0.135,
+          110
+        ]
+      },
+      "$description": "the fifth series",
+      "$extensions": {
+        "halderworks": {
+          "modes": {
+            "light": {
+              "colorSpace": "oklch",
+              "components": [
+                0.62,
+                0.135,
+                110
+              ]
+            },
+            "dark": {
+              "colorSpace": "oklch",
+              "components": [
+                0.516,
+                0.112,
+                110
+              ]
+            },
+            "light-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.491,
+                0.107,
+                110
+              ]
+            },
+            "dark-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.666,
+                0.145,
+                110
+              ]
+            }
+          }
+        }
+      }
+    },
+    "chart-6": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.486,
+          0.088,
+          220
+        ]
+      },
+      "$description": "the sixth; a seventh is \"Other\" or another chart",
+      "$extensions": {
+        "halderworks": {
+          "modes": {
+            "light": {
+              "colorSpace": "oklch",
+              "components": [
+                0.486,
+                0.088,
+                220
+              ]
+            },
+            "dark": {
+              "colorSpace": "oklch",
+              "components": [
+                0.661,
+                0.12,
+                220
+              ]
+            },
+            "light-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.486,
+                0.088,
+                220
+              ]
+            },
+            "dark-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.661,
+                0.12,
+                220
+              ]
             }
           }
         }

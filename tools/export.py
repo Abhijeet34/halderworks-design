@@ -42,9 +42,8 @@ TYPE_PARTS = ("text", "leading", "tracking", "weight")
 
 # Every "color" name ramps/roles.css replaces, each under a name of its own (surface -> bg,
 # border -> line, quiet -> fill, ring -> focus...): no literal match is expected for one of
-# these, so membership here stands in for one. UNROLED is the opposite case: six categorical
-# steps ramps/roles.css gives no role to at all, a stated gap (design/75-spec-sheet.md,
-# follow-up house-chart-roles-r8). A colour tokens.json declares in neither set is new and
+# these, so membership here stands in for one. Any other colour tokens.json declares must be a
+# role under the same name (the six chart series are); one that is neither is new and
 # unaccounted for, so check_sources refuses it by name instead of folding it in by family.
 RENAMED_COLOR = frozenset({
     "hw-accent", "hw-accent-hover", "hw-accent-quiet", "hw-accent-ring",
@@ -54,9 +53,6 @@ RENAMED_COLOR = frozenset({
     "hw-surface-hover", "hw-surface-raised", "hw-surface-sunken", "hw-text",
     "hw-text-disabled", "hw-text-muted", "hw-text-secondary", "hw-warning",
     "hw-warning-quiet",
-})
-UNROLED = frozenset({
-    "hw-chart-1", "hw-chart-2", "hw-chart-3", "hw-chart-4", "hw-chart-5", "hw-chart-6",
 })
 
 # spacing, duration and easing names ramps/scales.css declares under the same name tokens.json
@@ -342,9 +338,10 @@ def check_sources(src, root):
     role_names = {k for k, _ in roles(src)}
     owned = set()
     colors = {e["name"] for e in tokens["color"]["tokens"]}
-    owned |= {"--" + n for n in colors & (RENAMED_COLOR | UNROLED)}
-    bad += [f"--{n} is a colour token ramps/roles.css neither renames nor declares UNROLED"
-            for n in sorted(colors - RENAMED_COLOR - UNROLED)]
+    accounted = (colors & RENAMED_COLOR) | {n for n in colors if f"--{n}" in role_names}
+    owned |= {"--" + n for n in accounted}
+    bad += [f"--{n} is a colour token ramps/roles.css neither renames nor declares"
+            for n in sorted(colors - accounted)]
     for fam in (f for f in SUPERSEDED if f != "color"):
         names = {e["name"] for e in tokens[fam]["tokens"]}
         accounted = {n for n in names if f"--{n}" in role_names} | (names & RETIRED)
@@ -381,8 +378,6 @@ def check_sources(src, root):
                 resolve(env[k], env)
             except KeyError as exc:
                 bad.append(f"{k} [{mode}] names {exc.args[0]}, which no source declares")
-    bad += [f"--{n} is UNROLED but ramps/roles.css declares it" for n in sorted(UNROLED)
-            if f"--{n}" in role_names]
     return bad
 
 
@@ -663,7 +658,7 @@ RULES = [
     "Use a role, never a ramp step: a role carries its step's contrast floor, and a step chosen "
     "by eye carries none.",
     "The primary action is hw-ink and carries no hue. There is exactly one per screen.",
-    "Every state carries a word, never a colour alone.",
+    "Every state carries a word and every chart series a direct label, never a colour alone.",
     "No gradient behind text, no backdrop-filter, no shadow on anything that cannot be "
     "dismissed. A patterned ground carries only ink certified against its own worst pixel.",
     "Type, space and control sizes are rem, so the text-size setting moves them; never set one "
@@ -681,7 +676,8 @@ ANSWERS = [
     ("`prefers-contrast: more`", "muted text, lines, the focus ring, solids and state text "
                                  "move to step 12, which clears 7:1; in dark the ring moves to "
                                  "accent 11 and the danger solid to red 7 under a light label, "
-                                 "off the ink"),
+                                 "off the ink; chart series 1, 3 and 5 move to step 11, which "
+                                 "clears 4.5:1"),
     ('`data-text-size="s|m|l|xl|xxl"` on `html`', "the root size, so every rem step moves"),
     ('`data-density="compact"` on any ancestor', "control height, row height and vertical "
                                                  "cell and field padding"),
@@ -774,11 +770,7 @@ def emit_design_md(src, compact):
                 "against, the component anatomies, the anti-pattern list and the spec sheet of "
                 "named assets. Those are the numbered files beside this one; `README.md` says "
                 "which answers what.", "",
-                "Chart colours have no role yet and are a stated gap, followed up in "
-                "house-chart-roles-r8: `--hw-chart-1` to `-6` stay in `tokens/tokens.json` and "
-                "`tokens/tokens.css` but carry no name in `ramps/roles.css`, so this export "
-                "does not carry them either.", "",
-                "Per-step letter-spacing and weight are the same kind of gap: the rem type ramp "
+                "Per-step letter-spacing and weight are a stated gap: the rem type ramp "
                 "ships a size and a leading for each step and nothing for `--hw-tracking-*` or "
                 "`--hw-weight-*`, so this export carries neither.", ""]
     return "\n".join(out)
