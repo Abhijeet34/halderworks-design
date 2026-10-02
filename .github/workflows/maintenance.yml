@@ -15,7 +15,7 @@ name: maintenance
 # only a schedule can do: the network liveness check, and the issue.
 #
 # No `push` trigger, deliberately. ci.yml already runs the consistency call on every push to
-# main, so a push here added nothing but 26 outbound requests per commit against a field that
+# main, so a push here added nothing but 51 outbound requests per commit against a field that
 # moves in months - and it is how the network check first went red on a commit page, on an
 # event whose failure the issue job below was never wired to report.
 
