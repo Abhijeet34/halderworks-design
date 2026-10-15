@@ -475,13 +475,14 @@ component(
     "A product mark; decoration.",
     "A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its "
     "size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group "
-    "overlaps by a fifth of the size with a 2px ring in --hw-surface, and a covered avatar centres "
-    "its initials in the part left showing.",
+    "overlaps by 0.2rem, 0.4rem at the large size and not at all at the small, with a 2px ring in "
+    "--hw-surface; a covered avatar centres its initials in the part left showing, so even 'MW' "
+    "keeps both letters.",
     "initials, image, group",
     "Not focusable; the image's alt or an aria-label carries the name, and a group's count is text.",
     "Keep the initials under the image, so a failed load still names the person.",
     "Stack more than four; say '+3' as text after them.",
-    """<div class="row"><span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar hw-avatar--lg" role="img" aria-label="Reviewer">{{icon:user}}</span><span class="hw-avatar-group"><span class="hw-avatar" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar" role="img" aria-label="Sam Lee">SL</span></span><span class="hw-small">and 3 more</span></div>""")
+    """<div class="row"><span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar hw-avatar--lg" role="img" aria-label="Reviewer">{{icon:user}}</span><span class="hw-avatar-group"><span class="hw-avatar" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Mark Wren">MW</span><span class="hw-avatar" role="img" aria-label="Sam Lee">SL</span></span><span class="hw-small">and 3 more</span></div>""")
 
 # ------------------------------------------------------------------------------------- marks
 component(

@@ -363,20 +363,20 @@ dialog.hw-dialog[open] { animation: hw-dialog-in var(--hw-duration-slow) var(--h
 .hw-disclosure[open] > summary::before { rotate: 45deg; }
 
 /* ---------- avatar: initials by default; an image covers them when it loads ---------- */
+/* --_o is a group's overlap: the most that still leaves the widest initials, "MW", showing */
 .hw-avatar {
-  --_s: 1.8667rem; display: inline-grid; place-items: center; width: var(--_s); height: var(--_s); flex: none; overflow: hidden;
+  --_s: 1.8667rem; --_o: 0.2rem; display: inline-grid; place-items: center; width: var(--_s); height: var(--_s); flex: none; overflow: hidden;
   border-radius: var(--hw-radius-full); background: var(--hw-fill-active); color: var(--hw-text);
   font: 650 max(calc(var(--_s) * 0.4), 11px)/1 var(--hw-font-sans); letter-spacing: 0.02em; text-transform: uppercase;
 }
 .hw-avatar > img { width: 100%; height: 100%; object-fit: cover; grid-area: 1 / 1; }
-.hw-avatar--sm { --_s: 1.6rem; }
-.hw-avatar--lg { --_s: 2.6667rem; }
+.hw-avatar--sm { --_s: 1.6rem; --_o: 0px; }
+.hw-avatar--lg { --_s: 2.6667rem; --_o: 0.4rem; }
 .hw-avatar-group { display: inline-flex; }
-.hw-avatar-group { --_o: 0.2; }
 .hw-avatar-group > .hw-avatar { box-shadow: 0 0 0 2px var(--hw-surface); }
-.hw-avatar-group > .hw-avatar + .hw-avatar { margin-left: calc(var(--_s) * var(--_o) * -1); }
+.hw-avatar-group > .hw-avatar + .hw-avatar { margin-left: calc(-1 * var(--_o)); }
 /* a covered avatar centres its initials in the part left showing; an image still fills the circle */
-.hw-avatar-group > .hw-avatar:not(:last-child) { position: relative; padding-right: calc(var(--_s) * var(--_o)); }
+.hw-avatar-group > .hw-avatar:not(:last-child) { position: relative; padding-right: var(--_o); }
 .hw-avatar-group > .hw-avatar:not(:last-child) > img { position: absolute; inset: 0; }
 
 /* ---------- marks: the house signature ---------- */

@@ -536,7 +536,7 @@ Rendered: [the live page](../components/sheets/data.html), and at M, [light](../
 
 - **For:** Stands for a person beside what they did: who left a note, who sent a review.
 - **Not for:** A product mark; decoration.
-- **Anatomy:** A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group overlaps by a fifth of the size with a 2px ring in --hw-surface, and a covered avatar centres its initials in the part left showing.
+- **Anatomy:** A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group overlaps by 0.2rem, 0.4rem at the large size and not at all at the small, with a 2px ring in --hw-surface; a covered avatar centres its initials in the part left showing, so even 'MW' keeps both letters.
 - **States:** initials, image, group.
 - **Keyboard:** Not focusable; the image's alt or an aria-label carries the name, and a group's count is text.
 - **Tokens:** `--hw-fill-active`, `--hw-font-sans`, `--hw-radius-full`, `--hw-surface`, `--hw-text`.
