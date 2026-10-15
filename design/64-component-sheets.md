@@ -41,7 +41,7 @@ Rendered: [the live page](../components/sheets/actions.html), and at M, [light](
 - **For:** Starts an action whose verb is its label.
 - **Not for:** Moving to another page (a link); choosing between options (segmented control).
 - **Anatomy:** A box at least --hw-control-h tall in three sizes, 12px side padding at M, radius --hw-radius-md, a 13px label at weight 560, an optional icon at 1.15em with an 8px gap. Variants: secondary (the default), primary in ink, accent, quiet, danger outlined and danger solid, and icon-only.
-- **States:** rest, hover (fill), active (1px press), focus-visible (2px ring at 2px offset), disabled (fill, disabled ink, no border), busy (a spinner before the label; still under reduced motion).
+- **States:** rest, hover (fill), active (1px press), focus-visible (2px ring at 2px offset), disabled (fill, disabled ink, no border), busy (a spinner before the label; three still dots under reduced motion).
 - **Keyboard:** A native button: Tab reaches it, Enter and Space press it. An icon-only button carries aria-label.
 - **Tokens:** `--hw-border-w`, `--hw-control-h`, `--hw-duration-fast`, `--hw-ease-out`, `--hw-fill`, `--hw-font-sans`, `--hw-line-strong`, `--hw-radius-md`, `--hw-space-12`, `--hw-space-8`, `--hw-surface`, `--hw-text`, `--hw-text-disabled`, `--hw-text-sm`.
 - **Do:** One primary per view, in ink. Keep the accent variant for a stage or the one brand moment a product names.
@@ -173,7 +173,7 @@ Rendered: [the live page](../components/sheets/inputs.html), and at M, [light](.
 - **Anatomy:** A track 2.13em by 1.2em with the thumb inset; on is --hw-ink. The label sits before it in a settings row.
 - **States:** off, on, focus-visible, disabled.
 - **Keyboard:** A native checkbox with role switch: Space toggles it.
-- **Tokens:** `--hw-border-w`, `--hw-duration-fast`, `--hw-ease-out`, `--hw-fill-active`, `--hw-focus`, `--hw-focus-offset`, `--hw-focus-w`, `--hw-ink`, `--hw-leading-snug`, `--hw-line-strong`, `--hw-on-ink`, `--hw-radius-full`, `--hw-space-12`, `--hw-surface`, `--hw-text-disabled`, `--hw-text-sm`.
+- **Tokens:** `--hw-border-w`, `--hw-duration-fast`, `--hw-ease-out`, `--hw-fill`, `--hw-fill-active`, `--hw-focus`, `--hw-focus-offset`, `--hw-focus-w`, `--hw-ink`, `--hw-leading-snug`, `--hw-line-strong`, `--hw-on-ink`, `--hw-radius-full`, `--hw-space-12`, `--hw-surface`, `--hw-text-disabled`, `--hw-text-sm`.
 - **Do:** Name the setting, not the state.
 - **Do not:** Write 'Enabled' as the label.
 - **Classes:** `.hw-switch`.
@@ -319,8 +319,8 @@ Rendered: [the live page](../components/sheets/overlays.html), and at M, [light]
 - **For:** Names an icon-only control and its shortcut.
 - **Not for:** Anything the person needs in order to act: it is unreachable on touch.
 - **Anatomy:** An ink box, 12px/500, at most 18rem wide, radius --hw-radius-sm, 8px from its control. Wrap the control in .hw-tip; it shows above, or below with .hw-tip--below.
-- **States:** hidden; shown 500ms after hover or keyboard focus of the control, hidden at once.
-- **Keyboard:** Shown on focus as well as hover, from CSS alone. The control keeps its own aria-label; the tip repeats it for sighted readers.
+- **States:** hidden; shown 500ms after hover or keyboard focus of the control, hidden at once; dismissed by Escape until the pointer or focus leaves.
+- **Keyboard:** Shown on focus as well as hover, from CSS alone; Escape hides it without moving the pointer or focus (components/radiogroup.js). The control keeps its own aria-label; the tip repeats it for sighted readers.
 - **Tokens:** `--hw-duration-fast`, `--hw-ease-out`, `--hw-font-sans`, `--hw-ink`, `--hw-leading-snug`, `--hw-on-ink`, `--hw-radius-sm`, `--hw-space-8`, `--hw-text-xs`, `--hw-z-dropdown`.
 - **Do:** Show it on focus as well as hover.
 - **Do not:** Put a sentence of help in it.
@@ -466,13 +466,13 @@ Rendered: [the live page](../components/sheets/data.html), and at M, [light](../
 
 - **For:** Shows the properties of one thing.
 - **Not for:** Many things (table).
-- **Anatomy:** Two columns, keys muted at 13px and values in text; an 8px row gap and a 24px column gap; it stacks in a container narrower than 30rem.
+- **Anatomy:** Two columns, keys muted at 13px and values in text; an 8px row gap and a 24px column gap; it stacks in a container narrower than 30rem, and .hw-kv-wrap is that container on a page that declares none.
 - **States:** set, missing (the value reads 'Not set').
 - **Keyboard:** A native description list; not focusable.
 - **Tokens:** `--hw-leading-snug`, `--hw-space-24`, `--hw-space-8`, `--hw-text`, `--hw-text-muted`, `--hw-text-sm`.
 - **Do:** Write units into the value.
 - **Do not:** An empty dash for a missing value.
-- **Classes:** `.hw-kv`.
+- **Classes:** `.hw-kv`, `.hw-kv-wrap`.
 - **Against the house before this layer:** keep.
 - **Used by:** all four.
 
@@ -536,7 +536,7 @@ Rendered: [the live page](../components/sheets/data.html), and at M, [light](../
 
 - **For:** Stands for a person beside what they did: who left a note, who sent a review.
 - **Not for:** A product mark; decoration.
-- **Anatomy:** A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group overlaps by 0.4rem with a 2px ring in --hw-surface.
+- **Anatomy:** A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group overlaps by a fifth of the size with a 2px ring in --hw-surface, and a covered avatar centres its initials in the part left showing.
 - **States:** initials, image, group.
 - **Keyboard:** Not focusable; the image's alt or an aria-label carries the name, and a group's count is text.
 - **Tokens:** `--hw-fill-active`, `--hw-font-sans`, `--hw-radius-full`, `--hw-surface`, `--hw-text`.
@@ -596,10 +596,10 @@ Rendered: [the live page](../components/sheets/marks.html), and at M, [light](..
 
 - **For:** Points at a place on a page and carries a note back.
 - **Not for:** Decoration.
-- **Anatomy:** A 1.6rem teardrop in the product's solid with its number; the note is a card beside it with the selector in mono, truncated to one line.
+- **Anatomy:** A 1.6rem teardrop in the product's solid with its number, widening for three digits or more, with an inner edge in --hw-accent-edge that holds 3:1 where the solid does not; the note is a card beside it with the selector in mono, truncated to one line.
 - **States:** placed, sent, resolved.
 - **Keyboard:** The note is the Tab stop; the pin is its label, read with it.
-- **Tokens:** `--hw-accent`, `--hw-border-w`, `--hw-font-sans`, `--hw-leading`, `--hw-line`, `--hw-line-strong`, `--hw-on-accent`, `--hw-radius-lg`, `--hw-space-12`, `--hw-space-4`, `--hw-surface`, `--hw-text`, `--hw-text-muted`, `--hw-text-sm`, `--hw-text-xs`.
+- **Tokens:** `--hw-accent`, `--hw-accent-edge`, `--hw-border-w`, `--hw-font-sans`, `--hw-leading`, `--hw-line`, `--hw-line-strong`, `--hw-on-accent`, `--hw-radius-lg`, `--hw-space-12`, `--hw-space-4`, `--hw-surface`, `--hw-text`, `--hw-text-muted`, `--hw-text-sm`, `--hw-text-xs`.
 - **Do:** Number pins in the order they were made.
 - **Do not:** Hide the number.
 - **Classes:** `.hw-pin`, `.hw-note`, `.hw-note-locator`.

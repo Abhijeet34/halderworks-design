@@ -1108,6 +1108,56 @@
         }
       }
     },
+    "accent-edge": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [
+          0.624,
+          0.129,
+          100
+        ]
+      },
+      "$description": "the edge of an accent solid, 3:1 where the solid is not",
+      "$extensions": {
+        "halderworks": {
+          "modes": {
+            "light": {
+              "colorSpace": "oklch",
+              "components": [
+                0.624,
+                0.129,
+                100
+              ]
+            },
+            "dark": {
+              "colorSpace": "oklch",
+              "components": [
+                0.52,
+                0.108,
+                100
+              ]
+            },
+            "light-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.491,
+                0.102,
+                100
+              ]
+            },
+            "dark-more": {
+              "colorSpace": "oklch",
+              "components": [
+                0.669,
+                0.139,
+                100
+              ]
+            }
+          }
+        }
+      }
+    },
     "mark": {
       "$type": "color",
       "$value": {
