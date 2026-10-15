@@ -95,14 +95,9 @@ Do not read the compact brief *instead of* the file that owns the thing you are 
 
 ## Loading the tokens into a product
 
-```css
-@import "fonts/fonts.css";            /* the house faces, self-hosted from this repository's fonts/ */
-@import "variables.css";              /* exports/variables.css, or examples/<brand>/exports/variables.css */
-@import "components/components.css";  /* the component layer, after the variables */
-@import "product.css";                /* the product's own namespace, loaded AFTER, never instead */
-```
-
-Fonts are self-hosted, never loaded from a font service: `fonts/` holds Archivo, Literata and IBM Plex Mono as WOFF2 with their OFL texts, and `design/00-brand-book.md#loading-it-in-a-product` says what a brand with system faces loads instead.
+Load the faces, the variables, the component layer and its one script in the order of the one loading block, in [design/00-brand-book.md](design/00-brand-book.md#loading-it-in-a-product), with the product's own stylesheet after them, never instead.
+Fonts are self-hosted, never loaded from a font service: `fonts/` holds Archivo, Literata and IBM Plex Mono as WOFF2 with their OFL texts.
+Each component's markup is at the end of its sheet in `design/64-component-sheets.md`; copy it rather than writing it from the anatomy.
 
 Every token is prefixed `hw-`, so it cannot collide with a framework's variables.
 Dark theme is `[data-theme="dark"]`, and the system follows `prefers-color-scheme` when the page has made no explicit choice.

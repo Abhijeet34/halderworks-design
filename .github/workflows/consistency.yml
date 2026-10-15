@@ -31,7 +31,8 @@ jobs:
   consistency:
     name: the system agrees with itself
     runs-on: ubuntu-24.04
-    # tests/run.py alone took 6 to 8 minutes locally (AGENTS.md); 20 leaves room for a slow runner.
+    # tests/run.py's five suites took 254s together locally on 2026-10-15, and 7m32s of this job
+    # on run 38738555654; 20 leaves room for a slow runner.
     timeout-minutes: 20
     outputs:
       report: ${{ steps.collect.outputs.report }}
