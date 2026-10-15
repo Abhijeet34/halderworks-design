@@ -9,7 +9,7 @@ to be, both adopted from the 2026-09-21 audit, which found 17 of 21 wrong inputs
 tool green; that tools/ramps.py holds every floor with every hue open; that the CSS exports
 cascade right in every theme, contrast, pointer, motion and text-size condition they answer; and
 that the component layer reads only house tokens and paints only pairs tools/contrast.py
-certifies.
+certifies; and that it renders as a product loading it would see.
 
 A test file nobody runs is not a check, which is the only reason this file exists: nothing in a
 shell-driven repository discovers tests, so the gate has to name them. .github/workflows/
@@ -32,6 +32,7 @@ SUITES = [
     ("ramps", "the twelve-step ramps hold every floor, every hue open", "ramps.py"),
     ("exports", "the CSS exports cascade right in every condition they answer", "exports.py"),
     ("components", "the component layer names only house tokens and paints only certified pairs", "components.py"),
+    ("browser", "the component layer, rendered, does what the adoption trial probed", "browser.py"),
 ]
 
 

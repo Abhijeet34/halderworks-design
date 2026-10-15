@@ -603,6 +603,7 @@
   --hw-accent-fill: var(--hw-accent-3);      /* selected row */
   --hw-accent-line: var(--hw-accent-7);      /* the edge of a selected row or chip */
   --hw-focus: var(--hw-accent-8);            /* the focus ring; never removed */
+  --hw-accent-edge: var(--hw-accent-8);      /* the edge of an accent solid, 3:1 where the solid is not */
 
   /* ---- marks, the house signature ---- */
   --hw-mark: var(--hw-mark-9);               /* highlighter: words the product knows */
@@ -682,6 +683,7 @@
     --hw-chart-1: var(--hw-teal-11);
     --hw-chart-3: var(--hw-violet-11);
     --hw-chart-5: var(--hw-olive-11);
+    --hw-accent-edge: var(--hw-accent-11);
   }
 }
 
@@ -876,6 +878,7 @@ html[data-text-size="xxl"] { font-size: 137.5%; }
   --color-accent-fill: var(--hw-accent-fill);
   --color-accent-line: var(--hw-accent-line);
   --color-focus: var(--hw-focus);
+  --color-accent-edge: var(--hw-accent-edge);
   --color-mark: var(--hw-mark);
   --color-on-mark: var(--hw-on-mark);
   --color-mark-quiet: var(--hw-mark-quiet);

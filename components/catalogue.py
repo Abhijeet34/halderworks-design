@@ -69,7 +69,7 @@ component(
     "a 13px label at weight 560, an optional icon at 1.15em with an 8px gap. Variants: secondary (the "
     "default), primary in ink, accent, quiet, danger outlined and danger solid, and icon-only.",
     "rest, hover (fill), active (1px press), focus-visible (2px ring at 2px offset), disabled (fill, "
-    "disabled ink, no border), busy (a spinner before the label; still under reduced motion)",
+    "disabled ink, no border), busy (a spinner before the label; under reduced motion, a still ellipsis after it)",
     "A native button: Tab reaches it, Enter and Space press it. An icon-only button carries aria-label.",
     "One primary per view, in ink. Keep the accent variant for a stage or the one brand moment a "
     "product names.",
@@ -242,7 +242,7 @@ component(
     "off, on, focus-visible, disabled",
     "A native checkbox with role switch: Space toggles it.",
     "Name the setting, not the state.", "Write 'Enabled' as the label.",
-    """<div class="stack"><label class="hw-switch">Learn words from the repository in front <input type="checkbox" role="switch" checked></label><label class="hw-switch">Keep recordings when typing fails <input type="checkbox" role="switch"></label></div>""",
+    """<div class="stack"><label class="hw-switch">Learn words from the repository in front <input type="checkbox" role="switch" checked></label><label class="hw-switch">Keep recordings when typing fails <input type="checkbox" role="switch"></label><label class="hw-switch">Start at login, set by your organisation <input type="checkbox" role="switch" checked disabled></label></div>""",
     [("On", """<label class="hw-switch">Learn words from the repository in front <input type="checkbox" role="switch" checked></label>"""),
      ("Disabled", """<label class="hw-switch">Keep recordings when typing fails <input type="checkbox" role="switch" disabled></label>""")])
 
@@ -432,9 +432,11 @@ component(
     "Anything the person needs in order to act: it is unreachable on touch.",
     "An ink box, 12px/500, at most 18rem wide, radius --hw-radius-sm, 8px from its control. Wrap the "
     "control in .hw-tip; it shows above, or below with .hw-tip--below.",
-    "hidden; shown 500ms after hover or keyboard focus of the control, hidden at once",
-    "Shown on focus as well as hover, from CSS alone. The control keeps its own aria-label; the tip "
-    "repeats it for sighted readers.",
+    "hidden; shown 500ms after hover or keyboard focus of the control, hidden at once; dismissed by "
+    "Escape until the pointer or focus leaves",
+    "Shown on focus as well as hover, from CSS alone; Escape hides it without moving the pointer or "
+    "focus (components/radiogroup.js). The control keeps its own aria-label; the tip repeats it for "
+    "sighted readers.",
     "Show it on focus as well as hover.", "Put a sentence of help in it.",
     """<div class="row tall"><span class="hw-tip"><button class="hw-btn hw-btn--icon" aria-label="Copy">{{icon:copy}}</button><span class="hw-tooltip" aria-hidden="true">Copy <kbd class="hw-kbd">⌘C</kbd></span></span><span class="hw-tooltip">Copy <kbd class="hw-kbd">⌘C</kbd></span><span class="hw-small">The second is drawn open, as it shows after the delay.</span></div>""",
     [("Above its control", """<span class="hw-tip">
@@ -625,18 +627,22 @@ component(
 </table>""")])
 
 component(
-    "data", "Key-value list", [".hw-kv"], "all four",
+    "data", "Key-value list", [".hw-kv", ".hw-kv-wrap"], "all four",
     "Shows the properties of one thing.", "Many things (table).",
     "Two columns, keys muted at 13px and values in text; an 8px row gap and a 24px column gap; it "
-    "stacks in a container narrower than 30rem.",
+    "stacks in a container narrower than 30rem, and .hw-kv-wrap is that container on a page that "
+    "declares none.",
     "set, missing (the value reads 'Not set')",
     "A native description list; not focusable.",
     "Write units into the value.", "An empty dash for a missing value.",
-    """<dl class="hw-kv"><dt>Model</dt><dd>Base (English), 148 MB</dd><dt>Runs on</dt><dd>This Mac, no network</dd><dt>History kept</dt><dd>30 days</dd><dt>Licence</dt><dd>Not set</dd></dl>""",
-    [("A description list", """<dl class="hw-kv">
+    """<div class="hw-kv-wrap"><dl class="hw-kv"><dt>Model</dt><dd>Base (English), 148 MB</dd><dt>Runs on</dt><dd>This Mac, no network</dd><dt>History kept</dt><dd>30 days</dd><dt>Licence</dt><dd>Not set</dd></dl></div>""",
+    [("A description list; it stacks below 30rem of its container", """<dl class="hw-kv">
   <dt>Model</dt><dd>Base (English), 148 MB</dd>
   <dt>Licence</dt><dd>Not set</dd>
-</dl>""")])
+</dl>"""),
+     ("On a page that declares no container, wrap it", """<div class="hw-kv-wrap">
+  <dl class="hw-kv">...</dl>
+</div>""")])
 
 component(
     "data", "Empty state", [".hw-empty"], "quoth, pointback",
@@ -695,19 +701,21 @@ component(
     "A product mark; decoration.",
     "A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its "
     "size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group "
-    "overlaps by 0.4rem with a 2px ring in --hw-surface.",
+    "overlaps by 0.2rem, or 0.4rem at the large size and none at the small, with a 2px ring in "
+    "--hw-surface; a covered avatar centres its initials in the part left showing, so even 'MW' "
+    "keeps both letters.",
     "initials, image, group",
     "Not focusable; the image's alt or an aria-label carries the name, and a group's count is text.",
     "Keep the initials under the image, so a failed load still names the person.",
     "Stack more than four; say '+3' as text after them.",
-    """<div class="row"><span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar hw-avatar--lg" role="img" aria-label="Reviewer">{{icon:user}}</span><span class="hw-avatar-group"><span class="hw-avatar" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar" role="img" aria-label="Sam Lee">SL</span></span><span class="hw-small">and 3 more</span></div>""",
+    """<div class="row"><span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar hw-avatar--lg" role="img" aria-label="Reviewer">{{icon:user}}</span><span class="hw-avatar-group"><span class="hw-avatar" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Mark Wren">MW</span><span class="hw-avatar" role="img" aria-label="Sam Lee">SL</span></span><span class="hw-small">and 3 more</span></div>""",
     [("Initials, in three sizes", """<span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span>
 <span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span>
 <span class="hw-avatar hw-avatar--lg" role="img" aria-label="Sam Lee">SL</span>"""),
      ("An image over the initials", """<span class="hw-avatar" role="img" aria-label="Mira Shah">MS<img src="mira.jpg" alt=""></span>"""),
      ("A group, the count as text after it", """<span class="hw-avatar-group">
   <span class="hw-avatar" role="img" aria-label="Mira Shah">MS</span>
-  <span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span>
+  <span class="hw-avatar" role="img" aria-label="Mark Wren">MW</span>
 </span>
 <span class="hw-small">and 3 more</span>""")])
 
@@ -766,17 +774,20 @@ component(
     "marks", "Pin and margin note", [".hw-pin", ".hw-note", ".hw-note-locator"],
     "pointback",
     "Points at a place on a page and carries a note back.", "Decoration.",
-    "A 1.6rem teardrop in the product's solid with its number; the note is a card beside it with the "
-    "selector in mono, truncated to one line.",
+    "A 1.6rem teardrop in the product's solid with its number, widening for three digits or more, "
+    "with an inner edge in --hw-accent-edge that holds 3:1 where the solid does not; the note is a "
+    "card beside it with the selector in mono, truncated to one line.",
     "placed, sent, resolved",
     "The note is the Tab stop; the pin is its label, read with it.",
     "Number pins in the order they were made.", "Hide the number.",
-    """<div class="row top"><span class="hw-pin" aria-hidden="true">3</span><div class="hw-note"><p class="hw-small strong">The primary button sits 4px lower than Cancel.</p><code class="hw-code hw-note-locator">main &gt; .checkout-actions &gt; button.primary</code></div></div>""",
+    """<div class="row top"><span class="hw-pin" aria-hidden="true">3</span><div class="hw-note"><p class="hw-small strong">The primary button sits 4px lower than Cancel.</p><code class="hw-code hw-note-locator">main &gt; .checkout-actions &gt; button.primary</code></div></div>
+<div class="row top"><span class="hw-pin" aria-hidden="true">128</span><div class="hw-note"><p class="hw-small strong">The footer links wrap under the logo at 390 wide.</p><code class="hw-code hw-note-locator">footer &gt; nav.site-links</code></div></div>""",
     [("The pin beside its note", """<span class="hw-pin" aria-hidden="true">3</span>
 <div class="hw-note">
   <p class="hw-small">The primary button sits 4px lower than Cancel.</p>
   <code class="hw-code hw-note-locator">main &gt; .checkout-actions &gt; button.primary</code>
-</div>""")])
+</div>"""),
+     ("Three digits or more: the pin widens", """<span class="hw-pin" aria-hidden="true">128</span>""")])
 
 component(
     "marks", "Code", [".hw-code"], "all four",
