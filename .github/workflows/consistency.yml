@@ -59,7 +59,7 @@ jobs:
         run: |
           set -uo pipefail
           sweeps=()
-          [ "$SWEEPS" = true ] && sweeps=(--sweeps)
+          [ "${SWEEPS:-false}" = true ] && sweeps=(--sweeps)
           report=$(mktemp)
           failed=0
           # Full output of every failing check, uploaded as the consistency-logs artifact. The
