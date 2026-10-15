@@ -77,10 +77,19 @@ class Browser:
         os.close(to_child)
         os.close(from_child)
         self._n, self._buf, self.events = 0, b"", []
-        target = self.call("Target.createTarget", {"url": "about:blank"})["targetId"]
-        self.session = self.call("Target.attachToTarget",
-                                 {"targetId": target, "flatten": True})["sessionId"]
-        self.call("Page.enable", page=True)
+        try:
+            target = self.call("Target.createTarget", {"url": "about:blank"})["targetId"]
+            self.session = self.call("Target.attachToTarget",
+                                     {"targetId": target, "flatten": True})["sessionId"]
+            self.call("Page.enable", page=True)
+        except BrowserError:
+            # A browser that never answered is still running and still writing into its
+            # profile; leaving it there made the caller's temp-dir cleanup race it on CI.
+            self.proc.kill()
+            self.proc.wait()
+            os.close(self._w)
+            os.close(self._r)
+            raise
 
     def _message(self):
         while b"\0" not in self._buf:
