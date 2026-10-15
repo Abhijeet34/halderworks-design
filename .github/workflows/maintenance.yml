@@ -34,13 +34,14 @@ jobs:
   sources:
     name: every cited source still resolves
     runs-on: ubuntu-24.04
-    # 40, not a round guess: check-sources.py budgets ATTEMPTS=3 x TIMEOUT=25s per source, so
-    # 26 sources cost at most 26 * 75s ~= 32.5 minutes before the step's own output block runs.
+    # 70, not a round guess: check-sources.py budgets ATTEMPTS=3 x TIMEOUT=25s per source and
+    # probes them one after another, so the 51 it probed on 2026-10-15 (52 cited, one in SKIP)
+    # cost at most 51 * 75s ~= 64 minutes before the step's own output block runs.
     # The job timeout must sit above that arithmetic, not below it - a timeout that could fire
     # first would cancel the job before it writes GITHUB_OUTPUT, and a cancelled job's `failed`
     # output is empty rather than '1', which the `report` job below cannot tell apart from a
     # clean run.
-    timeout-minutes: 40
+    timeout-minutes: 70
     # Its own job, not its own exemption: a timed-out CDN must not be able to mask a real
     # contrast failure, which is why this is separate from `consistency`. It used to carry
     # `continue-on-error: true` as well, and that made the job's red X and the run's green

@@ -150,7 +150,7 @@ Martian Mono's is the outlier, 0.600, with a 0.750em advance against Plex Mono's
 A column of its digits reflows by a fifth if the file fails to load, so a product that sets Martian Mono self-hosts it rather than relying on the stack.
 
 **A sans other than Archivo is held to Archivo's x-height.**
-Every size in the scale above was derived from the house face's x-height, so a text face with a smaller one would set every row half a step small.
+Every size in the scale above was derived from Public Sans's x-height, 0.517, and Archivo, the house face since 2026-10-02, sets it at 0.526, so a text face with a smaller one than Archivo's would set every row smaller than the house does.
 A brand whose sans differs sets `font-size-adjust: 0.526` beside `--hw-font-sans`, which scales whatever face renders, a system face included, until its x-height is the house's; `tools/ramps.py` names the value in the description of the brand's `--hw-font-sans`.
 No export carries it as a value of its own yet, and the type classes that once applied it retired with the solver, so it is a stated gap: a product sets the declaration itself.
 

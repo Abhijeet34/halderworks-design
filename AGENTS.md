@@ -216,7 +216,7 @@ the tree:
 scripts/apply-repo-settings.sh Abhijeet34/halderworks-design
 ```
 
-It sends `.github/rulesets/main.json` and the four files under `.github/settings/`, and it is
+It sends `.github/rulesets/main.json` and the five files under `.github/settings/`, and it is
 idempotent - a ruleset whose name already exists is updated in place, and the name is the join, so
 renaming one in the file creates a second on the forge. It sends whatever is in the working tree,
 so run it only from a tree whose settings files are the ones you intend.
