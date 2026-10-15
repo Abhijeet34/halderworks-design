@@ -55,9 +55,10 @@
 .hw-btn[aria-busy="true"] { cursor: progress; }
 .hw-btn[aria-busy="true"]::before { content: ""; width: 0.8em; height: 0.8em; border-radius: 50%; border: 0.12em solid currentColor; border-right-color: transparent; animation: hw-spin 0.8s linear infinite; }
 @keyframes hw-spin { to { transform: rotate(360deg); } }
-/* still, the glyph is three dots: a whole ring at rest reads as a radio button */
+/* still, a ring at rest reads as a radio button and dots as a More icon, so the label trails an ellipsis */
 @media (prefers-reduced-motion: reduce) {
-  .hw-btn[aria-busy="true"]::before { animation: none; border: 0; border-radius: 0; width: 1.1em; height: 0.22em; background: radial-gradient(circle closest-side, currentColor 85%, transparent) 0 0 / calc(100% / 3) 100% repeat-x; }
+  .hw-btn[aria-busy="true"]::before { display: none; }
+  .hw-btn[aria-busy="true"]::after { content: "\2026"; margin-left: calc(-1 * var(--hw-space-8)); }
 }
 
 /* ---------- link ---------- */

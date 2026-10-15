@@ -11,7 +11,7 @@ fonts/fonts.css, components/components.css, components/radiogroup.js) and nothin
   kv           a key-value list in its 300px .hw-kv-wrap stacks, and in a tall box keeps its pitch
   segmented    a segmented control in a 660px grid cell is as wide as its segments
   avatars      no covered avatar in a group loses an initial under the next one, at every size
-  busy         a busy button under reduced motion draws no ring
+  busy         a busy button under reduced motion draws no ring, and an ellipsis after its label
   disabled     a button disabled mid-hover paints its settled fill at once, not a fade
   tooltip      Escape hides a showing tooltip without moving focus or pointer, and it returns
   kbd          a keycap asks for weight 400, the one every product vendors
@@ -97,8 +97,8 @@ FADE = """(() => { const b = document.getElementById("fade"); getComputedStyle(b
   return [getComputedStyle(b).backgroundColor,
           getComputedStyle(document.getElementById("settled")).backgroundColor]; })()"""
 
-BUSY = """(() => { const s = getComputedStyle(document.getElementById("busy"), "::before");
-  return {border: s.borderTopWidth, image: s.backgroundImage}; })()"""
+BUSY = """(() => { const b = document.getElementById("busy");
+  return {before: getComputedStyle(b, "::before").display, after: getComputedStyle(b, "::after").content}; })()"""
 
 TIP = 'getComputedStyle(document.getElementById("tip")).visibility'
 FOCUSED = "document.activeElement && document.activeElement.id"
@@ -184,8 +184,8 @@ def probe(pg, theme):
     pg.media("reduce")
     busy = pg.js(BUSY)
     pg.media("no-preference")
-    check("busy", busy["border"] == "0px" and "gradient" in busy["image"],
-          f"reduced motion: ::before border {busy['border']}, image {busy['image'][:40]}")
+    check("busy", busy["before"] == "none" and busy["after"] == '"\u2026"',
+          f"reduced motion: the ring's display {busy['before']}, after the label {busy['after']}")
 
     # Keyboard: Tab onto the control, wait for the tip, Escape, and the focus has not moved.
     pg.js('document.getElementById("busy").focus(); true')

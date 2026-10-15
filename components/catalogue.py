@@ -40,7 +40,7 @@ component(
     "a 13px label at weight 560, an optional icon at 1.15em with an 8px gap. Variants: secondary (the "
     "default), primary in ink, accent, quiet, danger outlined and danger solid, and icon-only.",
     "rest, hover (fill), active (1px press), focus-visible (2px ring at 2px offset), disabled (fill, "
-    "disabled ink, no border), busy (a spinner before the label; three still dots under reduced motion)",
+    "disabled ink, no border), busy (a spinner before the label; under reduced motion, a still ellipsis after it)",
     "A native button: Tab reaches it, Enter and Space press it. An icon-only button carries aria-label.",
     "One primary per view, in ink. Keep the accent variant for a stage or the one brand moment a "
     "product names.",
@@ -475,7 +475,7 @@ component(
     "A product mark; decoration.",
     "A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its "
     "size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group "
-    "overlaps by 0.2rem, 0.4rem at the large size and not at all at the small, with a 2px ring in "
+    "overlaps by 0.2rem, or 0.4rem at the large size and none at the small, with a 2px ring in "
     "--hw-surface; a covered avatar centres its initials in the part left showing, so even 'MW' "
     "keeps both letters.",
     "initials, image, group",

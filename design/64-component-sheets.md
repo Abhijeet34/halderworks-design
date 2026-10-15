@@ -41,7 +41,7 @@ Rendered: [the live page](../components/sheets/actions.html), and at M, [light](
 - **For:** Starts an action whose verb is its label.
 - **Not for:** Moving to another page (a link); choosing between options (segmented control).
 - **Anatomy:** A box at least --hw-control-h tall in three sizes, 12px side padding at M, radius --hw-radius-md, a 13px label at weight 560, an optional icon at 1.15em with an 8px gap. Variants: secondary (the default), primary in ink, accent, quiet, danger outlined and danger solid, and icon-only.
-- **States:** rest, hover (fill), active (1px press), focus-visible (2px ring at 2px offset), disabled (fill, disabled ink, no border), busy (a spinner before the label; three still dots under reduced motion).
+- **States:** rest, hover (fill), active (1px press), focus-visible (2px ring at 2px offset), disabled (fill, disabled ink, no border), busy (a spinner before the label; under reduced motion, a still ellipsis after it).
 - **Keyboard:** A native button: Tab reaches it, Enter and Space press it. An icon-only button carries aria-label.
 - **Tokens:** `--hw-border-w`, `--hw-control-h`, `--hw-duration-fast`, `--hw-ease-out`, `--hw-fill`, `--hw-font-sans`, `--hw-line-strong`, `--hw-radius-md`, `--hw-space-12`, `--hw-space-8`, `--hw-surface`, `--hw-text`, `--hw-text-disabled`, `--hw-text-sm`.
 - **Do:** One primary per view, in ink. Keep the accent variant for a stage or the one brand moment a product names.
@@ -536,7 +536,7 @@ Rendered: [the live page](../components/sheets/data.html), and at M, [light](../
 
 - **For:** Stands for a person beside what they did: who left a note, who sent a review.
 - **Not for:** A product mark; decoration.
-- **Anatomy:** A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group overlaps by 0.2rem, 0.4rem at the large size and not at all at the small, with a 2px ring in --hw-surface; a covered avatar centres its initials in the part left showing, so even 'MW' keeps both letters.
+- **Anatomy:** A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its size on --hw-fill-active, never under 11px; an image covers the initials once it loads; a group overlaps by 0.2rem, or 0.4rem at the large size and none at the small, with a 2px ring in --hw-surface; a covered avatar centres its initials in the part left showing, so even 'MW' keeps both letters.
 - **States:** initials, image, group.
 - **Keyboard:** Not focusable; the image's alt or an aria-label carries the name, and a group's count is text.
 - **Tokens:** `--hw-fill-active`, `--hw-font-sans`, `--hw-radius-full`, `--hw-surface`, `--hw-text`.

@@ -59,7 +59,7 @@ A brand-wide curve is not an input because the difference does not show where mo
 
 Under `prefers-reduced-motion: reduce`, movement goes and feedback stays.
 `ramps/scales.css` collapses every duration to 100ms, cuts every animation to one 1ms iteration, and limits transitions to opacity and colour, so a state still changes visibly and nothing travels.
-The component layer then stills its three movers: the busy button's spinner becomes three still dots, since a still ring reads as a radio button, the indeterminate bar a still full-width bar at 35% opacity, and a dialog or sheet appears in place; the level meter still follows its input, because that movement is the data.
+The component layer then stills its three movers: the busy button's spinner becomes an ellipsis after its label, since a still ring reads as a radio button, the indeterminate bar a still full-width bar at 35% opacity, and a dialog or sheet appears in place; the level meter still follows its input, because that movement is the data.
 `tests/exports.py` holds the 100ms collapse in every export, and only under the preference.
 
 `transition: none !important` is the error this rule is written against: it removes colour and opacity feedback with the movement, and a control that changes state with no transition at all reads as broken rather than accommodating.
