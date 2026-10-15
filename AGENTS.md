@@ -128,7 +128,9 @@ rather than a sentence.
 - **A component belongs in the house when two products need it.** It is an entry in
   `components/catalogue.py` and the rules in `components/components.css` that name its classes;
   `tools/components.py` writes its sheet and its live page, and its renders are taken as in
-  "Re-rendering the component sheets" below.
+  "Re-rendering the component sheets" below. Its `markup` is the copyable snippet per variant both
+  print, and `tools/components.py` refuses any class `components.css` defines that no entry's
+  markup shows, so a new modifier ships with its snippet.
 - **A roster face is OFL-1.1, pinned by the sha256 of its upstream TTF and of its `OFL.txt`.**
   `tools/ramps.py` refuses any other licence; after editing an entry, run `tools/faces.py --check`
   on fresh copies of both files ([design/20-type.md](design/20-type.md#the-licence-rule)). A face
