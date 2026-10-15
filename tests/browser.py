@@ -224,19 +224,50 @@ def probe(pg, theme):
     return fails, report
 
 
+def silent_browser_is_reaped():
+    """A browser that never answers raises, and is killed rather than left writing its profile."""
+    with tempfile.TemporaryDirectory(prefix="hw-silent-") as tmp:
+        fake = Path(tmp) / "browser"
+        fake.write_text("#!/bin/sh\nexec sleep 60\n", encoding="utf-8")
+        fake.chmod(0o755)
+        spawned, real = [], painted.subprocess.Popen
+        painted.subprocess.Popen = lambda *a, **k: spawned.append(real(*a, **k)) or spawned[-1]
+        was, painted.TIMEOUT = painted.TIMEOUT, 1
+        try:
+            painted.Browser(str(fake), Path(tmp) / "profile")
+            return "a browser that never answered was accepted"
+        except painted.BrowserError:
+            return None if spawned and spawned[0].poll() is not None else "the silent browser is still running"
+        finally:
+            painted.subprocess.Popen, painted.TIMEOUT = real, was
+            for p in spawned:
+                p.kill()
+
+
 def main():
+    problem = silent_browser_is_reaped()
+    print(f"  silent:     {'ok   a browser that never answers is refused and reaped' if not problem else 'FAIL ' + problem}")
+    if problem:
+        print("FAIL  " + problem, file=sys.stderr)
+        return 1
     path = painted.find_browser(os.environ.get("HW_BROWSER"))
     if not path:
         print(f"FAIL  no browser: tried {', '.join(painted.BROWSERS)}; set HW_BROWSER", file=sys.stderr)
         return 1
     fails = []
-    with tempfile.TemporaryDirectory(prefix="hw-browser-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="hw-browser-", ignore_cleanup_errors=True) as tmp:
         work = Path(tmp)
-        try:
-            browser = painted.Browser(path, work / "profile")
-        except painted.BrowserError as e:
-            print(f"FAIL  {e}", file=sys.stderr)
-            return 1
+        # One retry: a cold runner has left the first launch unanswered for 30s (run
+        # 38796005141); a browser that is really broken fails the second launch the same way.
+        for attempt in (1, 2):
+            try:
+                browser = painted.Browser(path, work / f"profile{attempt}")
+                break
+            except painted.BrowserError as e:
+                if attempt == 2:
+                    print(f"FAIL  {e}", file=sys.stderr)
+                    return 1
+                print(f"  browser:    launch {attempt} failed ({e}); retrying once")
         try:
             print(f"  browser:    {browser.call('Browser.getVersion')['product']}")
             pg = Page(browser)
