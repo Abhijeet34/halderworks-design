@@ -13,7 +13,8 @@ than a two-way one:
             unauthenticated request from a data-centre address. The source exists; what is
             gated is access from here. Reported, never failed.
   dead      404 or 410, any other error status, or no response at all. This is the finding the
-            job exists to produce.
+            job exists to produce. A 5xx is asked once more first: one 503 from github.com on
+            2026-10-12 failed the weekly run and opened an issue that sat open 24 days.
 
 The middle row is the one that was missing and it cost the job its credibility: `pageflows.com`
 answers 403 to an unauthenticated request, the check called it DEAD, and a maintenance job that
@@ -37,8 +38,10 @@ Exits 1 when any source is dead, 0 otherwise.
 import argparse
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 # Three kinds of citation, because the book cites more by name than by link: a full URL, a bare
@@ -67,6 +70,11 @@ GONE = {404, 410}
 AGENT = "halderworks-design maintenance (+github actions)"
 TIMEOUT = 25
 ATTEMPTS = 3
+# Probes run WORKERS at a time, so the worst case is ceil(sources / WORKERS) * WORKER_BUDGET,
+# not the sum: 51 sources at 8 workers is 7 rounds of at most 3 x 25s of silence plus one 5xx
+# retry, about 9 minutes. maintenance.yml sizes its job timeout from this arithmetic.
+WORKERS = 8
+RETRY_5XX_AFTER = 2.0
 
 
 def prose(text: str) -> str:
@@ -114,16 +122,24 @@ def probe(url: str) -> int | None:
     """The final status code, or None when nothing answered at all."""
     request = urllib.request.Request(url, headers={"User-Agent": AGENT})
     last = None
-    for attempt in range(ATTEMPTS):
+    silent = 0  # attempts that got no status line
+    retried = False
+    while silent < ATTEMPTS:
         try:
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
                 return response.status
         except urllib.error.HTTPError as e:
             # A status line is an answer, so it is the result and not something to retry:
-            # a host that refuses an unauthenticated request refuses it three times.
+            # a host that refuses an unauthenticated request refuses it three times. The one
+            # exception is a 5xx, which says the server failed rather than the source is gone.
+            if e.code >= 500 and not retried:
+                retried = True
+                time.sleep(RETRY_5XX_AFTER)
+                continue
             return e.code
         except Exception as e:  # URLError, socket timeout, a malformed redirect target
             last = e
+            silent += 1
     print(f"     {type(last).__name__}: {last}", file=sys.stderr)
     return None
 
@@ -149,13 +165,15 @@ def main() -> int:
 
     dead: list[tuple[str, str]] = []
     refusing: list[tuple[str, int]] = []
-    checked = 0
-    for url in extract(args.root):
+    cited = extract(args.root)
+    urls = [u for u in cited if u not in SKIP]
+    for url in cited:
         if url in SKIP:
             print(f"skip      {url}  (recorded unreachable, or an account handle)")
-            continue
-        checked += 1
-        code = probe(url)
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        codes = list(pool.map(probe, urls))  # in input order, so the log reads the same
+    checked = len(urls)
+    for url, code in zip(urls, codes):
         shown = "---" if code is None else str(code)
         verdict = classify(code)
         if verdict == "ok":

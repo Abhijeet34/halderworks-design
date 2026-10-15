@@ -16,6 +16,14 @@ name: consistency
 
 on:
   workflow_call:
+    inputs:
+      sweeps:
+        description: >-
+          Run the design-space sweeps in tests/ramps.py (every accent hue built, every fifth
+          hue through the separation bars). 280 of the suite's 355 seconds, so only the weekly
+          job asks for them.
+        type: boolean
+        default: false
     outputs:
       report:
         description: Markdown for the checks that failed; empty when everything passed.
@@ -31,8 +39,8 @@ jobs:
   consistency:
     name: the system agrees with itself
     runs-on: ubuntu-24.04
-    # tests/run.py's five suites took 254s together locally on 2026-10-15, and 7m32s of this job
-    # on run 38738555654; 20 leaves room for a slow runner.
+    # With sweeps tests/run.py took 355s on 2026-10-15 and the job 7m32s; 20 leaves room for a slow
+    # runner on the weekly call. Without them the job's target is under 3 minutes.
     timeout-minutes: 20
     outputs:
       report: ${{ steps.collect.outputs.report }}
@@ -46,8 +54,14 @@ jobs:
       # stopping the job, so one failure does not hide the other five.
       - name: run every check
         id: collect
+        env:
+          SWEEPS: ${{ inputs.sweeps }}
         run: |
           set -uo pipefail
+          # Not an array: macOS's bash 3.2, which runs tests/mutation_tests.py on this step,
+          # treats an empty one as unset under `set -u`.
+          sweeps=
+          [ "${SWEEPS:-false}" = true ] && sweeps=1
           report=$(mktemp)
           failed=0
           # Full output of every failing check, uploaded as the consistency-logs artifact. The
@@ -109,7 +123,7 @@ jobs:
           # The tools above check the token set; this one checks the tools. It clones the
           # repository per mutation case, so it needs the git history the checkout provides.
           run "A refusal the system depends on is not actually refusing" \
-            python3 tests/run.py
+            python3 tests/run.py ${sweeps:+--sweeps}
 
           # The exporter writes before it reports, so BOTH halves are the check: its own exit
           # status, and the state of the working tree afterwards. `python3 tools/export.py ||

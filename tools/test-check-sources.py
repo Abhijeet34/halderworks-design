@@ -3,6 +3,7 @@
 
 Four classes, one local server and one closed port: a 200 is ok, a 403 is alive-but-refusing
 and does not fail the run, a 404 is dead and does, and a host that never answers is dead too.
+A 5xx is asked once more: a 503 then a 200 is ok, a 503 twice is dead.
 No third-party host is contacted, so this is a check rather than a weather report.
 
 It also holds the line before the classes: a URL inside a fenced code block is an example and
@@ -23,9 +24,17 @@ from tempfile import TemporaryDirectory
 TOOL = Path(__file__).resolve().parent / "check-sources.py"
 
 
+HITS: dict[str, int] = {}
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        HITS[self.path] = HITS.get(self.path, 0) + 1
         code = {"/ok": 200, "/refused": 403, "/gone": 404}.get(self.path, 404)
+        if self.path == "/flaky":  # fails once, then recovers
+            code = 503 if HITS[self.path] == 1 else 200
+        if self.path == "/down":
+            code = 503
         self.send_response(code)
         self.send_header("Content-Length", "0")
         self.end_headers()
@@ -149,6 +158,24 @@ A citation after the block: [still read]({live}/refused)
         check("a backticked length or file name is not a citation",
               not any(s in out for s in ("1.5px", "0.12em", "woff2", "archivo.ttf")), out)
         check("lengths and file names do not fail the run", rc == 0, f"exit {rc}")
+
+        # A 503 followed by a 200 is a server having a bad second, not a dead source; a 503
+        # that persists is still reported, after exactly one retry rather than none or many.
+        flaky_root = tmp / "flaky"
+        flaky_root.mkdir()
+        book(flaky_root, [f"{live}/flaky"])
+        rc, out = run(flaky_root, tmp / "flaky-summary.md")
+        check("a 503 then a 200 is ok", f"ok   200  {live}/flaky" in out, out)
+        check("a recovered 503 does not fail the run", rc == 0, f"exit {rc}")
+        check("the flaky source was asked exactly twice", HITS["/flaky"] == 2, str(HITS))
+
+        down_root = tmp / "down"
+        down_root.mkdir()
+        book(down_root, [f"{live}/down"])
+        rc, out = run(down_root, tmp / "down-summary.md")
+        check("a persistent 503 is dead", f"DEAD 503  {live}/down  (returned 503)" in out, out)
+        check("a persistent 503 fails the run", rc == 1, f"exit {rc}")
+        check("a persistent 503 is asked exactly twice", HITS["/down"] == 2, str(HITS))
 
         # Nothing listening: no status line at all, which is the unreachable case.
         dark_root = tmp / "dark"

@@ -11,7 +11,7 @@ name: maintenance
 # The consistency job is a call into .github/workflows/consistency.yml, which ci.yml also calls
 # and which the `checks` context there gates a merge on. This workflow used to carry that job's
 # body and its own path-filtered `pull_request` trigger; both are gone, because ci.yml now runs
-# the same six checks on every pull request with no path filter. What is left here is the part
+# the same checks on every pull request with no path filter. What is left here is the part
 # only a schedule can do: the network liveness check, and the issue.
 #
 # No `push` trigger, deliberately. ci.yml already runs the consistency call on every push to
@@ -30,18 +30,23 @@ permissions:
 jobs:
   consistency:
     uses: ./.github/workflows/consistency.yml
+    # The per-pull-request call leaves these out; a hue no pull request touched can still be
+    # one a later floor change breaks, and a week is soon enough to hear it.
+    with:
+      sweeps: true
 
   sources:
     name: every cited source still resolves
     runs-on: ubuntu-24.04
-    # 70, not a round guess: check-sources.py budgets ATTEMPTS=3 x TIMEOUT=25s per source and
-    # probes them one after another, so the 51 it probed on 2026-10-15 (52 cited, one in SKIP)
-    # cost at most 51 * 75s ~= 64 minutes before the step's own output block runs.
-    # The job timeout must sit above that arithmetic, not below it - a timeout that could fire
-    # first would cancel the job before it writes GITHUB_OUTPUT, and a cancelled job's `failed`
-    # output is empty rather than '1', which the `report` job below cannot tell apart from a
-    # clean run.
-    timeout-minutes: 70
+    # 15, sized from check-sources.py's own constants: probes run WORKERS=8 at a time, each
+    # costing at most ATTEMPTS x TIMEOUT = 3 x 25s of silence (or one 5xx retry, about the same),
+    # so 51 sources are ceil(51 / 8) = 7 rounds of at most ~77s, about 9 minutes. The job timeout
+    # must sit above that arithmetic, not below it - a timeout that could fire first would
+    # cancel the job before it writes GITHUB_OUTPUT, and a cancelled job's `failed` output is
+    # empty rather than '1'. The report job below catches that through `result != 'success'`,
+    # but an issue that says "did not complete" is worse than the dead link it would have named.
+    # Revisit when the source count passes ~80 (11 rounds, about 14 minutes).
+    timeout-minutes: 15
     # Its own job, not its own exemption: a timed-out CDN must not be able to mask a real
     # contrast failure, which is why this is separate from `consistency`. It used to carry
     # `continue-on-error: true` as well, and that made the job's red X and the run's green
