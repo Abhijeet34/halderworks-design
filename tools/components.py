@@ -6,13 +6,15 @@
     python3 tools/components.py --stamp    # record the renders in components/renders/ as current
 
 One source, two outputs: each catalogue entry becomes a card on its group's rendered page and a
-section of the Markdown sheet, so the words and the render cannot drift apart. A component's token
-list is read from the CSS rules that name its classes rather than written by hand, so a sheet
-cannot name a token the component does not use or miss one it does.
+section of the Markdown sheet, each carrying the entry's markup to copy, so the words, the markup
+and the render cannot drift apart. A component's token list is read from the CSS rules that name
+its classes rather than written by hand, so a sheet cannot name a token the component does not use
+or miss one it does.
 
 It refuses to emit, naming the entry, when an entry leaves a field empty, names a class the CSS
-does not define, uses an hw- class in its demo that the CSS does not define, names an icon not
-vendored in components/icons/, or carries an em dash. The renders are screenshots taken in a
+does not define, uses an hw- class in its demo or any class in its markup that the CSS does not
+define, names an icon not vendored in components/icons/, or carries an em dash; and, naming the
+class, when components.css defines a class that no entry's markup shows. The renders are screenshots taken in a
 browser, which nothing here can take; --stamp records the sha256 of the inputs they were taken
 from, and --check refuses once those inputs change, so a stale render cannot sit beside a sheet.
 """
@@ -32,8 +34,8 @@ SHEETS = COMP / "sheets"
 RENDERS = COMP / "renders"
 MANIFEST = RENDERS / "manifest.json"
 BOOK = ROOT / "design" / "64-component-sheets.md"
-FIELDS = ("name", "verdict", "used", "purpose", "notfor", "anatomy", "states", "keyboard", "do",
-          "dont", "demo")
+FIELDS = ("name", "used", "purpose", "notfor", "anatomy", "states", "keyboard", "do", "dont",
+          "demo")
 THEMES = ("light", "dark")
 SIZES = ("s", "m", "l", "xl", "xxl")
 
@@ -63,6 +65,10 @@ def css_rules(text):
 
 def classes_in(selector):
     return set(re.findall(r"\.(hw-[a-z0-9-]+)", selector))
+
+
+def attr_classes(markup):
+    return {name for value in re.findall(r'class="([^"]*)"', markup) for name in value.split()}
 
 
 def split_top(text, seps):
@@ -114,8 +120,19 @@ def expand(demo):
     return re.sub(r"\{\{icon:([a-z0-9-]+)\}\}", lambda m: icon(m.group(1)), demo)
 
 
+def snippets(c):
+    """The entry's markup as one copyable block: each variant under a comment naming it, and an
+    icon as an empty svg naming its file, which keeps the icon's box when pasted."""
+    def svg(m):
+        return (f'<svg aria-hidden="true" focusable="false">'
+                f'<!-- components/icons/{m.group(1)}.svg --></svg>')
+    return "\n\n".join(f"<!-- {label} -->\n" + re.sub(r"\{\{icon:([a-z0-9-]+)\}\}", svg, snip)
+                       for label, snip in c["markup"])
+
+
 def validate(groups, comps, rules):
     defined = set().union(*(classes_in(s) for s, _ in rules))
+    every = set().union(*(set(re.findall(r"\.([A-Za-z_][\w-]*)", s)) for s, _ in rules))
     keys = {k for k, _ in groups}
     bad, seen = [], set()
     for c in comps:
@@ -134,7 +151,17 @@ def validate(groups, comps, rules):
             for name in cls.split():
                 if name.startswith("hw-") and name not in defined:
                     bad.append(f"{who}: its demo uses .{name}, which components.css does not define")
-        for name in re.findall(r"\{\{icon:([a-z0-9-]+)\}\}", c["demo"]):
+        pairs = c.get("markup") or []
+        if not pairs or not all(isinstance(m, tuple) and len(m) == 2 and all(str(x).strip() for x in m)
+                                for m in pairs):
+            bad.append(f"{who}: markup is not a non-empty list of (variant, snippet) pairs")
+            pairs = []
+        for label, snip in pairs:
+            if "--" in label or "\u2014" in label + snip:
+                bad.append(f"{who}: markup {label!r} carries '--' in its label or an em dash")
+            for name in sorted(attr_classes(snip) - every):
+                bad.append(f"{who}: its markup {label!r} uses .{name}, which components.css does not define")
+        for name in re.findall(r"\{\{icon:([a-z0-9-]+)\}\}", c["demo"] + "".join(s for _, s in pairs)):
             if not (ICONS / f"{name}.svg").exists():
                 bad.append(f"{who}: icon {name!r} is not vendored in components/icons/")
         if not tokens_for(c["classes"], rules):
@@ -143,13 +170,14 @@ def validate(groups, comps, rules):
     for name in sorted(defined - owned):
         if not any(name.startswith(o + "--") for o in owned) and name not in SHARED:
             bad.append(f".{name} is defined in components.css and owned by no catalogue entry")
+    shown = set().union(*(attr_classes(s) for c in comps for _, s in (c.get("markup") or [])))
+    for name in sorted(every - shown):
+        bad.append(f".{name} is defined in components.css and no entry's markup shows it")
     return bad
 
 
-# Classes the CSS defines that belong to no one component: type styles and helpers.
-SHARED = {"hw-num", "hw-visually-hidden", "hw-headline", "hw-title", "hw-heading",
-          "hw-subheading", "hw-lead", "hw-body", "hw-small", "hw-label", "hw-dialog-actions",
-          "hw-callout-actions", "hw-confirm-actions"}
+# A helper any component may carry, so no one entry owns it; the search field's markup shows it.
+SHARED = {"hw-visually-hidden"}
 
 PAGE_STYLE = """
 body { margin: 0; padding: var(--hw-space-32) var(--hw-gutter-md) var(--hw-space-64); background: var(--hw-bg); color: var(--hw-text); font: 400 var(--hw-text-md)/var(--hw-leading) var(--hw-font-sans); -webkit-font-smoothing: antialiased; }
@@ -161,7 +189,6 @@ body { margin: 0; padding: var(--hw-space-32) var(--hw-gutter-md) var(--hw-space
 .bench a:focus-visible { outline: var(--hw-focus-w) solid var(--hw-focus); outline-offset: var(--hw-focus-offset); }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 36rem), 1fr)); gap: var(--hw-space-24); }
 .cc { background: var(--hw-surface); border: var(--hw-border-w) solid var(--hw-line); border-radius: var(--hw-radius-lg); padding: var(--hw-space-24); display: grid; gap: var(--hw-space-16); align-content: start; min-width: 0; container-type: inline-size; }
-.cc header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: var(--hw-space-8); }
 .demo { background: var(--hw-bg); border-radius: var(--hw-radius-md); padding: var(--hw-space-24); display: grid; gap: var(--hw-space-12); min-width: 0; container-type: inline-size; }
 .demo > * { justify-self: start; max-width: 100%; }
 .demo > :is(.hw-callout, .hw-list, .hw-diff, .grid2, .hw-confirm, .hw-tabs, .hw-field, .hw-stage, .backdrop, .hw-disclosure, .stack, .scroll, .hw-search, .hw-kv) { justify-self: stretch; }
@@ -185,6 +212,8 @@ body { margin: 0; padding: var(--hw-space-32) var(--hw-gutter-md) var(--hw-space
 .hw-stage .hw-headline { margin: var(--hw-space-8) 0 var(--hw-space-12); }
 .spec { grid-template-columns: 6.5rem 1fr; }
 .spec code.tok { font: 400 0.88em/1.5 var(--hw-font-mono); white-space: nowrap; }
+.markup { display: grid; gap: var(--hw-space-8); min-width: 0; }
+.markup pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 """
 
 BENCH = """(() => { const q = new URLSearchParams(location.search), h = document.documentElement;
@@ -203,10 +232,12 @@ def card(c, rules):
             ("States", c["states"]), ("Keyboard", c["keyboard"]), ("Do", c["do"]),
             ("Do not", c["dont"])]
     dl = "".join(f"<dt>{k}</dt><dd>{tok(html.escape(v))}</dd>" for k, v in rows)
-    return (f'<article class="cc" id="{slug(c["name"])}"><header><h2 class="hw-heading">{html.escape(c["name"])}</h2>'
-            f'<span class="hw-badge hw-badge--plain">{html.escape(c["verdict"].split(":")[0])}</span></header>\n'
+    mid = f'{slug(c["name"])}-markup'
+    return (f'<article class="cc" id="{slug(c["name"])}"><h2 class="hw-heading">{html.escape(c["name"])}</h2>\n'
             f'<div class="demo">{expand(c["demo"])}</div>\n'
-            f'<dl class="hw-kv spec">{dl}<dt>Tokens</dt><dd>{tok(toks)}</dd></dl></article>')
+            f'<dl class="hw-kv spec">{dl}<dt>Tokens</dt><dd>{tok(toks)}</dd></dl>\n'
+            f'<section class="markup" aria-labelledby="{mid}"><h3 class="hw-label" id="{mid}">Markup</h3>'
+            f'<pre class="hw-code" tabindex="0">{html.escape(snippets(c), quote=False)}</pre></section></article>')
 
 
 def page(key, title, groups, comps, rules):
@@ -254,15 +285,7 @@ This is the one place a component is documented; the foundations it stands on ar
 
 ## The component layer
 
-Load it after the faces and the variables a brand exports, and load the script once:
-
-```html
-<link rel="stylesheet" href="fonts/fonts.css">
-<link rel="stylesheet" href="exports/variables.css">
-<link rel="stylesheet" href="components/components.css">
-<script src="components/radiogroup.js" defer></script>
-```
-
+Load it after the faces and the variables a brand exports, with its one script, in the order [the brand book's loading block](00-brand-book.md#loading-it-in-a-product) gives.
 A product brand loads `examples/<brand>/exports/variables.css` in place of the house file and gets the same components in its own colour.
 The layer names `hw-` properties and declares none of its own, except the `--_` locals a component sets on itself; a product extends in its own namespace.
 Every size is in rem or em, so `html[data-text-size]` grows every box with its text, and `[data-density="compact"]`, `(pointer: coarse)`, `prefers-contrast: more` and `prefers-reduced-motion` reach every component through the variables it reads.
@@ -272,6 +295,9 @@ What the layer does not do: it positions nothing a product has to place (a toast
 Those are the product's, and each sheet's Keyboard line says which.
 
 Open a group's page in a browser to see every state live, at any theme, text size, density or brand, with `?theme=dark`, `?text-size=xl`, `?density=compact` or `?brand=papertrace`.
+
+Each sheet ends in its markup: one snippet per variant under a comment naming it, using only classes `components.css` defines, and every class that file defines appears in at least one snippet (`tools/components.py` refuses otherwise).
+An icon is written as an empty `<svg aria-hidden="true" focusable="false">` whose comment names its file in `components/icons/`; paste that file's contents in its place, and the component sizes it.
 
 ## Print
 
@@ -295,8 +321,8 @@ def markdown(groups, comps, rules):
                     f"- **Keyboard:** {c['keyboard']}", f"- **Tokens:** {toks}.",
                     f"- **Do:** {c['do']}", f"- **Do not:** {c['dont']}",
                     f"- **Classes:** {', '.join(f'`{x}`' for x in c['classes'])}.",
-                    f"- **Against the house before this layer:** {c['verdict']}.",
-                    f"- **Used by:** {c['used']}.", ""]
+                    f"- **Used by:** {c['used']}.", "",
+                    "Markup:", "", "```html", snippets(c), "```", ""]
     return "\n".join(out).rstrip() + "\n"
 
 

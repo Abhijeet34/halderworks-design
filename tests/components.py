@@ -14,6 +14,8 @@ what it may name and what it may paint:
      measured here on every brand in both themes, float and 8-bit
   5. no text smaller than 1em that is not held to the 11px floor with max()
   6. exactly one script, radiogroup.js, and every icon used is vendored with Lucide's licence
+  7. every class components.css defines appears in a class attribute of the markup in
+     design/64-component-sheets.md, so no class is left for a reader to find in the CSS
 
 Each check has a negative control: a wrong input that must be refused, so a green run cannot be
 a suite that checks nothing. What it cannot see is a rendered page; the browser pass that rendered
@@ -187,6 +189,15 @@ def check_type_floor(text):
     return bad
 
 
+def check_documented(text, book):
+    """The audit's count, kept: a class defined in the layer and absent from every class
+    attribute in the book's markup is one a reader can learn only from the CSS."""
+    defined = set().union(*(re.findall(r"\.([A-Za-z_][\w-]*)", sel) for _, sel, _ in rules_of(text)))
+    shown = {n for v in re.findall(r'class="([^"]*)"', book) for n in v.split()}
+    return [f".{n} is defined in components.css and appears in no markup in the sheets"
+            for n in sorted(defined - shown)]
+
+
 def check_files():
     bad = []
     scripts = sorted(p.name for p in (ROOT / "components").glob("*.js"))
@@ -222,7 +233,9 @@ def main():
     text = CSS.read_text(encoding="utf-8")
     rules = rules_of(text)
     exports = {str(p.relative_to(ROOT)): declared(p) for p in sorted(ROOT.glob("**/exports/variables.css"))}
-    demos = "\n".join(c["demo"] for c in runpy.run_path(str(ROOT / "components" / "catalogue.py"))["COMPONENTS"])
+    comps = runpy.run_path(str(ROOT / "components" / "catalogue.py"))["COMPONENTS"]
+    demos = "\n".join([c["demo"] for c in comps] + [s for c in comps for _, s in c["markup"]])
+    book = (ROOT / "design" / "64-component-sheets.md").read_text(encoding="utf-8")
     envs = ramp_envs()
 
     r = generator_check(ROOT)
@@ -246,6 +259,9 @@ def main():
     fails += got
     print(f"  type floor:   {len(got)} sub-1em sizes without the 11px floor")
     fails += check_files()
+    got = check_documented(text, book)
+    fails += got
+    print(f"  documented:   {len(got)} classes components.css defines that no markup in the sheets shows")
 
     # Negative controls: each replays a mistake and must be caught.
     btn = ".hw-btn--primary { --_bg: var(--hw-ink); --_fg: var(--hw-on-ink);"
@@ -257,11 +273,13 @@ def main():
         ("muted text on the ink solid", lambda: check_pairs(rules_of(text.replace(btn, ".hw-btn--primary { --_bg: var(--hw-ink); --_fg: var(--hw-text-muted);")), envs)[0]),
         ("a label on the wrong solid", lambda: check_pairs(rules_of(text.replace(btn, ".hw-btn--primary { --_bg: var(--hw-accent); --_fg: var(--hw-on-ink);")), envs)[0]),
         ("a 0.8em keycap with no floor", lambda: check_type_floor(text.replace("max(0.8em, 11px)", "0.8em", 1))),
+        ("a class the sheets never show", lambda: check_documented(text + "\n.hw-btn--ghost { color: var(--hw-text); }", book)),
     ]
     if btn not in text:
         fails.append("negative controls: the primary button rule they edit has moved")
     clean = {"tokens": set(check_tokens(text, exports, demos)), "literals": set(check_literals(text)),
-             "pairs": set(check_pairs(rules, envs)[0]), "type": set(check_type_floor(text))}
+             "pairs": set(check_pairs(rules, envs)[0]), "type": set(check_type_floor(text)),
+             "documented": set(check_documented(text, book))}
     before = set().union(*clean.values())
     for label, run in cases:
         caught = [f for f in run() if f not in before]
@@ -269,25 +287,38 @@ def main():
             fails.append(f"negative control not caught: {label}")
         print(f"  control:      {label}: {'caught' if caught else 'MISSED'}, first: {caught[0] if caught else '-'}")
 
-    # The generator's own refusals, on a copy of the tree.
+    # The generator's own refusals, on a copy of the tree. fonts/ is a render input, so a copy
+    # without it fails on the stamp and every control would be caught for the wrong reason: the
+    # copy must pass unedited, and each control must fail with its own message.
+    quiet = '("Quiet", """<button type="button" class="hw-btn hw-btn--quiet">Cancel</button>"""),'
+    plain = '("Badge without its dot", """<span class="hw-badge hw-badge--plain">Draft</span>"""),'
     with tempfile.TemporaryDirectory() as tmp:
         tree = Path(tmp)
-        for part in ("components", "tools", "design", "exports"):
+        for part in ("components", "tools", "design", "exports", "fonts"):
             shutil.copytree(ROOT / part, tree / part)
+        r = generator_check(tree)
+        if r.returncode:
+            fails.append("the unedited copy fails tools/components.py --check, so the controls on it "
+                         "prove nothing:\n" + r.stderr.strip())
         cat = tree / "components" / "catalogue.py"
         original = cat.read_text(encoding="utf-8")
-        for label, edit in (
-            ("a stale sheet", lambda s: s.replace("Starts an action whose verb is its label.", "Starts an action.")),
-            ("a demo using a class the layer does not define", lambda s: s.replace('class="hw-btn hw-btn--quiet"', 'class="hw-btn hw-btn--ghost"', 1)),
-            ("an icon that is not vendored", lambda s: s.replace("{{icon:copy}}", "{{icon:clipboard}}", 1)),
-            ("an em dash in a sheet", lambda s: s.replace("Starts an action whose verb", "Starts an action \u2014 whose verb", 1)),
+        if quiet not in original or plain not in original:
+            fails.append("negative controls: the markup they edit has moved")
+        for label, edit, want in (
+            ("a stale sheet", lambda s: s.replace("Starts an action whose verb is its label.", "Starts an action."), "is stale"),
+            ("a demo using a class the layer does not define", lambda s: s.replace('class="hw-btn hw-btn--quiet"', 'class="hw-btn hw-btn--ghost"', 1), "its demo uses .hw-btn--ghost"),
+            ("markup using a class the layer does not define", lambda s: s.replace(quiet, quiet.replace("--quiet", "--ghost"), 1), "its markup 'Quiet' uses .hw-btn--ghost"),
+            ("an icon that is not vendored", lambda s: s.replace("{{icon:copy}}", "{{icon:clipboard}}", 1), "icon 'clipboard' is not vendored"),
+            ("an em dash in a sheet", lambda s: s.replace("Starts an action whose verb", "Starts an action \u2014 whose verb", 1), "carries an em dash"),
+            ("a variant no markup shows", lambda s: s.replace(plain, "", 1), ".hw-badge--plain is defined in components.css and no entry's markup shows it"),
         ):
             cat.write_text(edit(original), encoding="utf-8")
             r = generator_check(tree)
+            caught = r.returncode != 0 and want in r.stderr
             first = (r.stderr.strip().splitlines() or ["-"])[0]
-            if r.returncode == 0:
+            if not caught:
                 fails.append(f"negative control not caught: {label}")
-            print(f"  control:      {label}: {'caught' if r.returncode else 'MISSED'}, first: {first}")
+            print(f"  control:      {label}: {'caught' if caught else 'MISSED'}, first: {first}")
         cat.write_text(original, encoding="utf-8")
         css = tree / "components" / "components.css"
         css.write_text(css.read_text(encoding="utf-8") + "\n", encoding="utf-8")

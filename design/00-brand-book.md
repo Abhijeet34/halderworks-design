@@ -163,16 +163,20 @@ A surface in none of these tables and with no sheet is a genuine gap: build the 
 
 ## Loading it in a product
 
-```css
-@import "hw/fonts/fonts.css";            /* the house faces, vendored with their OFL texts */
-@import "hw/variables.css";              /* exports/variables.css, or examples/<brand>/exports/variables.css */
-@import "hw/components/components.css";  /* the component layer, after the variables */
-@import "product.css";                   /* the product's own namespace, loaded after, never instead */
+This is the one loading block; every other file that loads the house points here.
+`hw/` is wherever the product vendors the house's files.
+
+```html
+<link rel="stylesheet" href="hw/fonts/fonts.css">            <!-- the house faces, vendored with their OFL texts -->
+<link rel="stylesheet" href="hw/variables.css">              <!-- exports/variables.css, or examples/<brand>/exports/variables.css -->
+<link rel="stylesheet" href="hw/components/components.css">  <!-- the component layer, after the variables -->
+<link rel="stylesheet" href="product.css">                   <!-- the product's own namespace, loaded after, never instead -->
+<script src="hw/components/radiogroup.js" defer></script>    <!-- the one script: the segmented control's arrow keys -->
 ```
 
+A stylesheet that bundles them `@import`s the same four files in the same order.
 Copy the whole `fonts/` directory, because `fonts/fonts.css` names its files by relative URL.
 A brand whose faces are system stacks loads no `fonts.css`.
-`components/radiogroup.js` is the one script, loaded once, for the segmented control's arrow keys.
 
 A product extends in its own namespace, one prefix derived from its name, `--quoth-`, `--gates-`, and never by redefining an `hw-` token.
 A composition over house tokens, `calc(var(--hw-row-h) * 3)`, is preferred to a constant, because it keeps tracking the house when a value moves.
