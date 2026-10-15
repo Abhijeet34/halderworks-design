@@ -189,7 +189,7 @@ which is the real exposure. `gates` has one collaborator, its `main` carries rul
 with no bypass actors, required signatures, a pull request and a required `checks` context.
 
 **What pinning would cost.** `shared-secret-scan.yml` hard-codes the sha256 of the canonical
-`.gitleaks.toml` and `.githooks/pre-push` and fails any caller whose synced copies differ. A
+`.gitleaks.toml`, `.githooks/pre-push` and `.githooks/commit-msg`, and fails any caller whose synced copies differ. A
 caller pinned to a SHA keeps matching the digests of the day it was pinned, so the drift check
 the shared workflow exists to perform is switched off in exactly the repository that most needs
 it. A pin also freezes the scanner: a detection bug fixed upstream never reaches a pinned caller,
