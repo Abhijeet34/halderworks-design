@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Every test in this repository, in one command, with one exit code.
 
-    python3 tests/run.py
+    python3 tests/run.py [--sweeps]
 
 The tools in tools/ check the token set. The suites here check the tools: that the two
 instruments are still two, and that a wrong input is actually refused rather than merely believed
@@ -29,11 +29,16 @@ HERE = Path(__file__).resolve().parent
 SUITES = [
     ("invariants", "the two instruments are independent and still agree", "invariants.py"),
     ("mutations", "a wrong input is refused by something", "mutation_tests.py"),
-    ("ramps", "the twelve-step ramps hold every floor, every hue open", "ramps.py"),
+    ("ramps", "the twelve-step ramps hold every floor, every hue open with --sweeps", "ramps.py"),
     ("exports", "the CSS exports cascade right in every condition they answer", "exports.py"),
     ("components", "the component layer names only house tokens and paints only certified pairs", "components.py"),
     ("browser", "the component layer, rendered, does what the adoption trial probed", "browser.py"),
+    ("token-diff", "a changed token shows in the pull request comment", "token_diff.py"),
 ]
+
+# Suites that take an option only when the caller asked for it, passed through from this file's
+# own argv: the hue sweeps are 280s of the ramps suite and run weekly, not per pull request.
+OPTIONS = {"ramps.py": ["--sweeps"]}
 
 
 def main():
@@ -41,7 +46,8 @@ def main():
     for name, what, script in SUITES:
         print(f"\n{'=' * 78}\n== {name}: {what}\n{'=' * 78}", flush=True)
         t0 = time.monotonic()
-        rc = subprocess.run([sys.executable, str(HERE / script)]).returncode
+        extra = [o for o in OPTIONS.get(script, []) if o in sys.argv[1:]]
+        rc = subprocess.run([sys.executable, str(HERE / script), *extra]).returncode
         print(f"-- {name}: exit {rc} in {time.monotonic() - t0:.1f}s")
         if rc:
             failed.append(name)

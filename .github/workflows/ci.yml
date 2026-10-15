@@ -16,7 +16,7 @@ name: CI
 # consistency.yml is the single definition and maintenance.yml calls the same file.
 #
 # Linux only, per AGENTS.md. Nothing here rasterises anything or leaves the runner, so a second
-# platform would re-run six standard-library Python checks for no new information.
+# platform would re-run standard-library Python checks for no new information.
 
 on:
   push:
@@ -46,6 +46,47 @@ jobs:
   consistency:
     uses: ./.github/workflows/consistency.yml
 
+  # What a change did to the tokens, as a comment on the pull request: a role moved one ramp
+  # step is a few lines here and a 3,800-line diff of exports/design-tokens.json. Deliberately
+  # not in `checks`' needs: a comment that could not be posted must not block a merge, and the
+  # diff changes nothing about whether the book agrees with itself. It needs write access to the
+  # pull request, which only same-repository branches get, so a fork's run skips it.
+  token-diff:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: comment what the tokens did
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          # A base without the file (the very first pull request to add it) diffs as empty.
+          git show "$BASE_SHA:exports/design-tokens.json" > "$RUNNER_TEMP/base.json" 2>/dev/null \
+            || rm -f "$RUNNER_TEMP/base.json"
+          python3 tools/token-diff.py "$RUNNER_TEMP/base.json" exports/design-tokens.json \
+            > "$RUNNER_TEMP/token-diff.md"
+          cat "$RUNNER_TEMP/token-diff.md" >> "$GITHUB_STEP_SUMMARY"
+          # One comment, updated in place, found by the marker the tool prints on its first line.
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+                 --jq '[.[] | select(.body | startswith("<!-- token-diff -->"))][0].id // empty')
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" \
+              -F body=@"$RUNNER_TEMP/token-diff.md" > /dev/null
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR/comments" \
+              -F body=@"$RUNNER_TEMP/token-diff.md" > /dev/null
+          fi
+
   # The single required context. Everything above reaches branch protection through this job and
   # nowhere else, so `if: always()` is load-bearing: without it a failed dependency would leave
   # this job skipped, and a skipped required check is not a failing one.
@@ -63,7 +104,7 @@ jobs:
           set -euo pipefail
           echo "results: $RESULTS"
           # 'skipped' is refused rather than accepted, unlike the same aggregate in the fleet's
-          # other repositories: no job above carries an `if:` or a path filter, so nothing here
+          # other repositories: no job in `needs` carries an `if:` or a path filter, so nothing here
           # can skip itself legitimately and a skip would mean the workflow was edited wrong.
           for result in $RESULTS; do
             case "$result" in

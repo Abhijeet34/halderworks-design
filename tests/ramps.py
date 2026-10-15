@@ -23,7 +23,11 @@
       all four tiers and carry every solid's label and every chart mark, since CI cannot run the
       browser that paints them.
 
-    python3 tests/ramps.py [repo-root]
+    python3 tests/ramps.py [repo-root] [--sweeps]
+
+Claims 4 and 10 are design-space proofs, 280 of the suite's 355 seconds on 2026-10-15, and no
+pull request moves a hue they have not already covered, so they run only with --sweeps: the
+weekly job passes it (.github/workflows/maintenance.yml), a change to a brand's hues should too.
 """
 import copy
 import json
@@ -33,7 +37,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
+POSITIONAL = [a for a in sys.argv[1:] if not a.startswith("--")]
+SWEEPS = "--sweeps" in sys.argv[1:]
+ROOT = Path(POSITIONAL[0]).resolve() if POSITIONAL else Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import contrast  # noqa: E402
 import ramps     # noqa: E402
@@ -428,8 +434,11 @@ def main():
     malformed_brands_are_refused(fails)
     verify_refuses_a_broken_file(fails)
     contrast_refuses(fails)
-    separation_sweep(fails)
-    every_hue_is_open(fails)
+    if SWEEPS:
+        separation_sweep(fails)
+        every_hue_is_open(fails)
+    else:
+        print("  sweeps:       skipped (separation_sweep, every_hue_is_open); pass --sweeps")
     for f in fails:
         print(f"FAIL  {f}", file=sys.stderr)
     print(f"\n{len(fails)} failures")
