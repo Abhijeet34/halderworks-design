@@ -274,7 +274,7 @@ ROLE_TINTS = ["--hw-accent-fill", "--hw-success-fill", "--hw-warning-fill", "--h
 ROLE_TEXT = {"--hw-text": 13.0, "--hw-text-muted": AA, "--hw-accent-text": AA,
              "--hw-success": AA, "--hw-warning": AA, "--hw-danger": AA, "--hw-insert": AA,
              "--hw-delete": AA}
-ROLE_EDGES = ["--hw-line-strong", "--hw-focus", "--hw-ink"]
+ROLE_EDGES = ["--hw-line-strong", "--hw-focus", "--hw-ink", "--hw-accent-edge"]
 # Disabled text is exempt from 1.4.3 and held to 3:1 in both tiers rather than raised.
 ROLE_DISABLED = "--hw-text-disabled"
 ROLE_LABELS = {"--hw-on-ink": ("--hw-ink", "--hw-ink-hover"),

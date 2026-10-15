@@ -70,7 +70,7 @@ Three sizes, each bound to a role, because one radius everywhere removes the onl
 
 A brand takes one of four registers from `ramps/roster.json` rather than a free number, and `tools/contrast.py` refuses any other triple in an emitted file ([12-brand.md](12-brand.md#shape-and-stroke)).
 A child's radius is never larger than its parent's, and a nested radius is the outer one minus the padding between them.
-Below a control's size the layer rounds by shape rather than by token: a dot, a radio, the switch knob, the spinner, the slider thumb and the comment pin are `50%`, and the marks round at `0.12em`.
+Below a control's size the layer rounds by shape rather than by token: a dot, a radio, the switch knob, the spinner, and the slider thumb are `50%`, the comment pin rounds at half its height so a three-digit pin is a pill, and the marks round at `0.12em`.
 The descriptions `tools/ramps.py` writes beside the three register tokens still put menu items and tabs on `md` and the status dot on `sm`; the table above is what `components/components.css` draws.
 
 ## Elevation

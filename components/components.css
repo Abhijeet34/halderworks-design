@@ -14,6 +14,8 @@
 }
 /* an icon with no component rule is the size of its text, never the browser's 300x150 default */
 :where([class^="hw-"], [class*=" hw-"]) :where(svg[aria-hidden="true"]) { width: 1em; height: 1em; flex: none; }
+/* a component sets display on itself, which outranks the UA's [hidden]; until-found keeps its own */
+:where([class^="hw-"], [class*=" hw-"])[hidden]:not([hidden="until-found"]) { display: none !important; }
 .hw-num { font-variant-numeric: tabular-nums; }
 .hw-visually-hidden { position: absolute; clip-path: inset(50%); width: 1px; height: 1px; overflow: hidden; white-space: nowrap; }
 
@@ -49,11 +51,15 @@
 .hw-btn--lg { min-height: var(--hw-control-h-lg); padding: 0 var(--hw-space-16); font-size: var(--hw-text-md); }
 .hw-btn--icon { min-width: var(--hw-control-h); padding: 0; }
 .hw-btn--icon.hw-btn--sm { min-width: var(--hw-control-h-sm); }
-.hw-btn:disabled, .hw-btn[aria-disabled="true"] { --_bg: var(--hw-fill); --_fg: var(--hw-text-disabled); --_bd: transparent; --_bgh: var(--hw-fill); cursor: not-allowed; transform: none; }
+.hw-btn:disabled, .hw-btn[aria-disabled="true"] { --_bg: var(--hw-fill); --_fg: var(--hw-text-disabled); --_bd: transparent; --_bgh: var(--hw-fill); cursor: not-allowed; transform: none; transition: none; }
 .hw-btn[aria-busy="true"] { cursor: progress; }
 .hw-btn[aria-busy="true"]::before { content: ""; width: 0.8em; height: 0.8em; border-radius: 50%; border: 0.12em solid currentColor; border-right-color: transparent; animation: hw-spin 0.8s linear infinite; }
 @keyframes hw-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .hw-btn[aria-busy="true"]::before { animation: none; border-right-color: currentColor; opacity: 0.5; } }
+/* still, a ring at rest reads as a radio button and dots as a More icon, so the label trails an ellipsis */
+@media (prefers-reduced-motion: reduce) {
+  .hw-btn[aria-busy="true"]::before { display: none; }
+  .hw-btn[aria-busy="true"]::after { content: "\2026"; margin-left: calc(-1 * var(--hw-space-8)); }
+}
 
 /* ---------- link ---------- */
 .hw-link { color: var(--hw-accent-text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
@@ -62,13 +68,13 @@
 /* ---------- keycap ---------- */
 .hw-kbd {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.25em; min-width: 1.6em;
-  font: 500 max(0.8em, 11px)/1 var(--hw-font-mono); padding: 0.28em 0.42em 0.32em; color: var(--hw-text);
+  font: 400 max(0.8em, 11px)/1 var(--hw-font-mono); padding: 0.28em 0.42em 0.32em; color: var(--hw-text);
   background: var(--hw-surface); border: var(--hw-border-w) solid var(--hw-line-strong);
   border-bottom-width: 2px; border-radius: var(--hw-radius-sm); vertical-align: 0.08em; white-space: nowrap;
 }
 
 /* ---------- segmented control: a radio group, arrow keys from radiogroup.js ---------- */
-.hw-segmented { display: inline-flex; flex-wrap: wrap; padding: 2px; gap: 2px; background: var(--hw-fill); border-radius: var(--hw-radius-md); }
+.hw-segmented { display: inline-flex; flex-wrap: wrap; width: fit-content; padding: 2px; gap: 2px; background: var(--hw-fill); border-radius: var(--hw-radius-md); }
 .hw-segmented > button {
   min-height: max(24px, calc(var(--hw-control-h) - 4px)); padding: 0 var(--hw-space-12); border: 0; background: transparent;
   border-radius: var(--hw-radius-sm); font: 540 var(--hw-text-sm)/1 var(--hw-font-sans); color: var(--hw-text-muted); cursor: pointer;
@@ -140,6 +146,8 @@
 .hw-switch input:checked { background: var(--hw-ink); border-color: var(--hw-ink); }
 .hw-switch input:checked::after { translate: 0.9333em 0; background: var(--hw-on-ink); box-shadow: none; }
 .hw-switch:has(input:disabled) { color: var(--hw-text-disabled); cursor: not-allowed; }
+.hw-switch input:disabled { background: var(--hw-fill); border-color: var(--hw-text-disabled); cursor: not-allowed; transition: none; }
+.hw-switch input:disabled::after { background: var(--hw-text-disabled); box-shadow: none; transition: none; }
 
 /* ---------- slider: the page sets --_p to the value's fraction of the range ---------- */
 .hw-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 1.15em; margin: 0; background: transparent; --_t: 1.0667em; }
@@ -239,6 +247,8 @@
 }
 .hw-tip--below > .hw-tooltip { bottom: auto; top: calc(100% + var(--hw-space-8)); }
 .hw-tip:is(:hover, :has(:focus-visible)) > .hw-tooltip { opacity: 1; visibility: visible; transition-delay: 500ms; }
+/* Escape sets data-dismissed (radiogroup.js), WCAG 2.2 1.4.13; leaving the tip clears it */
+.hw-tip[data-dismissed] > .hw-tooltip { opacity: 0; visibility: hidden; transition-delay: 0s; }
 
 /* ---------- popover: the popover API gives light dismiss, Escape and the top layer ---------- */
 .hw-popover {
@@ -324,7 +334,9 @@ dialog.hw-dialog[open] { animation: hw-dialog-in var(--hw-duration-slow) var(--h
 .hw-table tr[aria-selected="true"] td { background: var(--hw-accent-fill); }
 
 /* ---------- key-value list ---------- */
-.hw-kv { display: grid; grid-template-columns: max-content 1fr; gap: var(--hw-space-8) var(--hw-space-24); margin: 0; font-size: var(--hw-text-sm); line-height: var(--hw-leading-snug); color: var(--hw-text); }
+/* the list stacks against a container, so .hw-kv-wrap is one for a page that has none */
+.hw-kv-wrap { container-type: inline-size; }
+.hw-kv { display: grid; grid-template-columns: max-content 1fr; align-content: start; gap: var(--hw-space-8) var(--hw-space-24); margin: 0; font-size: var(--hw-text-sm); line-height: var(--hw-leading-snug); color: var(--hw-text); }
 .hw-kv dt { color: var(--hw-text-muted); }
 .hw-kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 @container (max-width: 30rem) { .hw-kv { grid-template-columns: 1fr; gap: 0; } .hw-kv dd { margin-bottom: var(--hw-space-8); } }
@@ -352,17 +364,21 @@ dialog.hw-dialog[open] { animation: hw-dialog-in var(--hw-duration-slow) var(--h
 .hw-disclosure[open] > summary::before { rotate: 45deg; }
 
 /* ---------- avatar: initials by default; an image covers them when it loads ---------- */
+/* --_o is a group's overlap: the most that still leaves the widest initials, "MW", showing */
 .hw-avatar {
-  --_s: 1.8667rem; display: inline-grid; place-items: center; width: var(--_s); height: var(--_s); flex: none; overflow: hidden;
+  --_s: 1.8667rem; --_o: 0.2rem; display: inline-grid; place-items: center; width: var(--_s); height: var(--_s); flex: none; overflow: hidden;
   border-radius: var(--hw-radius-full); background: var(--hw-fill-active); color: var(--hw-text);
   font: 650 max(calc(var(--_s) * 0.4), 11px)/1 var(--hw-font-sans); letter-spacing: 0.02em; text-transform: uppercase;
 }
 .hw-avatar > img { width: 100%; height: 100%; object-fit: cover; grid-area: 1 / 1; }
-.hw-avatar--sm { --_s: 1.6rem; }
-.hw-avatar--lg { --_s: 2.6667rem; }
+.hw-avatar--sm { --_s: 1.6rem; --_o: 0px; }
+.hw-avatar--lg { --_s: 2.6667rem; --_o: 0.4rem; }
 .hw-avatar-group { display: inline-flex; }
 .hw-avatar-group > .hw-avatar { box-shadow: 0 0 0 2px var(--hw-surface); }
-.hw-avatar-group > .hw-avatar + .hw-avatar { margin-left: -0.4rem; }
+.hw-avatar-group > .hw-avatar + .hw-avatar { margin-left: calc(-1 * var(--_o)); }
+/* a covered avatar centres its initials in the part left showing; an image still fills the circle */
+.hw-avatar-group > .hw-avatar:not(:last-child) { position: relative; padding-right: var(--_o); }
+.hw-avatar-group > .hw-avatar:not(:last-child) > img { position: absolute; inset: 0; }
 
 /* ---------- marks: the house signature ---------- */
 /* light: a highlighter swipe over the lower part of the word, the text left in ink */
@@ -389,7 +405,8 @@ dialog.hw-dialog[open] { animation: hw-dialog-in var(--hw-duration-slow) var(--h
 .hw-diff > .rem::before { content: "\2212 "; color: var(--hw-delete); }
 .hw-diff > .ctx::before { content: "  "; }
 
-.hw-pin { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; flex: none; border-radius: 50% 50% 50% 2px; background: var(--hw-accent); color: var(--hw-on-accent); font: 700 var(--hw-text-xs)/1 var(--hw-font-sans); box-shadow: 0 0 0 2px var(--hw-surface); }
+/* as wide as its number from three digits on; the inner edge holds 3:1 where the solid may not */
+.hw-pin { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; padding: 0 var(--hw-space-4); flex: none; border-radius: 0.8rem 0.8rem 0.8rem 2px; background: var(--hw-accent); color: var(--hw-on-accent); font: 700 var(--hw-text-xs)/1 var(--hw-font-sans); font-variant-numeric: tabular-nums; box-shadow: inset 0 0 0 var(--hw-border-w) var(--hw-accent-edge), 0 0 0 2px var(--hw-surface); }
 .hw-note { display: grid; gap: var(--hw-space-4); max-width: 24rem; padding: var(--hw-space-12); background: var(--hw-surface); border: var(--hw-border-w) solid var(--hw-line); border-radius: var(--hw-radius-lg); font-size: var(--hw-text-sm); line-height: var(--hw-leading); color: var(--hw-text); }
 .hw-note-locator { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--hw-text-muted); }
 

@@ -48,7 +48,7 @@ The component layer lifts the sizes derived from the other heights the same way,
 Each sheet lists the states its component answers.
 What they share:
 
-- **Hover is a fill, never a movement**, and anything reachable by hover is reachable by focus too: a tooltip opens on `:hover` and on `:focus-visible` inside it.
+- **Hover is a fill, never a movement**, and anything reachable by hover is reachable by focus too: a tooltip opens on `:hover` and on `:focus-visible` inside it, and Escape hides it without moving either (`components/radiogroup.js`).
 - **Disabled is a solved colour, never an opacity**: `--hw-text-disabled` on `--hw-fill`, held to 3:1 on every ground, because WCAG exempts disabled text and nothing else would keep it from vanishing.
   A control disabled for a reason says the reason beside it; a disabled control never carries the largest weight on its screen.
 - **Inside a composite, a disabled item stays reachable**: `aria-disabled="true"` rather than `disabled`, so a screen-reader user can find it and hear why.

@@ -35,7 +35,7 @@ In groups:
 | group | roles | job |
 |---|---|---|
 | neutral | `--hw-bg`, `--hw-bg-subtle`, `--hw-surface`, `--hw-surface-raised`, `--hw-fill`, `--hw-fill-hover`, `--hw-fill-active`, `--hw-line`, `--hw-line-strong`, `--hw-text`, `--hw-text-muted`, `--hw-text-disabled`, `--hw-ink`, `--hw-ink-hover`, `--hw-on-ink` | the page, its surfaces, its lines, its text and the primary action |
-| the product's own colour | `--hw-accent`, `--hw-accent-hover`, `--hw-on-accent`, `--hw-accent-text`, `--hw-accent-fill`, `--hw-accent-line`, `--hw-focus` | links, a selection's tint, the focus ring, and one accent solid |
+| the product's own colour | `--hw-accent`, `--hw-accent-hover`, `--hw-on-accent`, `--hw-accent-text`, `--hw-accent-fill`, `--hw-accent-line`, `--hw-focus`, `--hw-accent-edge` | links, a selection's tint, the focus ring, and one accent solid |
 | marks, the house signature | `--hw-mark`, `--hw-on-mark`, `--hw-mark-quiet`, `--hw-insert`, `--hw-insert-fill`, `--hw-delete`, `--hw-delete-fill` | the highlighter and proof marks |
 | states | `--hw-success`, `--hw-warning`, `--hw-danger`, each with `-fill` and `-line`; `--hw-danger-solid`, `--hw-danger-hover`, `--hw-on-danger` | a state beside its word, and a destructive action's button |
 | chart series | `--hw-chart-1` to `--hw-chart-6` | the series of one chart, in a fixed order |
@@ -55,7 +55,7 @@ The permitted pairs are exactly the ones `tools/contrast.py` certifies, in light
 |---|---|---|
 | `--hw-text` | every ground, fill and tint below | 13:1 |
 | `--hw-text-muted`, `--hw-accent-text`, `--hw-success`, `--hw-warning`, `--hw-danger`, `--hw-insert`, `--hw-delete` | grounds `--hw-bg`, `--hw-bg-subtle`, `--hw-surface`, `--hw-surface-raised`, `--hw-fill`; fills `--hw-fill-hover`, `--hw-fill-active`; tints `--hw-accent-fill`, the three state fills, `--hw-insert-fill`, `--hw-delete-fill`, `--hw-mark-quiet` | 4.5:1 |
-| `--hw-line-strong`, `--hw-focus`, `--hw-ink`, as an edge | the five grounds | 3:1 |
+| `--hw-line-strong`, `--hw-focus`, `--hw-ink`, `--hw-accent-edge`, as an edge | the five grounds | 3:1 |
 | `--hw-chart-1` to `--hw-chart-6`, as a mark | the five grounds | 3:1 |
 | `--hw-text-disabled` | the five grounds | 3:1; WCAG exempts disabled text, and this is what keeps disabled from being invisible |
 | `--hw-on-ink`, `--hw-on-accent`, `--hw-on-danger`, `--hw-on-mark` | their own solid, and its hover where it has one | 4.5:1 |
