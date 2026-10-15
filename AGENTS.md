@@ -70,7 +70,7 @@ cases against this repository and 17 wrong inputs left every tool green.
 `tests/invariants.py` holds the two instruments apart and in agreement, and
 `tests/mutation_tests.py` runs a set of deliberately wrong inputs (its own run prints "N cases: N
 as expected, 0 improved, 0 failed" for the current count); one further diagnostic,
-`tests/ident_sweep.py`, prints rather than refuses and is run on demand. `tests/ramps.py` (205 seconds on 2026-10-02) checks `tools/ramps.py` from outside:
+`tests/ident_sweep.py`, prints rather than refuses and is run on demand. `tests/ramps.py` (179 seconds on 2026-10-15) checks `tools/ramps.py` from outside:
 `contrast.py` certifying the committed files, every accent hue building, malformed brand and
 roster files refused by name, and `contrast.py` refusing a floor missed by under 0.01, a role on
 the wrong step, an accent equal to the success green, a chart series under its mark floor or on
