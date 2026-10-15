@@ -58,8 +58,10 @@ jobs:
           SWEEPS: ${{ inputs.sweeps }}
         run: |
           set -uo pipefail
-          sweeps=()
-          [ "${SWEEPS:-false}" = true ] && sweeps=(--sweeps)
+          # Not an array: macOS's bash 3.2, which runs tests/mutation_tests.py on this step,
+          # treats an empty one as unset under `set -u`.
+          sweeps=
+          [ "${SWEEPS:-false}" = true ] && sweeps=1
           report=$(mktemp)
           failed=0
           # Full output of every failing check, uploaded as the consistency-logs artifact. The
@@ -121,7 +123,7 @@ jobs:
           # The tools above check the token set; this one checks the tools. It clones the
           # repository per mutation case, so it needs the git history the checkout provides.
           run "A refusal the system depends on is not actually refusing" \
-            python3 tests/run.py "${sweeps[@]}"
+            python3 tests/run.py ${sweeps:+--sweeps}
 
           # The exporter writes before it reports, so BOTH halves are the check: its own exit
           # status, and the state of the working tree afterwards. `python3 tools/export.py ||
