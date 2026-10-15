@@ -12,7 +12,7 @@ Every product was the house with a different link colour.
 The system's owner gave the direction the same day: each product needs its own distinction rather than a sampler hue.
 
 The first answer was a solver with eleven inputs, then twenty-three: accent chroma and lightness per theme, a quiet-fill multiplier, a ring choice, ground lightness, a sunken depth, a dark card step, a vivid tier of twelve tokens, and four type inputs.
-Each input was bounded and certified, and the house design review of 2026-10-02 found the solver cost more than it returned: 1,978 lines solving each colour from 23 inputs, with bounds that lived in the code, and 205 of 360 accent hues refused, so "a product cannot take hue 150" held because the solver had no room rather than because a product needed it.
+Each input was bounded and certified, and the house design review of 2026-10-02 found the solver cost more than it returned: 1,979 lines solving each colour from 23 inputs, with bounds that lived in the code, and 205 of 360 accent hues refused, so "a product cannot take hue 150" held because the solver had no room rather than because a product needed it.
 The ramps replaced it.
 A brand now names hues and the build gives every hue the same twelve steps, so a role is a choice of step, never a new solve, and an input that only moved a step a few thousandths has nothing left to move.
 Every one of the 360 hues builds; what `tools/contrast.py` still refuses is an accent whose selected-row fill reads as a state, 27 of every fifth hue's 72, from 0 to 85 and 130 to 170.
@@ -124,8 +124,8 @@ On top of the floors, `tools/contrast.py` holds the painted distances below, in 
 | what | bar | the four brands at worst |
 |---|---:|---:|
 | the selected-row fill, `--hw-accent-fill`, from each state's fill | 5 | 10.29, quoth |
-| the primary, `--hw-ink`, from `--hw-danger-solid` | 14 | 21.73, house |
-| the focus ring from `--hw-danger` | 17 | 21.73, house |
+| the primary, `--hw-ink`, from `--hw-danger-solid` | 14 | 30.21, house |
+| the focus ring from `--hw-danger` | 17 | 30.21, house |
 | the focus ring from `--hw-line-strong` | 14 | 14.75, pointback |
 | each state's fill from `--hw-bg` | 6 | 9.29, quoth |
 | each status word, `--hw-danger`, `--hw-warning`, `--hw-success`, `--hw-delete` and `--hw-insert`, from `--hw-text` | 14 | 24.71, quoth |

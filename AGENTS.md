@@ -74,7 +74,7 @@ cases against this repository and 17 wrong inputs left every tool green.
 `tests/invariants.py` holds the two instruments apart and in agreement, and
 `tests/mutation_tests.py` runs a set of deliberately wrong inputs (its own run prints "N cases: N
 as expected, 0 improved, 0 failed" for the current count); one further diagnostic,
-`tests/ident_sweep.py`, prints rather than refuses and is run on demand. `tests/ramps.py` (205 seconds on 2026-10-02 with the hue sweeps, which only `--sweeps` runs and the weekly job passes) checks `tools/ramps.py` from outside:
+`tests/ident_sweep.py`, prints rather than refuses and is run on demand. `tests/ramps.py` (179 seconds on 2026-10-15 with the hue sweeps, which only `--sweeps` runs and the weekly job passes) checks `tools/ramps.py` from outside:
 `contrast.py` certifying the committed files, every accent hue building, malformed brand and
 roster files refused by name, and `contrast.py` refusing a floor missed by under 0.01, a role on
 the wrong step, an accent equal to the success green, a chart series under its mark floor or on
@@ -132,7 +132,9 @@ rather than a sentence.
 - **A component belongs in the house when two products need it.** It is an entry in
   `components/catalogue.py` and the rules in `components/components.css` that name its classes;
   `tools/components.py` writes its sheet and its live page, and its renders are taken as in
-  "Re-rendering the component sheets" below.
+  "Re-rendering the component sheets" below. Its `markup` is the copyable snippet per variant both
+  print, and `tools/components.py` refuses any class `components.css` defines that no entry's
+  markup shows, so a new modifier ships with its snippet.
 - **A roster face is OFL-1.1, pinned by the sha256 of its upstream TTF and of its `OFL.txt`.**
   `tools/ramps.py` refuses any other licence; after editing an entry, run `tools/faces.py --check`
   on fresh copies of both files ([design/20-type.md](design/20-type.md#the-licence-rule)). A face
@@ -220,7 +222,7 @@ the tree:
 scripts/apply-repo-settings.sh Abhijeet34/halderworks-design
 ```
 
-It sends `.github/rulesets/main.json` and the four files under `.github/settings/`, and it is
+It sends `.github/rulesets/main.json` and the five files under `.github/settings/`, and it is
 idempotent - a ruleset whose name already exists is updated in place, and the name is the join, so
 renaming one in the file creates a second on the forge. It sends whatever is in the working tree,
 so run it only from a tree whose settings files are the ones you intend.
