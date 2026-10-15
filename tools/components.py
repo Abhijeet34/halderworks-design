@@ -187,7 +187,7 @@ body { margin: 0; padding: var(--hw-space-32) var(--hw-gutter-md) var(--hw-space
 .bench a { color: var(--hw-text-muted); }
 .bench a[aria-current] { color: var(--hw-text); font-weight: 600; }
 .bench a:focus-visible { outline: var(--hw-focus-w) solid var(--hw-focus); outline-offset: var(--hw-focus-offset); }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 36rem), 1fr)); gap: var(--hw-space-24); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 36rem), 1fr)); gap: var(--hw-space-24); align-items: start; }
 .cc { background: var(--hw-surface); border: var(--hw-border-w) solid var(--hw-line); border-radius: var(--hw-radius-lg); padding: var(--hw-space-24); display: grid; gap: var(--hw-space-16); align-content: start; min-width: 0; container-type: inline-size; }
 .demo { background: var(--hw-bg); border-radius: var(--hw-radius-md); padding: var(--hw-space-24); display: grid; gap: var(--hw-space-12); min-width: 0; container-type: inline-size; }
 .demo > * { justify-self: start; max-width: 100%; }
@@ -213,7 +213,6 @@ body { margin: 0; padding: var(--hw-space-32) var(--hw-gutter-md) var(--hw-space
 .spec { grid-template-columns: 6.5rem 1fr; }
 .spec code.tok { font: 400 0.88em/1.5 var(--hw-font-mono); white-space: nowrap; }
 .markup { display: grid; gap: var(--hw-space-8); min-width: 0; }
-.markup pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 """
 
 BENCH = """(() => { const q = new URLSearchParams(location.search), h = document.documentElement;
