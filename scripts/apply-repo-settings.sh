@@ -57,9 +57,8 @@ gh api --method PUT "repos/$REPO/topics" --input .github/settings/topics.json
 # This repository already had it off and turning it on would let a workflow satisfy a review
 # requirement; there is no automation here that needs to.
 #
-# SHA pinning does not refuse `Abhijeet34/gates/...@main` below: a reusable workflow in a
-# repository the same account owns is outside the policy. Measured on pointback, which has this
-# setting live and calls the same shared secret scan at @main.
+# The gates callers in ci.yml are pinned to a release commit, so SHA pinning below does not
+# refuse them.
 gh api --method PUT "repos/$REPO/actions/permissions/workflow" \
   --input .github/settings/actions-workflow-permissions.json
 gh api --method PUT "repos/$REPO/actions/permissions" \
