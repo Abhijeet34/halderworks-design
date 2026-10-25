@@ -187,7 +187,9 @@ been seen reporting on a real pull request**.
 release with a `# vN` comment (currently v4, `2d686fa`). A pinned bootstrap runs gates at its own
 commit while the caller has no `.github/gates.lock`, which is this repository's state; the README
 of gates, "Pinning", owns the rule. Both calls run under `permissions: contents: read` and pass no
-`secrets:`.
+`secrets:`. A third caller, [`gate-shadow.yml`](.github/workflows/gate-shadow.yml), runs the rows of
+[`.github/gates.toml`](.github/gates.toml) in shadow at the same pin; it is in its own file so
+`checks` cannot depend on it, and it gates nothing.
 
 - **The pin moves by Dependabot**, which rewrites the commit and the `# vN` comment from gates'
   tags (`github-actions` entry in `.github/dependabot.yml`), or by `gates bump`, which adds the lock.

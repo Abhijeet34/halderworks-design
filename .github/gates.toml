@@ -1,0 +1,41 @@
+# The slice of consistency.yml that needs only bash, git and python3, run in shadow by
+# gate-shadow.yml. Each row is a check CI already makes; none is new. A row stays in shadow until
+# run/gate.py's promotion rule lets it block (Abhijeet34/gates README, "The shadow job").
+# Left out: tests/run.py (minutes, and it clones the repository), the export drift check (it
+# writes into the tree) and the network source check (weekly only).
+
+[[gate]]
+id = "ramps"
+inputs = ["ramps/**", "tools/ramps.py"]
+run = "python3 tools/ramps.py --check"
+shadow_since = 2026-10-26
+
+[[gate]]
+id = "contrast"
+inputs = ["ramps/**", "tools/contrast.py"]
+run = "python3 tools/contrast.py"
+shadow_since = 2026-10-26
+
+[[gate]]
+id = "faces"
+inputs = ["fonts/**", "ramps/roster.json", "tools/faces.py"]
+run = "python3 tools/faces.py --vendored"
+shadow_since = 2026-10-26
+
+[[gate]]
+id = "components"
+inputs = ["components/**", "design/64-component-sheets.md", "tools/components.py"]
+run = "python3 tools/components.py --check"
+shadow_since = 2026-10-26
+
+[[gate]]
+id = "links"
+inputs = ["**/*.md", "tools/check-links.py"]
+run = "python3 tools/check-links.py"
+shadow_since = 2026-10-26
+
+[[gate]]
+id = "distinct"
+inputs = ["ramps/tokens/**", "tools/distinct.py"]
+run = "python3 tools/distinct.py"
+shadow_since = 2026-10-26
