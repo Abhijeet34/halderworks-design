@@ -181,37 +181,23 @@ converse is the trap: a context required by the ruleset that no workflow publish
 pull request forever, so **`ci.yml` ships first and the ruleset follows only once the context has
 been seen reporting on a real pull request**.
 
-## What `@main` on the shared gates buys and what it costs
+## How the shared gates are pinned
 
-`ci.yml` calls two workflows from `Abhijeet34/gates` at `@main`, which is a moving ref: what
-gates this repository can change with no commit here. That is a deliberate call, and these are
-the numbers behind it.
+`ci.yml` calls two workflows from `Abhijeet34/gates`, each pinned to the full commit of a gates
+release with a `# vN` comment (currently v4, `2d686fa`). A pinned bootstrap runs gates at its own
+commit while the caller has no `.github/gates.lock`, which is this repository's state; the README
+of gates, "Pinning", owns the rule. Both calls run under `permissions: contents: read` and pass no
+`secrets:`.
 
-**What a hostile change to `gates` `main` would get.** Both calls run under the caller's
-`permissions: contents: read`, a called workflow cannot raise its own permissions above the
-caller's, and neither call passes `secrets:`. So the reachable outcome is a read-only token on a
-public repository, which is nothing, and a false green on the secret scan and the watermark scan,
-which is the real exposure. `gates` has one collaborator, its `main` carries ruleset `23545843`
-with no bypass actors, required signatures, a pull request and a required `checks` context.
-
-**What pinning would cost.** `shared-secret-scan.yml` hard-codes the sha256 of the canonical
-`.gitleaks.toml`, `.githooks/pre-push` and `.githooks/commit-msg`, and fails any caller whose synced copies differ. A
-caller pinned to a SHA keeps matching the digests of the day it was pinned, so the drift check
-the shared workflow exists to perform is switched off in exactly the repository that most needs
-it. A pin also freezes the scanner: a detection bug fixed upstream never reaches a pinned caller,
-and a stale gate reports green for the same reason a hostile one would.
-
-So: keep `@main`, and treat `gates` `main` as part of this repository's trusted computing base
-rather than as a third-party dependency. The residual gap is a `gates` change that lands between
-a green run and a merge; the ruleset's `strict_required_status_checks_policy: true` covers
-staleness of this repository's branch and nothing covers that, so a re-run before merge is the
-only control and it is a person's to apply.
-
-**What would change the answer**, any one of them: `gates` gains a collaborator or a bypass actor
-on `main`, a call here starts passing `secrets:` or needs a permission above `contents: read`, or
-`gates` stops being owned by the same account. At that point the shared workflows become a
-third-party dependency and get pinned by SHA, with a scheduled job to compare the pin against
-`main` so the drift detection is replaced rather than dropped.
+- **The pin moves by Dependabot**, which rewrites the commit and the `# vN` comment from gates'
+  tags (`github-actions` entry in `.github/dependabot.yml`), or by `gates bump`, which adds the lock.
+  A lock change is refused unless the pull request changes only the lock and the synced copies and
+  comes from the bump identity, so never bundle a lock with other edits.
+- **Drift check**: `shared-secret-scan.yml` fails a caller whose `.gitleaks.toml`,
+  `.githooks/pre-push` or `.githooks/commit-msg` differ from gates at the locked commit; the fix
+  is to re-sync from upstream, never to edit them here.
+- **Do not go back to `@main`**; `sha_pinning_required` is on for this repository, and a moving
+  ref is what the pin replaced.
 
 ## The settings that are not files
 
