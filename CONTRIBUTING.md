@@ -1,6 +1,6 @@
 # Contributing to Halderworks Instrument
 
-A design system for instruments of record. Four brands built from one set of ramps and roles, two themes, every value measured.
+A design system for instruments of record. One token set, two themes, 141 inventoried surfaces, every value solved to a measurement.
 
 Halderworks Instrument has one maintainer, Abhijeet Halder, and changes are proposed as pull requests against `main`.
 Open an issue before starting anything larger than a small fix.
