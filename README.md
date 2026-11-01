@@ -5,7 +5,7 @@ A design system for instruments of record: software whose job is to be trusted a
 Twelve-step colour ramps with a contrast floor on every step, named roles that point at steps, two themes and a high-contrast set, a rem type ramp under a five-step text-size setting, two densities, and a plain-CSS component layer.
 Every value traces to a measurement, and the repository carries the tools that prove it.
 
-[SKILL.md](SKILL.md) is the entry point for a model, and [Building a screen with it](#building-a-screen-with-it) below is the one for a developer.
+[SKILL.md](SKILL.md) is the entry point for a model, and [Building a screen with it](#usage-building-a-screen-with-it) below is the one for a developer.
 [design/00-brand-book.md](design/00-brand-book.md) opens the book: the foundations, written once, and the component sheets, generated.
 [AGENTS.md](AGENTS.md) is for changing the system itself.
 
@@ -35,7 +35,38 @@ So the book states each foundation once and names the file that enforces it, and
   `tests/exports.py` refuses an off-unit space or size value that is not declared with a reason - in both directions, so the exception list cannot rot.
   [design/30-space.md](design/30-space.md#the-unit) names the unit and the exceptions.
 
-## Building a screen with it
+## Install: how a model loads it
+
+There is nothing to install and nothing to build.
+The whole system is files, and the one script, `components/radiogroup.js`, gives a segmented control its arrow keys.
+
+1. Clone or vendor this repository where the model can read it:
+
+   ```bash
+   git clone https://github.com/Abhijeet34/halderworks-design.git
+   ```
+
+2. Point the model at [SKILL.md](SKILL.md).
+   It fires on "about to write or restyle any UI" and routes to the file that answers the question in hand.
+3. If context is tight, [exports/DESIGN.compact.md](exports/DESIGN.compact.md) is the whole value set in one file.
+   `SKILL.md` says exactly when that is enough and when reading it alone will produce off-system work.
+
+For a harness with a skills directory, `SKILL.md` and this tree drop in unchanged.
+For anything else, the file is ordinary Markdown with a YAML header and reads correctly without any harness at all - that is deliberate, because a design system that only one vendor's model can load is a design system with a vendor lock in it.
+
+Other forms of the same values, for a tool that wants one:
+
+| file | what it is |
+|---|---|
+| [exports/variables.css](exports/variables.css) | the custom properties a browser loads, from `ramps/`: the brand's faces and shape, both themes, `prefers-contrast: more`, compact density, the 44px touch floor, reduced motion and `html[data-text-size]`. Copy-pasteable into any product |
+| [exports/theme.css](exports/theme.css) | the same variables plus a Tailwind v4 `@theme inline` map, so every utility follows each block above |
+| [exports/design-tokens.json](exports/design-tokens.json) | W3C DTCG, with `$value`, `$type` and `$description` per token |
+| [exports/DESIGN.md](exports/DESIGN.md) | the long brief: every token with its role, plus the rules |
+| [exports/DESIGN.compact.md](exports/DESIGN.compact.md) | the short brief, for a small context window |
+| [fonts/fonts.css](fonts/fonts.css) | the house faces, Archivo, Literata and IBM Plex Mono, self-hosted as WOFF2 with each face's OFL text; no request leaves the product's origin |
+| [ramps/brands/house.json](ramps/brands/house.json) | the **source** every file above is generated from: the neutral and the named hues, with [ramps/roles.css](ramps/roles.css) and [ramps/scales.css](ramps/scales.css) |
+
+## Usage: building a screen with it
 
 For a developer on a Halderworks product with a screen to build.
 Every step names the one file that owns it.
@@ -57,38 +88,6 @@ A product takes its identity from a brand file, `ramps/brands/<product>.json`: a
 `python3 tools/ramps.py` builds it in the house's own token names, and `tools/contrast.py` refuses it if one role fails.
 At accent hue 150 it refuses, because the selected-row fill sits 0.4 CIEDE2000 from `--hw-success-fill` against the 5 [design/12-brand.md](design/12-brand.md#the-bars-every-brand-is-held-to) requires.
 
-## How a model loads it
-
-There is nothing to install and nothing to build.
-The whole system is files, and the one script, `components/radiogroup.js`, gives a segmented control its arrow keys.
-
-1. Clone or vendor this repository where the model can read it.
-2. Point the model at [SKILL.md](SKILL.md).
-   It fires on "about to write or restyle any UI" and routes to the file that answers the question in hand.
-3. If context is tight, [exports/DESIGN.compact.md](exports/DESIGN.compact.md) is the whole value set in one file.
-   `SKILL.md` says exactly when that is enough and when reading it alone will produce off-system work.
-
-For a harness with a skills directory, `SKILL.md` and this tree drop in unchanged.
-For anything else, the file is ordinary Markdown with a YAML header and reads correctly without any harness at all - that is deliberate, because a design system that only one vendor's model can load is a design system with a vendor lock in it.
-
-Other forms of the same values, for a tool that wants one:
-
-| file | what it is |
-|---|---|
-| [exports/variables.css](exports/variables.css) | the custom properties a browser loads, from `ramps/`: the brand's faces and shape, both themes, `prefers-contrast: more`, compact density, the 44px touch floor, reduced motion and `html[data-text-size]`. Copy-pasteable into any product |
-| [exports/theme.css](exports/theme.css) | the same variables plus a Tailwind v4 `@theme inline` map, so every utility follows each block above |
-| [exports/design-tokens.json](exports/design-tokens.json) | W3C DTCG, with `$value`, `$type` and `$description` per token |
-| [exports/DESIGN.md](exports/DESIGN.md) | the long brief: every token with its role, plus the rules |
-| [exports/DESIGN.compact.md](exports/DESIGN.compact.md) | the short brief, for a small context window |
-| [fonts/fonts.css](fonts/fonts.css) | the house faces, Archivo, Literata and IBM Plex Mono, self-hosted as WOFF2 with each face's OFL text; no request leaves the product's origin |
-| [ramps/brands/house.json](ramps/brands/house.json) | the **source** every file above is generated from: the neutral and the named hues, with [ramps/roles.css](ramps/roles.css) and [ramps/scales.css](ramps/scales.css) |
-
-## Changing the system
-
-[CONTRIBUTING.md](CONTRIBUTING.md) says how a change is proposed.
-[AGENTS.md](AGENTS.md) holds the tools and the suite that checks them, the rules a change to a token or a rule is held to, what CI requires before a merge, and what the weekly maintenance job does and does not check.
-[docs/publication-record.md](docs/publication-record.md) records how the first publication was scrubbed and verified.
-
 ## What is open
 
 [The brand book's table](design/00-brand-book.md#what-the-house-has-and-what-it-does-not) is the full answer: two admitted surfaces with no sheet yet, three partly answered, and what the house declines with the reason for each.
@@ -98,6 +97,12 @@ The two worth knowing before you read anything else:
   Right-to-left text inside a left-to-right product is specified; whether any product ever mirrors its whole interface is open, and the recommendation is no.
 - **There is no logomark and no wordmark.**
   A mark is a commission rather than something an agent invents.
+
+## Contributing, security and support
+
+[CONTRIBUTING.md](CONTRIBUTING.md) says how a change is proposed, [SECURITY.md](SECURITY.md) how to report a vulnerability privately, and [SUPPORT.md](SUPPORT.md) where each kind of question goes.
+[AGENTS.md](AGENTS.md) holds the tools and the suite that checks them, the rules a change to a token or a rule is held to, what CI requires before a merge, and what the weekly maintenance job does and does not check.
+[docs/publication-record.md](docs/publication-record.md) records how the first publication was scrubbed and verified.
 
 ## Licence
 
