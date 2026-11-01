@@ -1,6 +1,6 @@
 # Contributing to Halderworks Instrument
 
-A design system for instruments of record. One token set, two themes, 141 inventoried surfaces, every value solved to a measurement.
+A design system for instruments of record. One token set, two themes, every value solved to a measurement.
 
 Halderworks Instrument has one maintainer, Abhijeet Halder, and changes are proposed as pull requests against `main`.
 Open an issue before starting anything larger than a small fix.
