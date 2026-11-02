@@ -38,9 +38,9 @@ jobs:
   # pinned": the bootstrap runs at its own commit while this repository has no .github/gates.lock,
   # and Dependabot moves the pin.
   secrets:
-    uses: Abhijeet34/gates/.github/workflows/shared-secret-scan.yml@2d686fa31bf6f3aea8ef64721811676bae1fc8a5 # v4
+    uses: Abhijeet34/gates/.github/workflows/shared-secret-scan.yml@99048291edfeff0062eb60981f0955b701ee624a # v5
   watermark:
-    uses: Abhijeet34/gates/.github/workflows/shared-watermark-scan.yml@2d686fa31bf6f3aea8ef64721811676bae1fc8a5 # v4
+    uses: Abhijeet34/gates/.github/workflows/shared-watermark-scan.yml@99048291edfeff0062eb60981f0955b701ee624a # v5
   consistency:
     uses: ./.github/workflows/consistency.yml
 
