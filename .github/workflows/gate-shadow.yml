@@ -21,4 +21,4 @@ permissions:
 jobs:
   # Pinned to the same gates commit as the callers in ci.yml; Dependabot moves them together.
   shadow:
-    uses: Abhijeet34/gates/.github/workflows/shared-gate-shadow.yml@2d686fa31bf6f3aea8ef64721811676bae1fc8a5 # v4
+    uses: Abhijeet34/gates/.github/workflows/shared-gate-shadow.yml@99048291edfeff0062eb60981f0955b701ee624a # v5
