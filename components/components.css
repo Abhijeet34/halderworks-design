@@ -43,7 +43,8 @@
 .hw-btn:active { transform: translateY(1px); }
 .hw-btn svg { width: 1.15em; height: 1.15em; flex: none; }
 .hw-btn--primary { --_bg: var(--hw-ink); --_fg: var(--hw-on-ink); --_bd: var(--hw-ink); --_bgh: var(--hw-ink-hover); }
-.hw-btn--accent { --_bg: var(--hw-accent); --_fg: var(--hw-on-accent); --_bd: var(--hw-accent); --_bgh: var(--hw-accent-hover); }
+/* the accent keeps the brand's fill; its edge holds 3:1 where a light solid (pointback's, quoth's) does not */
+.hw-btn--accent { --_bg: var(--hw-accent); --_fg: var(--hw-on-accent); --_bd: var(--hw-accent-edge); --_bgh: var(--hw-accent-hover); }
 .hw-btn--quiet { --_bg: transparent; --_bd: transparent; }
 .hw-btn--danger { --_fg: var(--hw-danger); --_bd: var(--hw-danger-line); --_bgh: var(--hw-danger-fill); }
 .hw-btn--danger-solid { --_bg: var(--hw-danger-solid); --_fg: var(--hw-on-danger); --_bd: var(--hw-danger-solid); --_bgh: var(--hw-danger-hover); }
@@ -207,10 +208,12 @@
 /* ---------- skeleton: still, no shimmer ---------- */
 .hw-skeleton { display: block; height: 0.9em; border-radius: var(--hw-radius-sm); background: var(--hw-fill-active); }
 
-/* ---------- level meter: a product sets --_live to its own live colour ---------- */
+/* ---------- level meter: a product sets --_live to its own live colour, at step 8 ----------
+   A lit bar is too thin to carry an edge, so it is the mark itself: the accent's 3:1 step, the one
+   --hw-accent-edge names, never the solid, which is 1.95:1 on white for pointback. */
 .hw-meter { display: inline-flex; gap: 0.13em; align-items: flex-end; height: 1.1em; }
 .hw-meter > i { width: 0.2em; min-height: 0.13em; border-radius: 1px; background: var(--hw-fill-active); }
-.hw-meter > i.on { background: var(--_live, var(--hw-accent)); }
+.hw-meter > i.on { background: var(--_live, var(--hw-accent-edge)); }
 
 /* ---------- menu ---------- */
 .hw-menu {

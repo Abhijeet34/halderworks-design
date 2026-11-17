@@ -69,10 +69,11 @@ EXCEPTIONS = [
      "the dark highlight: a block in mark step 7, since a swipe under light text measured 1.15:1"),
 ]
 
-# Rule 8. The solids are the grounds contrast.py certifies a label on, read from its own lists;
-# a track is a quiet control whose state is its fill, named here because its fill is not a solid.
+# Rule 8. The solids are the grounds contrast.py certifies a label on, read from its own lists.
+# A track or an indicator is a rule whose fill is the state it reports, measured whatever role it
+# names: the switch's track, and the meter's lit bar, which paints a 3:1 step rather than a solid.
 SOLID_FILLS = tuple(dict.fromkeys(f for fs in contrast.ROLE_LABELS.values() for f in fs))
-TRACKS = (".hw-switch input",)
+TRACKS = (".hw-switch input", ".hw-meter > i.on")
 FILL_PROPS = ("background", "background-color", "--_bg", "--_bgh", "--_field")
 EDGE_PROPS = ("--_bd", "border-color", "border")
 # A rule drawn inside another component sits on that component's fill, not on the page.
@@ -395,13 +396,20 @@ def main():
         ("a label on the wrong solid", lambda: check_pairs(rules_of(text.replace(btn, ".hw-btn--primary { --_bg: var(--hw-accent); --_fg: var(--hw-on-ink);")), envs)[0]),
         ("the pin without its inner edge, as before audit row H1", lambda: check_fills(rules_of(text.replace(
             pin_edge, "box-shadow: 0 0 0 2px var(--hw-surface)")), envs)[0]),
+        ("the accent button edged in its own solid, as before audit row H2", lambda: check_fills(rules_of(text.replace(
+            "--_bd: var(--hw-accent-edge); --_bgh: var(--hw-accent-hover);",
+            "--_bd: var(--hw-accent); --_bgh: var(--hw-accent-hover);")), envs)[0]),
+        ("the lit meter bar in the accent solid, as before audit row H2", lambda: check_fills(rules_of(text.replace(
+            "var(--_live, var(--hw-accent-edge))", "var(--_live, var(--hw-accent))")), envs)[0]),
         ("a 0.8em keycap with no floor", lambda: check_type_floor(text.replace("max(0.8em, 11px)", "0.8em", 1))),
         ("a class the sheets never show", lambda: check_documented(text + "\n.hw-btn--ghost { color: var(--hw-text); }", book)),
     ]
     if btn not in text:
         fails.append("negative controls: the primary button rule they edit has moved")
-    if pin_edge not in text:
-        fails.append("negative controls: the pin rule they edit has moved")
+    for rule in (pin_edge, "--_bd: var(--hw-accent-edge); --_bgh: var(--hw-accent-hover);",
+                 "var(--_live, var(--hw-accent-edge))"):
+        if rule not in text:
+            fails.append(f"negative controls: the rule they edit has moved: {rule}")
     # The audit's numbers, held: the pin without its edge is refused on its halo at exactly these.
     bare = check_fills(rules_of(text.replace(pin_edge, "box-shadow: 0 0 0 2px var(--hw-surface)")), envs)[0]
     for brand, at in (("pointback", "1.95"), ("quoth", "1.34")):
