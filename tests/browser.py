@@ -16,7 +16,7 @@ fonts/fonts.css, components/components.css, components/radiogroup.js) and nothin
   tooltip      Escape hides a showing tooltip without moving focus or pointer, and it returns
   kbd          a keycap asks for weight 400, the one every product vendors
   rows         no child of a list row paints over another, and none leaves the row, at 300 and
-               1440 wide: text first, meta first, an unbreakable address, and .hw-row--lead, whose
+               1440 wide and in a 180px card, where the text keeps its line: text first, meta first, an unbreakable address, and .hw-row--lead, whose
                leading column stays 5.5em; the grid the layer shipped before must be refused
 
 Each probe runs in light and dark. It needs a Chromium, found as tools/painted.py finds one
@@ -93,15 +93,15 @@ ROWS = """(() => {
           hits.push(`${name(i)} over ${name(i + 1 + k).split(": ")[1]}`); }); });
   }
   const lead = document.getElementById("lead");
-  return {rows: document.querySelectorAll("#rows .hw-row").length, hits,
+  const texts = [...document.querySelectorAll("#rows .hw-row:not(.hw-row--lead) > p")].map(p => p.getBoundingClientRect().width);
+  return {narrowest: Math.min(...texts), rows: document.querySelectorAll("#rows .hw-row").length, hits,
           lead: parseFloat(getComputedStyle(lead).gridTemplateColumns) / parseFloat(getComputedStyle(lead).fontSize)};
 })()"""
 
 # The grid the layer shipped before this probe: 5.5em, 1fr, auto for every row.
 BEFORE = """(() => { const s = document.createElement("style"); s.id = "before";
-  s.textContent = "#rows .hw-row {grid-template-columns: 5.5em 1fr auto; grid-auto-flow: row}"
-    + " #rows .hw-row > * {grid-row: auto; overflow-wrap: normal}"
-    + " #rows .hw-row > .hw-row-actions {grid-column: 2 / -1}";
+  s.textContent = "#rows .hw-row {display: grid; grid-template-columns: 5.5em 1fr auto}"
+    + " #rows .hw-row > * {overflow-wrap: normal}";
   document.head.append(s); return true; })()"""
 
 PROBES = """({
@@ -267,11 +267,18 @@ def probe(pg, theme):
     check("tip-hover", (before, after, back) == ("visible", "hidden", "visible"),
           f"hovered {before}, after Escape {after}, after leaving and returning {back}")
 
-    for width in (300, 1440):
+    for width in (300, 1440):  # the viewport; the list is 252px wide at 300
         pg.width(width)
         r = pg.js(ROWS)
         check(f"rows {width}", r["rows"] == 6 and not r["hits"] and abs(r["lead"] - 5.5) < 0.01,
               f"{r['rows']} rows, overlaps: {r['hits'] or 'none'}, --lead first column {r['lead']:.2f}em")
+    # A row in a 180px card: the metas wrap below the text rather than crush it to a letter a line.
+    pg.js('document.getElementById("rows").style.width = "180px"; true')
+    r = pg.js(ROWS)
+    pg.js('document.getElementById("rows").style.width = ""; true')
+    text_first = [h for h in r["hits"] if not h.startswith(("12:30", "10:41"))]
+    check("rows 180", not text_first and r["narrowest"] >= 100,
+          f"text-first overlaps: {text_first or 'none'}, narrowest text {r['narrowest']:.0f}px of a 156px line")
     # Negative control: the grid before this probe, on the same rows, must be refused.
     pg.width(1440)
     pg.js(BEFORE)
