@@ -1,0 +1,36 @@
+zero @180                    grid  h=44 w=180 lines=0 kids=[] hits=none
+one_text @180                grid  h=45 w=180 lines=1 kids=[83] hits=none
+one_meta @180                grid  h=44 w=180 lines=1 kids=[83] hits=none
+twelve_text_first @180       grid  h=174 w=180 lines=5 kids=[83,8,41,83,8,41,83,8,41,83,8,41] hits=0 over 1; 1 over 2; 4 over 5; 7 over 8; 10 over 11
+twelve_metas @180            grid  h=172 w=180 lines=4 kids=[83,8,42,83,8,42,83,8,42,83,8,42] hits=1 over 2; 4 over 5; 7 over 8; 10 over 11
+twelve_lead @180             grid  h=158 w=180 lines=5 kids=[83,8,42,83,8,42,83,8,42,83,8,42] hits=1 over 2; 4 over 5; 7 over 8; 10 over 11
+nested @180                  grid  h=109 w=180 lines=3 kids=[83,24,26] hits=inner 0 leaves inner row; inner 1 leaves inner row
+nested_in_lead @180          grid  h=86 w=180 lines=2 kids=[83,24,26] hits=inner 0 leaves inner row; inner 1 leaves inner row
+text_own_width @180          grid  h=61 w=180 lines=2 kids=[120,50] own=120 hits=0 over 1
+text_own_width_class @180    grid  h=61 w=180 lines=2 kids=[120,50] own=120 hits=0 over 1
+meta_own_width @180          grid  h=45 w=180 lines=2 kids=[83,200] own=200 hits=1 leaves row
+wide_child_overflow @180     grid  h=45 w=180 lines=2 kids=[83,400] own=400 hits=1 leaves row
+zero @300                    grid  h=44 w=252 lines=0 kids=[] hits=none
+one_text @300                grid  h=45 w=252 lines=1 kids=[83] hits=none
+one_meta @300                grid  h=44 w=252 lines=1 kids=[83] hits=none
+twelve_text_first @300       grid  h=107 w=252 lines=5 kids=[83,80,41,83,80,41,83,80,41,83,80,41] hits=0 over 1
+twelve_metas @300            grid  h=105 w=252 lines=4 kids=[83,80,42,83,80,42,83,80,42,83,80,42] hits=none
+twelve_lead @300             grid  h=107 w=252 lines=5 kids=[83,80,42,83,80,42,83,80,42,83,80,42] hits=none
+nested @300                  grid  h=109 w=252 lines=3 kids=[83,66,55] hits=inner 0 leaves inner row; inner 1 leaves inner row
+nested_in_lead @300          grid  h=86 w=252 lines=2 kids=[83,95,27] hits=inner 1 leaves inner row
+text_own_width @300          grid  h=45 w=252 lines=2 kids=[120,122] own=120 hits=0 over 1
+text_own_width_class @300    grid  h=45 w=252 lines=2 kids=[120,122] own=120 hits=0 over 1
+meta_own_width @300          grid  h=45 w=252 lines=2 kids=[83,200] own=200 hits=1 leaves row
+wide_child_overflow @300     grid  h=45 w=252 lines=2 kids=[83,400] own=400 hits=1 leaves row
+zero @1440                   grid  h=44 w=1392 lines=0 kids=[] hits=none
+one_text @1440               grid  h=45 w=1392 lines=1 kids=[83] hits=none
+one_meta @1440               grid  h=44 w=1392 lines=1 kids=[83] hits=none
+twelve_text_first @1440      grid  h=107 w=1392 lines=5 kids=[83,1220,41,83,1220,41,83,1220,41,83,1220,41] hits=0 over 1
+twelve_metas @1440           grid  h=105 w=1392 lines=4 kids=[83,1220,42,83,1220,42,83,1220,42,83,1220,42] hits=none
+twelve_lead @1440            grid  h=107 w=1392 lines=5 kids=[83,1220,42,83,1220,42,83,1220,42,83,1220,42] hits=none
+nested @1440                 grid  h=109 w=1392 lines=3 kids=[83,1206,55] hits=none
+nested_in_lead @1440         grid  h=70 w=1392 lines=2 kids=[83,1235,27] hits=none
+text_own_width @1440         grid  h=45 w=1392 lines=2 kids=[120,1262] own=120 hits=0 over 1
+text_own_width_class @1440   grid  h=45 w=1392 lines=2 kids=[120,1262] own=120 hits=0 over 1
+meta_own_width @1440         grid  h=45 w=1392 lines=2 kids=[83,200] own=200 hits=none
+wide_child_overflow @1440    grid  h=45 w=1392 lines=2 kids=[83,400] own=400 hits=none
