@@ -1,0 +1,126 @@
+== Attack 1: fill on a tinted ground inside a dark prefers-contrast block
+  house dark-more: --hw-accent on --hw-accent-fill 8.81, --hw-accent-edge on --hw-accent-fill 5.67, --hw-danger-solid on --hw-danger-fill 1.77
+  papertrace dark-more: --hw-accent on --hw-accent-fill 8.76, --hw-accent-edge on --hw-accent-fill 5.63, --hw-danger-solid on --hw-danger-fill 1.76
+  pointback dark-more: --hw-accent on --hw-accent-fill 8.72, --hw-accent-edge on --hw-accent-fill 5.61, --hw-danger-solid on --hw-danger-fill 1.77
+  quoth dark-more: --hw-accent on --hw-accent-fill 8.79, --hw-accent-edge on --hw-accent-fill 5.65, --hw-danger-solid on --hw-danger-fill 1.77
+
+### 1a accent button on a selected row (tinted ground by nesting), dark under more
+input: @media (prefers-contrast: more) { [data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent { --_bg: var(--hw-accent); } }
+measured as: [('[data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent', '--hw-accent', [], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (10 new failures)
+    pointback light: [data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (no edge)
+    pointback light: [data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (no edge)
+    pointback light: [data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (no edge)
+    pointback light: [data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (no edge)
+
+### 1b pin haloed in a tinted ground (its halo names the ground), dark under more
+input: @media (prefers-contrast: more) { [data-theme="dark"] .hw-pin { box-shadow: inset 0 0 0 var(--hw-border-w) var(--hw-accent-edge), 0 0 0 2px var(--hw-accent-fill); } }
+measured as: [('[data-theme="dark"] .hw-pin', '--hw-accent', ['--hw-border-w', '--hw-accent-edge'], ['--hw-accent-fill'])]
+result: PASSED (not refused) (0 new failures)
+
+### 1c dark-more override that swaps the accent button edge for a tinted role
+input: @media (prefers-contrast: more) { [data-theme="dark"] .hw-btn--accent { --_bd: var(--hw-accent-fill); } }
+measured as: [('[data-theme="dark"] .hw-btn--accent', '--hw-accent', ['--hw-accent-fill'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill']), ('[data-theme="dark"] .hw-btn--accent', '--hw-accent-hover', ['--hw-accent-fill'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (20 new failures)
+    pointback light: [data-theme="dark"] .hw-btn--accent paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (edge --hw-accent-fill 1.11:1)
+    pointback light: [data-theme="dark"] .hw-btn--accent paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (edge --hw-accent-fill 1.05:1)
+    pointback light: [data-theme="dark"] .hw-btn--accent paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (edge --hw-accent-fill 1.16:1)
+    pointback light: [data-theme="dark"] .hw-btn--accent paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (edge --hw-accent-fill 1.16:1)
+
+### 1d same override scoped to light only (media is ignored, so does it still measure dark-more?)
+input: @media (prefers-contrast: more) { [data-theme="light"] .hw-btn--accent { --_bd: var(--hw-accent-fill); } }
+measured as: [('[data-theme="light"] .hw-btn--accent', '--hw-accent', ['--hw-accent-fill'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill']), ('[data-theme="light"] .hw-btn--accent', '--hw-accent-hover', ['--hw-accent-fill'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (20 new failures)
+    pointback light: [data-theme="light"] .hw-btn--accent paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (edge --hw-accent-fill 1.11:1)
+    pointback light: [data-theme="light"] .hw-btn--accent paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (edge --hw-accent-fill 1.05:1)
+    pointback light: [data-theme="light"] .hw-btn--accent paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (edge --hw-accent-fill 1.16:1)
+    pointback light: [data-theme="light"] .hw-btn--accent paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (edge --hw-accent-fill 1.16:1)
+
+== Attack 2: fill token that is an alias of another alias
+
+### 2a private alias chain: --_brand -> --_solid -> --hw-accent
+input: .hw-btn--brand { --_solid: var(--hw-accent); --_brand: var(--_solid); --_bg: var(--_brand); --_bd: var(--_brand); }
+measured as: []
+result: PASSED (not refused) (0 new failures)
+
+### 2b direct, for comparison
+input: .hw-btn--brand { --_bg: var(--hw-accent); --_bd: var(--hw-accent); }
+measured as: [('.hw-btn--brand', '--hw-accent', ['--hw-accent'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (10 new failures)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (edge --hw-accent 1.87:1)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (edge --hw-accent 1.78:1)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (edge --hw-accent 1.95:1)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (edge --hw-accent 1.95:1)
+
+### 2c role alias of alias: --hw-accent-hover (role -> step) painted as a meter bar
+input: ('var(--_live, var(--hw-accent-edge))', 'var(--_live, var(--hw-accent-hover))')
+measured as: [('.hw-meter > i.on', '--hw-accent-hover', [], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (10 new failures)
+    pointback light: .hw-meter > i.on paints --hw-accent-hover on --hw-bg at 2.15:1, under 3.0 (no edge)
+    pointback light: .hw-meter > i.on paints --hw-accent-hover on --hw-bg-subtle at 2.05:1, under 3.0 (no edge)
+    pointback light: .hw-meter > i.on paints --hw-accent-hover on --hw-surface at 2.25:1, under 3.0 (no edge)
+    pointback light: .hw-meter > i.on paints --hw-accent-hover on --hw-surface-raised at 2.25:1, under 3.0 (no edge)
+
+### 2d fill named through a fallback chain var(--_x, var(--_y, var(--hw-accent)))
+input: .hw-btn--brand { --_bg: var(--_x, var(--_y, var(--hw-accent))); --_bd: var(--_x, var(--_y, var(--hw-accent))); }
+measured as: [('.hw-btn--brand', '--hw-accent', ['--hw-accent'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (10 new failures)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (edge --hw-accent 1.87:1)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (edge --hw-accent 1.78:1)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (edge --hw-accent 1.95:1)
+    pointback light: .hw-btn--brand paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (edge --hw-accent 1.95:1)
+
+== Attack 3: a fill that passes on one ground and fails on another
+  house light: --hw-line-strong on --hw-bg 3.42, --hw-bg-subtle 3.25, --hw-surface 3.57, --hw-surface-raised 3.57, --hw-fill 3.07
+  papertrace light: --hw-line-strong on --hw-bg 3.42, --hw-bg-subtle 3.25, --hw-surface 3.57, --hw-surface-raised 3.57, --hw-fill 3.06
+  pointback light: --hw-line-strong on --hw-bg 3.42, --hw-bg-subtle 3.25, --hw-surface 3.57, --hw-surface-raised 3.57, --hw-fill 3.07
+  quoth light: --hw-line-strong on --hw-bg 3.41, --hw-bg-subtle 3.24, --hw-surface 3.56, --hw-surface-raised 3.56, --hw-fill 3.06
+
+### 3a accent button edged in --hw-line (a hairline) instead of the edge role
+input: ('--_bd: var(--hw-accent-edge); --_bgh: var(--hw-accent-hover);', '--_bd: var(--hw-line); --_bgh: var(--hw-accent-hover);')
+measured as: [('.hw-btn--accent', '--hw-accent', ['--hw-line'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill']), ('.hw-btn--accent', '--hw-accent-hover', ['--hw-line'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (20 new failures)
+    pointback light: .hw-btn--accent paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (edge --hw-line 1.40:1)
+    pointback light: .hw-btn--accent paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (edge --hw-line 1.33:1)
+    pointback light: .hw-btn--accent paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (edge --hw-line 1.46:1)
+    pointback light: .hw-btn--accent paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (edge --hw-line 1.46:1)
+
+### 3b toast's inner button: GROUND_OF ink; give it an accent solid there
+input: .hw-toast .hw-btn { --_bgh: var(--hw-accent); }
+measured as: [('.hw-toast .hw-btn', '--hw-accent', [], ['--hw-ink'])]
+result: REFUSED (10 new failures)
+    house light-more: .hw-toast .hw-btn paints --hw-accent on --hw-ink at 1.84:1, under 4.5 (no edge)
+    house dark-more: .hw-toast .hw-btn paints --hw-accent on --hw-ink at 1.85:1, under 4.5 (no edge)
+    papertrace light-more: .hw-toast .hw-btn paints --hw-accent on --hw-ink at 1.86:1, under 4.5 (no edge)
+    papertrace dark-more: .hw-toast .hw-btn paints --hw-accent on --hw-ink at 1.85:1, under 4.5 (no edge)
+  --hw-accent-edge on --hw-accent-fill: house/light 3.07, house/dark 3.08, house/light-more 5.27, house/dark-more 5.67, papertrace/light 3.06, papertrace/dark 3.08, papertrace/light-more 5.30, papertrace/dark-more 5.63, pointback/light 3.08, pointback/dark 3.07, pointback/light-more 5.31, pointback/dark-more 5.61, quoth/light 3.06, quoth/dark 3.07, quoth/light-more 5.35, quoth/dark-more 5.65
+  --hw-accent-edge on --hw-danger-fill: house/light 3.04, house/dark 3.12, house/light-more 5.23, house/dark-more 5.75, papertrace/light 3.03, papertrace/dark 3.14, papertrace/light-more 5.25, papertrace/dark-more 5.73, pointback/light 3.04, pointback/dark 3.14, pointback/light-more 5.24, pointback/dark-more 5.74, quoth/light 3.03, quoth/dark 3.13, quoth/light-more 5.28, quoth/dark-more 5.76
+  --hw-accent-edge on --hw-success-fill: house/light 3.11, house/dark 3.03, house/light-more 5.35, house/dark-more 5.58, papertrace/light 3.11, papertrace/dark 3.05, papertrace/light-more 5.37, papertrace/dark-more 5.57, pointback/light 3.11, pointback/dark 3.05, pointback/light-more 5.36, pointback/dark-more 5.57, quoth/light 3.10, quoth/dark 3.05, quoth/light-more 5.40, quoth/dark-more 5.59
+
+### 1h accent button with its edge, nested in a selected row on --hw-accent-fill
+input: @media (prefers-contrast: more) { [data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent { --_bg: var(--hw-accent); --_bd: var(--hw-accent-edge); } }
+measured as: [('[data-theme="dark"] .hw-row[aria-selected="true"] .hw-btn--accent', '--hw-accent', ['--hw-accent-edge'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: PASSED (not refused) (0 new failures)
+
+### 3d a solid on gray step 9: in light-more it holds 4.5 on surface (4.54) but not on fill (3.90)
+input: .hw-btn--brand { --_bg: var(--hw-gray-9); --_bd: var(--hw-gray-9); }
+measured as: [('.hw-btn--brand', '--hw-gray-9', ['--hw-gray-9'], ['--hw-bg', '--hw-bg-subtle', '--hw-surface', '--hw-surface-raised', '--hw-fill'])]
+result: REFUSED (32 new failures)
+    house light-more: .hw-btn--brand paints --hw-gray-9 on --hw-bg at 4.35:1, under 4.5 (edge --hw-gray-9 4.35:1)
+    house light-more: .hw-btn--brand paints --hw-gray-9 on --hw-bg-subtle at 4.13:1, under 4.5 (edge --hw-gray-9 4.13:1)
+    house light-more: .hw-btn--brand paints --hw-gray-9 on --hw-fill at 3.90:1, under 4.5 (edge --hw-gray-9 3.90:1)
+    house dark-more: .hw-btn--brand paints --hw-gray-9 on --hw-bg at 4.25:1, under 4.5 (edge --hw-gray-9 4.25:1)
+house light-more lines:
+    house light-more: .hw-btn--brand paints --hw-gray-9 on --hw-bg at 4.35:1, under 4.5 (edge --hw-gray-9 4.35:1)
+    house light-more: .hw-btn--brand paints --hw-gray-9 on --hw-bg-subtle at 4.13:1, under 4.5 (edge --hw-gray-9 4.13:1)
+    house light-more: .hw-btn--brand paints --hw-gray-9 on --hw-fill at 3.90:1, under 4.5 (edge --hw-gray-9 3.90:1)
+
+### 3e same solid with a halo in --hw-surface (the one ground it holds on): must pass, sitting on its halo
+input: .hw-btn--brand { --_bg: var(--hw-gray-9); --_bd: var(--hw-gray-9); box-shadow: 0 0 0 2px var(--hw-surface); }
+measured as: [('.hw-btn--brand', '--hw-gray-9', ['--hw-gray-9'], ['--hw-surface'])]
+result: REFUSED (4 new failures)
+    house dark-more: .hw-btn--brand paints --hw-gray-9 on --hw-surface at 4.02:1, under 4.5 (edge --hw-gray-9 4.02:1)
+    papertrace dark-more: .hw-btn--brand paints --hw-gray-9 on --hw-surface at 4.02:1, under 4.5 (edge --hw-gray-9 4.02:1)
+    pointback dark-more: .hw-btn--brand paints --hw-gray-9 on --hw-surface at 4.01:1, under 4.5 (edge --hw-gray-9 4.01:1)
+    quoth dark-more: .hw-btn--brand paints --hw-gray-9 on --hw-surface at 4.03:1, under 4.5 (edge --hw-gray-9 4.03:1)
+tiers refused: ['house dark-more', 'papertrace dark-more', 'pointback dark-more', 'quoth dark-more']
