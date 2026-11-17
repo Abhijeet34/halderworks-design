@@ -1,0 +1,90 @@
+  generated:    42 components in 9 groups; 10 generated files checked; 18 renders, current
+  tokens:       90 house properties named by the layer and its demos, the layer's declared by all 4 exports
+  literals:     13 declared, 0 undeclared
+  pairs:        34 rules paint text on a background, all certified or excepted
+                exception house dark --hw-text on --hw-mark-7: 8.83:1
+                exception house dark-more --hw-text on --hw-mark-7: 8.83:1
+                exception papertrace dark --hw-text on --hw-mark-7: 8.84:1
+                exception papertrace dark-more --hw-text on --hw-mark-7: 8.84:1
+                exception pointback dark --hw-text on --hw-mark-7: 8.83:1
+                exception pointback dark-more --hw-text on --hw-mark-7: 8.83:1
+                exception quoth dark --hw-text on --hw-mark-7: 8.84:1
+                exception quoth dark-more --hw-text on --hw-mark-7: 8.84:1
+  fills:        22 solids and tracks against the grounds they sit on, 30 under 1.4.11, 7 excepted
+                .hw-btn--primary --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-btn--primary --hw-ink-hover: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-btn--accent --hw-accent: lowest 1.15:1 (quoth light on --hw-fill, by --hw-accent)
+                .hw-btn--accent --hw-accent-hover: lowest 1.31:1 (quoth light on --hw-fill, by --hw-accent-hover)
+                .hw-btn--danger-solid --hw-danger-solid: lowest 3.70:1 (papertrace dark on --hw-surface-raised, by --hw-danger-solid)
+                .hw-btn--danger-solid --hw-danger-hover: lowest 3.70:1 (papertrace dark on --hw-surface-raised, by --hw-danger-solid)
+                .hw-check input:is(:checked, :indeterminate) --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-switch input --hw-fill-active: lowest 3.06:1 (quoth light on --hw-fill, by --hw-line-strong)
+                .hw-switch input:checked --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-slider::-webkit-slider-runnable-track --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-slider::-moz-range-progress --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-toast --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-toast .hw-btn --hw-ink-hover: lowest 16.93:1 (house light on --hw-ink, by --hw-on-ink)
+                .hw-progress > span --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-meter > i.on --hw-accent: lowest 1.15:1 (quoth light on --hw-fill, by --hw-accent)
+                .hw-tooltip --hw-ink: lowest 15.19:1 (house light on --hw-fill, by --hw-ink)
+                .hw-pin --hw-accent: lowest 3.56:1 (quoth light on --hw-surface, by --hw-accent-edge)
+  type floor:   0 sub-1em sizes without the 11px floor
+  documented:   0 classes components.css defines that no markup in the sheets shows
+  control:      an undeclared token: caught, first: --hw-line-strongest is not declared by examples/papertrace/exports/variables.css
+  control:      the layer redefining a house token: caught, first: the layer declares --hw-text; a component reads the house, never redefines it
+  control:      a literal hex colour: caught, first: a literal colour '#111111'
+  control:      an undeclared literal length: caught, first: the literal 13px is not declared in LITERALS
+  control:      muted text on the ink solid: caught, first: .hw-btn--primary paints --hw-text-muted on --hw-ink, a pair tools/contrast.py does not certify
+  control:      a label on the wrong solid: caught, first: .hw-btn--primary paints --hw-on-ink on --hw-accent, a pair tools/contrast.py does not certify
+  control:      the pin without its inner edge, as before audit row H1: caught, first: pointback light: .hw-pin paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (no edge)
+  control:      the accent button edged in its own solid, as before audit row H2: MISSED, first: -
+  control:      the lit meter bar in the accent solid, as before audit row H2: MISSED, first: -
+  control:      a new solid named by its raw ramp step: caught, first: house light-more: .hw-btn--brand paints --hw-accent-9 on --hw-bg at 4.33:1, under 4.5 (edge --hw-accent-9 4.33:1)
+  control:      a state rule that drops the pin's edge: caught, first: pointback light: .hw-pin:hover paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (no edge)
+  control:      a theme override that drops the accent button's edge: caught, first: pointback light: :where([data-theme="light"]) .hw-btn--accent paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (no edge)
+  control:      a pin haloed in its own solid: caught, first: house light: .hw-pin paints --hw-accent on --hw-accent at 1.00:1, under 3.0 (edge --hw-accent-edge 1.26:1)
+  control:      a 0.8em keycap with no floor: caught, first: 'font: 400 0.8em/1 var(--hw-font-mono)' sets text at 0.8em with no 11px floor
+  control:      a class the sheets never show: caught, first: .hw-btn--ghost is defined in components.css and appears in no markup in the sheets
+  control:      a stale sheet: caught, first: FAIL  components/sheets/actions.html is stale; run python3 tools/components.py
+  control:      a demo using a class the layer does not define: caught, first: FAIL  'Button': its demo uses .hw-btn--ghost, which components.css does not define
+  control:      markup using a class the layer does not define: caught, first: FAIL  'Button': its markup 'Quiet' uses .hw-btn--ghost, which components.css does not define
+  control:      an icon that is not vendored: caught, first: FAIL  'Button': icon 'clipboard' is not vendored in components/icons/
+  control:      an em dash in a sheet: caught, first: FAIL  'Button': purpose carries an em dash
+  control:      a variant no markup shows: caught, first: FAIL  .hw-badge--plain is defined in components.css and no entry's markup shows it
+  control:      a render older than the CSS: caught, first: FAIL  render: components/components.css changed since the renders were taken; re-render every group in both themes, then run python3 tools/components.py --stamp
+FAIL  pointback light: .hw-btn--accent paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (edge --hw-accent 1.87:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (edge --hw-accent 1.78:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (edge --hw-accent 1.95:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (edge --hw-accent 1.95:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent on --hw-fill at 1.68:1, under 3.0 (edge --hw-accent 1.68:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent on --hw-bg at 1.28:1, under 3.0 (edge --hw-accent 1.28:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent on --hw-bg-subtle at 1.22:1, under 3.0 (edge --hw-accent 1.22:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent on --hw-surface at 1.34:1, under 3.0 (edge --hw-accent 1.34:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent on --hw-surface-raised at 1.34:1, under 3.0 (edge --hw-accent 1.34:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent on --hw-fill at 1.15:1, under 3.0 (edge --hw-accent 1.15:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent-hover on --hw-bg at 2.15:1, under 3.0 (edge --hw-accent 1.87:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent-hover on --hw-bg-subtle at 2.05:1, under 3.0 (edge --hw-accent 1.78:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent-hover on --hw-surface at 2.25:1, under 3.0 (edge --hw-accent 1.95:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent-hover on --hw-surface-raised at 2.25:1, under 3.0 (edge --hw-accent 1.95:1)
+FAIL  pointback light: .hw-btn--accent paints --hw-accent-hover on --hw-fill at 1.93:1, under 3.0 (edge --hw-accent 1.68:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent-hover on --hw-bg at 1.46:1, under 3.0 (edge --hw-accent 1.28:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent-hover on --hw-bg-subtle at 1.38:1, under 3.0 (edge --hw-accent 1.22:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent-hover on --hw-surface at 1.52:1, under 3.0 (edge --hw-accent 1.34:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent-hover on --hw-surface-raised at 1.52:1, under 3.0 (edge --hw-accent 1.34:1)
+FAIL  quoth light: .hw-btn--accent paints --hw-accent-hover on --hw-fill at 1.31:1, under 3.0 (edge --hw-accent 1.15:1)
+FAIL  pointback light: .hw-meter > i.on paints --hw-accent on --hw-bg at 1.87:1, under 3.0 (no edge)
+FAIL  pointback light: .hw-meter > i.on paints --hw-accent on --hw-bg-subtle at 1.78:1, under 3.0 (no edge)
+FAIL  pointback light: .hw-meter > i.on paints --hw-accent on --hw-surface at 1.95:1, under 3.0 (no edge)
+FAIL  pointback light: .hw-meter > i.on paints --hw-accent on --hw-surface-raised at 1.95:1, under 3.0 (no edge)
+FAIL  pointback light: .hw-meter > i.on paints --hw-accent on --hw-fill at 1.68:1, under 3.0 (no edge)
+FAIL  quoth light: .hw-meter > i.on paints --hw-accent on --hw-bg at 1.28:1, under 3.0 (no edge)
+FAIL  quoth light: .hw-meter > i.on paints --hw-accent on --hw-bg-subtle at 1.22:1, under 3.0 (no edge)
+FAIL  quoth light: .hw-meter > i.on paints --hw-accent on --hw-surface at 1.34:1, under 3.0 (no edge)
+FAIL  quoth light: .hw-meter > i.on paints --hw-accent on --hw-surface-raised at 1.34:1, under 3.0 (no edge)
+FAIL  quoth light: .hw-meter > i.on paints --hw-accent on --hw-fill at 1.15:1, under 3.0 (no edge)
+FAIL  negative controls: the rule they edit has moved: --_bd: var(--hw-accent-edge); --_bgh: var(--hw-accent-hover);
+FAIL  negative controls: the rule they edit has moved: var(--_live, var(--hw-accent-edge))
+FAIL  negative control not caught: the accent button edged in its own solid, as before audit row H2
+FAIL  negative control not caught: the lit meter bar in the accent solid, as before audit row H2
+
+34 failures
