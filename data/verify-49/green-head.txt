@@ -1,0 +1,37 @@
+  silent:     ok   a browser that never answers is refused and reaped
+  browser:    Chrome/153.0.8010.12
+  light hidden     ok   display of a hidden .hw-btn and .hw-segmented: ['none', 'none']
+  light switch     ok   enabled-on track oklch(0.211 0.004 90), disabled-on track oklch(0.948 0.004 90)
+  light pin        ok   "128" 21.5px wide with 4px padding each side in a 29.5px pin, scrollWidth 30 clientWidth 30
+  light kv         ok   grid-template-columns in a 300px wrap: 300px
+  light kv-tall    ok   row pitch 24.9px in a 400px box, natural at most 44.0px
+  light segmented  ok   107.0px wide in a 660px cell for 107.0px of segments
+  light avatars    ok   6 covered avatars at three sizes, clipped: none
+  light kbd        ok   font-weight 400
+  light disabled   ok   background the frame it is disabled oklch(0.948 0.004 90), settled oklch(0.948 0.004 90)
+  light busy       ok   reduced motion: the ring's display none, after the label "…"
+  light tip-keys   ok   focused visible, after Escape hidden with focus on tip-btn, after leaving and returning visible
+  light tip-hover  ok   hovered visible, after Escape hidden, after leaving and returning visible
+  light rows 300   ok   6 rows, overlaps: none, --lead first column 5.50em
+  light rows 1440  ok   6 rows, overlaps: none, --lead first column 5.50em
+  light rows 180   ok   text-first overlaps: none, narrowest text 156px of a 156px line
+  light rows old   ok   the 5.5em grid on a text-first row is refused: ['staging.atlas.dev2 days : staging.atlas.dev over 2 days ago', 'api-gateway-eu-west-1.st: api-gateway-eu-wes over Failed']
+  dark  hidden     ok   display of a hidden .hw-btn and .hw-segmented: ['none', 'none']
+  dark  switch     ok   enabled-on track oklch(0.987 0.004 90), disabled-on track oklch(0.23 0.004 90)
+  dark  pin        ok   "128" 21.5px wide with 4px padding each side in a 29.5px pin, scrollWidth 30 clientWidth 30
+  dark  kv         ok   grid-template-columns in a 300px wrap: 300px
+  dark  kv-tall    ok   row pitch 24.9px in a 400px box, natural at most 44.0px
+  dark  segmented  ok   107.0px wide in a 660px cell for 107.0px of segments
+  dark  avatars    ok   6 covered avatars at three sizes, clipped: none
+  dark  kbd        ok   font-weight 400
+  dark  disabled   ok   background the frame it is disabled oklch(0.23 0.004 90), settled oklch(0.23 0.004 90)
+  dark  busy       ok   reduced motion: the ring's display none, after the label "…"
+  dark  tip-keys   ok   focused visible, after Escape hidden with focus on tip-btn, after leaving and returning visible
+  dark  tip-hover  ok   hovered visible, after Escape hidden, after leaving and returning visible
+  dark  rows 300   ok   6 rows, overlaps: none, --lead first column 5.50em
+  dark  rows 1440  ok   6 rows, overlaps: none, --lead first column 5.50em
+  dark  rows 180   ok   text-first overlaps: none, narrowest text 156px of a 156px line
+  dark  rows old   ok   the 5.5em grid on a text-first row is refused: ['staging.atlas.dev2 days : staging.atlas.dev over 2 days ago', 'api-gateway-eu-west-1.st: api-gateway-eu-wes over Failed']
+
+0 failures
+EXIT 0
