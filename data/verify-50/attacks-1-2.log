@@ -1,0 +1,79 @@
+## A1 hue = --hw-danger hue 27, chroma 0.05: accent={'hue': 27, 'chroma': 0.05}
+ramps.py rc=0
+  atk: lowest step 8 3.02 (dark amber), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+  shift  atk: selection (light accent-3, 7; dark accent-3, 7) hue 27 -> 342, forced by the selected fill from the red state fill: light accent-3 sat 2.9 CIEDE2000 from red-3, bar 5
+  shift  atk: focus (light accent-8; dark accent-8, 11) hue 27 -> 342, forced by the ring from --hw-danger under more: dark accent-11 sat 14.9 CIEDE2000 from red-12, bar 17
+  wrote /tmp/tmpcynr93h2/atk.tokens.css
+contrast.py rc=0 0 failures
+   light {3: 342.0, 7: 342.0, 8: 342.0, 9: 27.0, 10: 27.0, 11: 27.0, 12: 27.0}
+   dark {3: 342.0, 7: 342.0, 8: 342.0, 9: 27.0, 10: 27.0, 11: 342.0, 12: 27.0}
+   dark-media {3: 342.0, 7: 342.0, 8: 342.0, 9: 27.0, 10: 27.0, 11: 342.0, 12: 27.0}
+## A1 hue = --hw-danger hue 27, chroma 0.1: accent={'hue': 27, 'chroma': 0.1}
+ramps.py rc=0
+  atk: lowest step 8 3.02 (dark accent), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+  shift  atk: selection (light accent-3, 7; dark accent-3, 7) hue 27 -> 355, forced by the selected fill from the red state fill: light accent-3 sat 0.0 CIEDE2000 from red-3, bar 5
+  shift  atk: focus (light accent-8; dark accent-8, 11) hue 27 -> 355, forced by the ring from --hw-danger under more: dark accent-11 sat 11.3 CIEDE2000 from red-12, bar 17
+  wrote /tmp/tmpiwv6y1j8/atk.tokens.css
+contrast.py rc=0 0 failures
+   light {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 27.0, 12: 27.0}
+   dark {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+   dark-media {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+## A1 hue = --hw-danger hue 27, chroma 0.15: accent={'hue': 27, 'chroma': 0.15}
+ramps.py rc=0
+  atk: lowest step 8 3.02 (dark amber), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+  shift  atk: selection (light accent-3, 7; dark accent-3, 7) hue 27 -> 355, forced by the selected fill from the red state fill: light accent-3 sat 0.0 CIEDE2000 from red-3, bar 5
+  shift  atk: focus (light accent-8; dark accent-8, 11) hue 27 -> 355, forced by the ring from --hw-danger under more: dark accent-11 sat 12.1 CIEDE2000 from red-12, bar 17
+  wrote /tmp/tmpj46x4zo4/atk.tokens.css
+contrast.py rc=0 0 failures
+   light {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 27.0, 12: 27.0}
+   dark {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+   dark-media {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+## A1 hue = --hw-danger hue 27, chroma 0.19: accent={'hue': 27, 'chroma': 0.19}
+ramps.py rc=0
+  atk: lowest step 8 3.02 (dark accent), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+  shift  atk: selection (light accent-3, 7; dark accent-3, 7) hue 27 -> 355, forced by the selected fill from the red state fill: light accent-3 sat 0.0 CIEDE2000 from red-3, bar 5
+  shift  atk: focus (light accent-8; dark accent-8, 11) hue 27 -> 355, forced by the ring from --hw-danger under more: dark accent-11 sat 14.2 CIEDE2000 from red-12, bar 17
+  wrote /tmp/tmpr52slrpu/atk.tokens.css
+contrast.py rc=0 0 failures
+   light {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 27.0, 12: 27.0}
+   dark {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+   dark-media {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+## A1 hue = --hw-danger hue 27, chroma 0.25: accent={'hue': 27, 'chroma': 0.25}
+ramps.py rc=0
+  atk: lowest step 8 3.02 (dark amber), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+  shift  atk: selection (light accent-3, 7; dark accent-3, 7) hue 27 -> 355, forced by the selected fill from the red state fill: light accent-3 sat 0.0 CIEDE2000 from red-3, bar 5
+  shift  atk: focus (light accent-8; dark accent-8, 11) hue 27 -> 355, forced by the ring from --hw-danger under more: dark accent-11 sat 14.6 CIEDE2000 from red-12, bar 17
+  wrote /tmp/tmpxgxxsvzs/atk.tokens.css
+contrast.py rc=0 0 failures
+   light {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 27.0, 12: 27.0}
+   dark {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+   dark-media {3: 355.0, 7: 355.0, 8: 355.0, 9: 27.0, 10: 27.0, 11: 355.0, 12: 27.0}
+## A1 identical to red ramp + named solid: accent={'hue': 27, 'chroma': 0.19, 'solid': {'light': 0.6, 'dark': 0.6}}
+ramps.py rc=1
+  FAIL  atk: light accent-9 carries its label #FFFFFF at 4.32:1, under 4.5:1
+  FAIL  atk: dark accent-9 carries its label var(--hw-gray-1) at 4.45:1, under 4.5:1
+  FAIL  atk: dark accent-10 carries its label var(--hw-gray-1) at 3.76:1, under 4.5:1
+## A2 near-grey chroma 0.0: accent={'hue': 262, 'chroma': 0.0}
+ramps.py rc=1
+  FAIL  /tmp/tmpor9ih91x/atk.json: hues.accent.chroma must be a number in (0, 0.4], not 0.0
+## A2 near-grey chroma 0.001: accent={'hue': 262, 'chroma': 0.001}
+ramps.py rc=1
+  FAIL  /tmp/tmppz17__l_/atk.json: the accent at chroma 0.001 reads as a state or a border at every hue: no hue clears the ring from --hw-line-strong; the ring from --hw-line-strong under more for its focus
+## A2 near-grey chroma 0.005: accent={'hue': 262, 'chroma': 0.005}
+ramps.py rc=1
+  FAIL  /tmp/tmpyz425nlf/atk.json: the accent at chroma 0.005 reads as a state or a border at every hue: no hue clears the ring from --hw-line-strong; the ring from --hw-line-strong under more for its focus
+## A2 near-grey chroma 0.02: accent={'hue': 262, 'chroma': 0.02}
+ramps.py rc=1
+  FAIL  /tmp/tmp0sf8uvks/atk.json: the accent at chroma 0.02 reads as a state or a border at every hue: no hue clears the ring from --hw-line-strong; the ring from --hw-line-strong under more for its focus
+## A2 near-grey chroma 0.03: accent={'hue': 262, 'chroma': 0.03}
+ramps.py rc=1
+  FAIL  /tmp/tmp27nx2zjx/atk.json: the accent at chroma 0.03 reads as a state or a border at every hue: no hue clears the ring from --hw-line-strong; the ring from --hw-line-strong under more for its focus
+## A2 near-grey chroma 0.04: accent={'hue': 262, 'chroma': 0.04}
+ramps.py rc=0
+  atk: lowest step 8 3.02 (dark amber), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+  shift  atk: focus (light accent-8; dark accent-8, 11) hue 262 -> 284, forced by the ring from --hw-line-strong: dark accent-8 sat 13.3 CIEDE2000 from gray-8, bar 14
+  wrote /tmp/tmp21dlh3vy/atk.tokens.css
+contrast.py rc=0 0 failures
+   light {3: 262.0, 7: 262.0, 8: 284.0, 9: 262.0, 10: 262.0, 11: 262.0, 12: 262.0}
+   dark {3: 262.0, 7: 262.0, 8: 284.0, 9: 262.0, 10: 262.0, 11: 284.0, 12: 262.0}
+   dark-media {3: 262.0, 7: 262.0, 8: 284.0, 9: 262.0, 10: 262.0, 11: 284.0, 12: 262.0}
