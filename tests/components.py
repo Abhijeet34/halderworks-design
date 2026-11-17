@@ -438,6 +438,9 @@ def main():
             text + '\n:where([data-theme="light"]) .hw-btn--accent { --_bd: transparent; }'), envs)[0]),
         ("a pin haloed in its own solid", lambda: check_fills(rules_of(text.replace(
             pin_edge, pin_edge.replace("2px var(--hw-surface)", "2px var(--hw-accent)"))), envs)[0]),
+        ("a solid reached through a private alias chain (verification of PR 48, B1)", lambda: check_fills(rules_of(
+            text + "\n.hw-btn--brand { --_solid: var(--hw-accent); --_brand: var(--_solid); --_bg: var(--_brand); --_bd: var(--_brand); }"),
+            envs)[0]),
         ("a 0.8em keycap with no floor", lambda: check_type_floor(text.replace("max(0.8em, 11px)", "0.8em", 1))),
         ("a class the sheets never show", lambda: check_documented(text + "\n.hw-btn--ghost { color: var(--hw-text); }", book)),
     ]
