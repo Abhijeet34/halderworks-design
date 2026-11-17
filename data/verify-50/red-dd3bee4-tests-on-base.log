@@ -1,0 +1,52 @@
+tools/ramps.py, checked from outside
+  fresh:        tools/ramps.py --check exit 0
+  second view:  tools/contrast.py exit 0, 4 brands certified
+  floors:       ramps.py and contrast.py declare the same 3 step floors, the 7.0:1 hue step 12 and the 4.5:1 label
+  roles:        49 roles, 45 var() references, resolved in 4 brands
+  painted:      the pairs tools/painted.py renders, complete in 4 brands
+  step 9:       12 unnamed solids are the brightest carrying white, the same in both themes
+  refusals:     20 malformed brand files, each refused by name
+  verify:       5 broken files, each refused
+  refuses:      37 wrong ramp files, roles and brands, each refused by tools/contrast.py naming what broke; floors missed by 0.0004, 0.0018, 0.0019, 0.0017
+  working:      3 test brands beside a state built, 0 shifts printed, contrast.py exit 1
+  sweeps:       skipped (separation_sweep, every_hue_is_open); pass --sweeps
+FAIL  ember: tools/ramps.py printed no shift for an accent beside a state:
+ember: lowest step 8 3.02 (dark amber), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+meadow: lowest step 8 3.02 (dark amber), 11 4.52 (dark accent), 12 7.02 (dark amber), label 4.52 (dark sky-9)
+spotify: lowest step 8 3.02 (dark mark), 11 4.52 (light teal), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+wrote /tmp/tmpthc5a_g4/ember.tokens.css
+wrote /tmp/tmpthc5a_g4/meadow.tokens.css
+wrote /tmp/tmpthc5a_g4/spotify.tokens.css
+
+FAIL  meadow: tools/ramps.py printed no shift for an accent beside a state:
+ember: lowest step 8 3.02 (dark amber), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+meadow: lowest step 8 3.02 (dark amber), 11 4.52 (dark accent), 12 7.02 (dark amber), label 4.52 (dark sky-9)
+spotify: lowest step 8 3.02 (dark mark), 11 4.52 (light teal), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+wrote /tmp/tmpthc5a_g4/ember.tokens.css
+wrote /tmp/tmpthc5a_g4/meadow.tokens.css
+wrote /tmp/tmpthc5a_g4/spotify.tokens.css
+
+FAIL  spotify: tools/ramps.py printed no shift for an accent beside a state:
+ember: lowest step 8 3.02 (dark amber), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+meadow: lowest step 8 3.02 (dark amber), 11 4.52 (dark accent), 12 7.02 (dark amber), label 4.52 (dark sky-9)
+spotify: lowest step 8 3.02 (dark mark), 11 4.52 (light teal), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+wrote /tmp/tmpthc5a_g4/ember.tokens.css
+wrote /tmp/tmpthc5a_g4/meadow.tokens.css
+wrote /tmp/tmpthc5a_g4/spotify.tokens.css
+
+FAIL  tools/contrast.py refuses tests/brands, exit 1:
+FAIL  ember: light: --hw-accent-fill sits 3.2 CIEDE2000 from --hw-warning-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  ember: light-more: --hw-accent-fill sits 3.2 CIEDE2000 from --hw-warning-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  ember: dark: --hw-accent-fill sits 3.4 CIEDE2000 from --hw-warning-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  ember: dark-more: --hw-accent-fill sits 3.4 CIEDE2000 from --hw-warning-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  meadow: light: --hw-accent-fill sits 1.2 CIEDE2000 from --hw-success-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  meadow: light-more: --hw-accent-fill sits 1.2 CIEDE2000 from --hw-success-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  meadow: dark: --hw-accent-fill sits 1.2 CIEDE2000 from --hw-success-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  meadow: dark-more: --hw-accent-fill sits 1.2 CIEDE2000 from --hw-success-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  spotify: light: --hw-accent-fill sits 3.0 CIEDE2000 from --hw-success-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  spotify: light-more: --hw-accent-fill sits 3.0 CIEDE2000 from --hw-success-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  spotify: dark: --hw-accent-fill sits 3.3 CIEDE2000 from --hw-success-fill at 8-bit, below 5: a brand fill that reads as a state
+FAIL  s
+
+4 failures
+rc=1
