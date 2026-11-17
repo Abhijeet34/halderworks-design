@@ -1,0 +1,19 @@
+python3 tools/ramps.py --check                exit 0 | quoth: lowest step 8 3.02 (light gray), 11 4.52 (dark red), 12 7.02 (dark olive), label 4.52 (dark sky-9)
+python3 tools/contrast.py                     exit 0 | 0 failures
+python3 tools/export.py                       exit 0 | 24 CSS blocks re-read from both CSS exports, 0 divergent, 12 required conditions present. 0 failures.
+python3 tools/export.py examples/papertrace   exit 0 | 24 CSS blocks re-read from both CSS exports, 0 divergent, 12 required conditions present. 0 failures.
+python3 tools/export.py examples/quoth        exit 0 | 24 CSS blocks re-read from both CSS exports, 0 divergent, 12 required conditions present. 0 failures.
+python3 tools/export.py examples/pointback    exit 0 | 24 CSS blocks re-read from both CSS exports, 0 divergent, 12 required conditions present. 0 failures.
+python3 tools/distinct.py                     exit 0 | 6 pairs, 0 indistinguishable
+python3 tools/faces.py --vendored             exit 0 | 4 vendored files and 3 licence texts against the roster, 4 loaded by fonts/fonts.css, 0 failed
+python3 tools/components.py --check           exit 0 | 42 components in 9 groups; 10 generated files checked; 18 renders, current
+python3 tools/check-links.py                  exit 0 | 149 internal links and anchors checked, 0 unresolved.
+python3 tools/test-check-sources.py           exit 0 | every class classified correctly
+python3 tests/invariants.py                   exit 0 | 0 failures
+python3 tests/mutation_tests.py               exit 0 | 23 cases: 23 as expected, 0 improved, 0 failed
+python3 tests/ramps.py                        exit 0 | 0 failures
+python3 tests/exports.py                      exit 0 | 0 failures
+python3 tests/components.py                   exit 0 | 0 failures
+python3 tests/browser.py                      exit 0 | 0 failures
+python3 tests/token_diff.py                   exit 0 | PASS  a base without the file reads as every token added
+porcelain after: 0 lines
