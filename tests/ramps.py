@@ -256,6 +256,47 @@ def separation_sweep(fails):
           f"{refused}")
 
 
+TEST_BRANDS = ROOT / "tests" / "brands"
+
+
+def working_accent_brands(fails):
+    """The three accents the strategy evidence names (tests/brands/): a green near success, a
+    streaming-player green and an orange near warning. Each builds, prints its shift, keeps its
+    brand hue on the solid and the accent text, and is certified by tools/contrast.py."""
+    paths = sorted(TEST_BRANDS.glob("*.json"))
+    if {p.stem for p in paths} != {"meadow", "spotify", "ember"}:
+        fails.append(f"tests/brands holds {[p.name for p in paths]}, not meadow, spotify and ember")
+    with tempfile.TemporaryDirectory() as tmp:
+        r = subprocess.run([sys.executable, str(TOOL), *map(str, paths), "--out", tmp],
+                           capture_output=True, text=True)
+        if r.returncode or "Traceback" in r.stderr:
+            fails.append(f"tools/ramps.py on tests/brands exited {r.returncode}:\n{r.stderr}")
+            return
+        shifts = [x for x in r.stdout.splitlines() if x.startswith("shift ")]
+        for p in paths:
+            mine = [x for x in shifts if x.startswith(f"shift  {p.stem}: ")]
+            if not mine:
+                fails.append(f"{p.stem}: tools/ramps.py printed no shift for an accent beside a "
+                             f"state:\n{r.stdout}")
+            brand = json.loads(p.read_text(encoding="utf-8"))["hues"]["accent"]
+            css = (Path(tmp) / f"{p.stem}.tokens.css").read_text(encoding="utf-8")
+            for theme, rs in ramps.parse(css).items():
+                for step in (9, 10, 12):
+                    if rs["accent"][step][2] != round(brand["hue"], 1):
+                        fails.append(f"{p.stem} {theme} accent-{step} sits at hue "
+                                     f"{rs['accent'][step][2]}, not the brand's {brand['hue']}")
+        c = subprocess.run([sys.executable, str(CONTRAST),
+                            *sorted(str(x) for x in Path(tmp).glob("*.tokens.css"))],
+                           capture_output=True, text=True)
+        if c.returncode or "Traceback" in c.stderr:
+            fails.append(f"tools/contrast.py refuses tests/brands, exit {c.returncode}:\n"
+                         f"{c.stderr.strip()[:1500]}")
+    print(f"  working:      {len(paths)} test brands beside a state built, "
+          f"{len(shifts)} shifts printed, contrast.py exit {c.returncode}")
+    for x in shifts:
+        print(f"                {x}")
+
+
 def roles_resolve(fails):
     roles = (ROOT / "ramps" / "roles.css").read_text(encoding="utf-8")
     defined = set(re.findall(r"(--hw-[a-z0-9-]+):", roles))
@@ -434,6 +475,7 @@ def main():
     malformed_brands_are_refused(fails)
     verify_refuses_a_broken_file(fails)
     contrast_refuses(fails)
+    working_accent_brands(fails)
     if SWEEPS:
         separation_sweep(fails)
         every_hue_is_open(fails)

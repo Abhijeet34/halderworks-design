@@ -1,0 +1,11 @@
+{
+  "note": "A test brand, not a product: a meadow green at hue 145, five degrees off the success green at 150, the case the strategy evidence calls meadow. tests/ramps.py builds it with tools/ramps.py and certifies it with tools/contrast.py; its interactive roles must take the working accent.",
+  "neutral": {"hue": 120, "chroma": 0.006},
+  "hues": {
+    "accent": {"hue": 145, "chroma": 0.14},
+    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.9, "dark": 0.88}},
+    "red": {"hue": 27, "chroma": 0.19},
+    "amber": {"hue": 70, "chroma": 0.16},
+    "green": {"hue": 150, "chroma": 0.14}
+  }
+}

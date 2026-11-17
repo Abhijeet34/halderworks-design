@@ -1,0 +1,11 @@
+{
+  "note": "A test brand, not a product: an ember orange at hue 60, ten degrees off the warning amber at 70, the case the strategy evidence calls ember. tests/ramps.py builds it with tools/ramps.py and certifies it with tools/contrast.py; its interactive roles must take the working accent.",
+  "neutral": {"hue": 60, "chroma": 0.008},
+  "hues": {
+    "accent": {"hue": 60, "chroma": 0.17},
+    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.9, "dark": 0.88}},
+    "red": {"hue": 27, "chroma": 0.19},
+    "amber": {"hue": 70, "chroma": 0.16},
+    "green": {"hue": 150, "chroma": 0.14}
+  }
+}
