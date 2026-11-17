@@ -22,7 +22,9 @@ what it may name and what it may paint:
      it paints itself, measured here on every brand in every tier, float and 8-bit. A fill
      contrast.py certifies a label on is not thereby certified against the page: pointback's
      accent is 1.95:1 on white and quoth's 1.34:1. A rule with a halo (an outer ring in a role)
-     sits on its halo; any exception is in FILL_EXCEPTIONS with its reason
+     sits on its halo; any exception is in FILL_EXCEPTIONS with its reason. A ground set by
+     nesting (a button inside a tinted callout or a selected row) is not modelled: the rule is
+     measured on the five page grounds unless GROUND_OF names its ground by hand
 
 Each check has a negative control: a wrong input that must be refused, so a green run cannot be
 a suite that checks nothing. What it cannot see is a rendered page; the browser pass that rendered
