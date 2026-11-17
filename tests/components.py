@@ -207,17 +207,43 @@ def check_pairs(rules, envs):
     return bad, rows
 
 
-def roles_in(value):
-    """Every --hw- role a value paints, fallbacks and gradient stops included."""
-    return re.findall(r"var\((--hw-[a-z0-9-]+)\)", value or "")
+def var_calls(value):
+    """(name, fallback or None) for every var() in a value, outermost first, gradients included."""
+    out, i, text = [], 0, value or ""
+    while (i := text.find("var(", i)) != -1:
+        depth, j = 0, i + 3
+        for j in range(i + 3, len(text)):
+            depth += {"(": 1, ")": -1}.get(text[j], 0)
+            if depth == 0:
+                break
+        name, _, fallback = text[i + 4:j].partition(",")
+        out.append((name.strip(), fallback.strip() or None))
+        i = j + 1
+    return out
 
 
-def shadows(value):
+def roles_in(value, scope=None, seen=()):
+    """Every --hw- role a value paints, fallbacks and gradient stops included. A private --_x
+    alias is followed through `scope`, the declarations on the box (finding B1 of the PR 48
+    verification: a chain of them was measured as nothing); its fallback is read only when the
+    alias is declared nowhere in scope, as a browser would."""
+    out = []
+    for name, fallback in var_calls(value):
+        if name.startswith("--hw-"):
+            out.append(name)
+        elif name.startswith("--_") and scope and name in scope and name not in seen:
+            out += roles_in(scope[name], scope, (*seen, name))
+        elif fallback:
+            out += roles_in(fallback, scope, seen)
+    return out
+
+
+def shadows(value, scope=None):
     """(inset edges, halos) a box-shadow paints in a role: an inset ring is the object's own edge,
     an outer spread ring is the ground the object then sits on."""
     edges, halos = [], []
     for part in re.split(r",(?![^(]*\))", value or ""):
-        names = roles_in(part)
+        names = roles_in(part, scope)
         if not names:
             continue
         if re.search(r"\binset\b", part):
@@ -244,17 +270,25 @@ def fills_in(rules):
     A later rule on the same box that restates an edge or a ring (a state, a theme override)
     without restating the solid is measured as that solid under its own edge, so an edge cannot
     be dropped in a rule this check would otherwise never read."""
-    base, owners, later = {}, [], []
+    base, decls, owners, later = {}, {}, [], []
     for media, sel, d in rules:
         if re.fullmatch(r"\.hw-[a-z-]+", sel):
+            decls.setdefault(sel, {}).update(d)
             for p in EDGE_PROPS:
                 if p in d:
                     base[sel] = d[p]
+
+    def scope_of(sel, d):
+        """The declarations a box reads its --_x aliases from: its component's base rule, then its own."""
+        comp = re.match(r"(\.hw-[a-z]+)", sel)
+        return {**(decls.get(comp.group(1), {}) if comp else {}), **d}
+
     for media, sel, d in rules:
         if media and ("forced-colors" in media or "print" in media):
             continue
         track = sel in TRACKS
-        fills = [r for p in FILL_PROPS for r in roles_in(d.get(p))
+        scope = scope_of(sel, d)
+        fills = [r for p in FILL_PROPS for r in roles_in(d.get(p), scope)
                  if is_solid(r) or (track and p in ("background", "background-color"))]
         if not fills:
             if any(p in d for p in (*EDGE_PROPS, "box-shadow")):
@@ -265,23 +299,26 @@ def fills_in(rules):
             owner = re.match(r"(\.hw-[a-z]+)--[a-z-]+$", sel)
             if owner and owner.group(1) in base:
                 edge_values = [base[owner.group(1)]]
-        owners.append((sel, list(dict.fromkeys(fills)), edge_values, *shadows(d.get("box-shadow"))))
+        edges = [r for v in edge_values for r in roles_in(v, scope)]
+        owners.append((sel, scope, list(dict.fromkeys(fills)), edges, *shadows(d.get("box-shadow"), scope)))
     for sel, d in later:
         if DISABLED.search(sel):
             continue
-        for osel, fills, edge_values, inset, halos in owners:
+        for osel, oscope, fills, edges, inset, halos in list(owners):
             # the same box: the owner's selector last, then only states (:hover, [aria-*]), never a
             # descendant, and never a pseudo-element the owner is not (a thumb sits on its track)
             on_box = re.search(re.escape(osel) + r"(?:[:\[][^\s>+~]*)?$", sel) and ("::" in osel or "::" not in sel)
             if sel == osel or not on_box:
                 continue
-            own = [r for p in FILL_PROPS for r in roles_in(d.get(p))]
-            owners_edges = [d[p] for p in EDGE_PROPS if p in d] or edge_values
-            ring = shadows(d["box-shadow"]) if "box-shadow" in d else (inset, halos)
-            owners.append((sel, own or fills, owners_edges, *ring))
+            scope = {**oscope, **d}
+            own = [r for p in FILL_PROPS for r in roles_in(d.get(p), scope)]
+            stated = [d[p] for p in EDGE_PROPS if p in d]
+            new_edges = [r for v in stated for r in roles_in(v, scope)] if stated else edges
+            ring = shadows(d["box-shadow"], scope) if "box-shadow" in d else (inset, halos)
+            owners.append((sel, scope, own or fills, new_edges, *ring))
     out = []
-    for sel, fills, edge_values, inset, halos in owners:
-        edges = [r for v in edge_values for r in roles_in(v)] + inset
+    for sel, _, fills, edges, inset, halos in owners:
+        edges = edges + inset
         grounds = [GROUND_OF[sel]] if sel in GROUND_OF else halos or list(contrast.ROLE_GROUNDS)
         for fill in fills:
             out.append((sel, fill, edges, grounds))
