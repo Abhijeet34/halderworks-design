@@ -1,0 +1,20 @@
+tools/ramps.py, checked from outside
+  fresh:        tools/ramps.py --check exit 0
+  second view:  tools/contrast.py exit 0, 4 brands certified
+  floors:       ramps.py and contrast.py declare the same 3 step floors, the 7.0:1 hue step 12, the 4.5:1 label and the 3 bars the working accent moves against
+  roles:        49 roles, 45 var() references, resolved in 4 brands
+  painted:      the pairs tools/painted.py renders, complete in 4 brands
+  step 9:       12 unnamed solids are the brightest carrying white, the same in both themes
+  refusals:     20 malformed brand files, each refused by name
+  verify:       5 broken files, each refused
+  refuses:      37 wrong ramp files, roles and brands, each refused by tools/contrast.py naming what broke; floors missed by 0.0004, 0.0018, 0.0019, 0.0017
+  working:      3 test brands beside a state built, 3 shifts printed, contrast.py exit 0
+                shift  ember: selection (light accent-3, 7; dark accent-3, 7) hue 60 -> 87, forced by the selected fill from the amber state fill: light accent-3 sat 3.2 CIEDE2000 from amber-3, bar 5
+                shift  meadow: selection (light accent-3, 7; dark accent-3, 7) hue 145 -> 125, forced by the selected fill from the green state fill: dark accent-3 sat 1.2 CIEDE2000 from green-3, bar 5
+                shift  spotify: selection (light accent-3, 7; dark accent-3, 7) hue 148.9 -> 127.9, forced by the selected fill from the green state fill: light accent-3 sat 3.0 CIEDE2000 from green-3, bar 5
+  hostile:      7 accents between, on and without a state's hue, each certified with its shift or refused by name
+  separation:   72 of 72 accent hues build and are certified, 28 with a working accent: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175]
+  hues:         468 accent builds over 360 hues, chroma 0.15 and 0.4, white and ink solids
+
+0 failures
+rc=0

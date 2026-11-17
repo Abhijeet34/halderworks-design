@@ -1,0 +1,15 @@
+tools/ramps.py, checked from outside
+  fresh:        tools/ramps.py --check exit 0
+  second view:  tools/contrast.py exit 0, 4 brands certified
+  floors:       ramps.py and contrast.py declare the same 3 step floors, the 7.0:1 hue step 12 and the 4.5:1 label
+  roles:        49 roles, 45 var() references, resolved in 4 brands
+  painted:      the pairs tools/painted.py renders, complete in 4 brands
+  step 9:       12 unnamed solids are the brightest carrying white, the same in both themes
+  refusals:     20 malformed brand files, each refused by name
+  verify:       5 broken files, each refused
+  refuses:      37 wrong ramp files, roles and brands, each refused by tools/contrast.py naming what broke; floors missed by 0.0004, 0.0018, 0.0019, 0.0017
+  separation:   27 of 72 accent hues refused as reading as a state: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 130, 135, 140, 145, 150, 155, 160, 165, 170]
+  hues:         468 accent builds over 360 hues, chroma 0.15 and 0.4, white and ink solids
+
+0 failures
+rc=0
