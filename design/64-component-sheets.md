@@ -71,7 +71,7 @@ Rendered: [the live page](../components/sheets/actions.html), and at M, [light](
 
 - **For:** Starts an action whose verb is its label.
 - **Not for:** Moving to another page (a link); choosing between options (segmented control).
-- **Anatomy:** A box at least --hw-control-h tall in three sizes, 12px side padding at M, radius --hw-radius-md, a 13px label at weight 560, an optional icon at 1.15em with an 8px gap. Variants: secondary (the default), primary in ink, accent, quiet, danger outlined and danger solid, and icon-only.
+- **Anatomy:** A box at least --hw-control-h tall in three sizes, 12px side padding at M, radius --hw-radius-md, a 13px label at weight 560, an optional icon at 1.15em with an 8px gap. Variants: secondary (the default), primary in ink, accent, quiet, danger outlined and danger solid, and icon-only. The accent keeps the product's fill inside a --hw-accent-edge border, which holds 3:1 on the page where a light solid does not.
 - **States:** rest, hover (fill), active (1px press), focus-visible (2px ring at 2px offset), disabled (fill, disabled ink, no border), busy (a spinner before the label; under reduced motion, a still ellipsis after it).
 - **Keyboard:** A native button: Tab reaches it, Enter and Space press it. An icon-only button carries aria-label.
 - **Tokens:** `--hw-border-w`, `--hw-control-h`, `--hw-duration-fast`, `--hw-ease-out`, `--hw-fill`, `--hw-font-sans`, `--hw-line-strong`, `--hw-radius-md`, `--hw-space-12`, `--hw-space-8`, `--hw-surface`, `--hw-text`, `--hw-text-disabled`, `--hw-text-sm`.
@@ -552,10 +552,10 @@ Markup:
 
 - **For:** Shows a live input level; one of the three things in the house that move on their own.
 - **Not for:** Progress; decoration.
-- **Anatomy:** Bars 0.2em wide and 0.13em apart on --hw-fill-active; lit bars take the product's live colour through --_live, set to its live hue's step 8, a mark at 3:1 (quoth: --_live: var(--hw-live-8)). Always beside a word.
+- **Anatomy:** Bars 0.2em wide and 0.13em apart on --hw-fill-active; lit bars take the product's live colour through --_live, set to its live hue's step 8, a mark at 3:1 (quoth: --_live: var(--hw-live-8)), and with none set take --hw-accent-edge, the accent's own 3:1 step, never the solid. Always beside a word.
 - **States:** idle, live (bars follow the input; under reduced motion they still follow it and nothing else moves).
 - **Keyboard:** aria-hidden: the word beside it carries the state.
-- **Tokens:** `--hw-accent`, `--hw-fill-active`.
+- **Tokens:** `--hw-accent-edge`, `--hw-fill-active`.
 - **Do:** Pair it with 'Listening'.
 - **Do not:** Animate it when no audio arrives.
 - **Classes:** `.hw-meter`.
