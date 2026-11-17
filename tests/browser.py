@@ -15,6 +15,9 @@ fonts/fonts.css, components/components.css, components/radiogroup.js) and nothin
   disabled     a button disabled mid-hover paints its settled fill at once, not a fade
   tooltip      Escape hides a showing tooltip without moving focus or pointer, and it returns
   kbd          a keycap asks for weight 400, the one every product vendors
+  rows         no child of a list row paints over another, and none leaves the row, at 300 and
+               1440 wide: text first, meta first, an unbreakable address, and .hw-row--lead, whose
+               leading column stays 5.5em; the grid the layer shipped before must be refused
 
 Each probe runs in light and dark. It needs a Chromium, found as tools/painted.py finds one
 (Brave first; HW_BROWSER names another), and fails rather than skips when there is none.
@@ -62,7 +65,44 @@ BODY = """
 <button id="after-tip" class="hw-btn">Next</button></p>
 
 <kbd id="kbd" class="hw-kbd">K</kbd>
+
+<ul id="rows" class="hw-list" style="justify-self:stretch">
+<li class="hw-row"><p>staging.atlas.dev</p><span class="hw-row-meta">2 days ago</span></li>
+<li class="hw-row" aria-selected="true"><p>api-gateway-eu-west-1.staging.internal.example.com</p><span class="hw-row-meta">Failed</span><span class="hw-row-meta">14 Nov 2026</span><div class="hw-row-actions"><button class="hw-btn hw-btn--sm">Redeploy</button><button class="hw-btn hw-btn--sm">View log</button></div></li>
+<li class="hw-row"><p>Quarterly report</p></li>
+<li class="hw-row"><span class="hw-row-meta">INV-2041</span><p>Northwind Traders</p><span class="hw-row-meta">$1,240.00</span></li>
+<li class="hw-row hw-row--lead" id="lead"><span class="hw-row-meta">12:30 pm</span><p>Moved the launch review to Thursday</p><span class="hw-row-meta">Mira Shah</span></li>
+<li class="hw-row hw-row--lead" aria-selected="true"><span class="hw-row-meta">10:41 am</span><p>Renamed the project</p><span class="hw-row-meta">Sam Lee</span><div class="hw-row-actions"><button class="hw-btn hw-btn--sm">Undo</button></div></li>
+</ul>
 """
+
+# Each child's painted extent is its content's, not its grid area's: text that overflows its
+# column paints past its box, which is the defect. A row's actions are measured as their box.
+ROWS = """(() => {
+  const ext = el => { if (el.classList.contains("hw-row-actions")) return el.getBoundingClientRect();
+    const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect(); };
+  const hits = [];
+  for (const row of document.querySelectorAll("#rows .hw-row")) {
+    const kids = [...row.children], boxes = kids.map(ext), rb = row.getBoundingClientRect();
+    const name = i => `${row.textContent.slice(0, 24)}: ${kids[i].textContent.slice(0, 18)}`;
+    boxes.forEach((a, i) => {
+      if (a.left < rb.left - 0.5 || a.right > rb.right + 0.5) hits.push(`${name(i)} leaves the row`);
+      boxes.slice(i + 1).forEach((b, k) => {
+        if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5
+            && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5)
+          hits.push(`${name(i)} over ${name(i + 1 + k).split(": ")[1]}`); }); });
+  }
+  const lead = document.getElementById("lead");
+  return {rows: document.querySelectorAll("#rows .hw-row").length, hits,
+          lead: parseFloat(getComputedStyle(lead).gridTemplateColumns) / parseFloat(getComputedStyle(lead).fontSize)};
+})()"""
+
+# The grid the layer shipped before this probe: 5.5em, 1fr, auto for every row.
+BEFORE = """(() => { const s = document.createElement("style"); s.id = "before";
+  s.textContent = "#rows .hw-row {grid-template-columns: 5.5em 1fr auto; grid-auto-flow: row}"
+    + " #rows .hw-row > * {grid-row: auto; overflow-wrap: normal}"
+    + " #rows .hw-row > .hw-row-actions {grid-column: 2 / -1}";
+  document.head.append(s); return true; })()"""
 
 PROBES = """({
   hidden: [getComputedStyle(document.getElementById("hidden-btn")).display,
@@ -130,6 +170,11 @@ class Page:
 
     def mouse(self, x, y):
         self.b.call("Input.dispatchMouseEvent", {"type": "mouseMoved", "x": x, "y": y}, page=True)
+
+    def width(self, px):
+        self.b.call("Emulation.setDeviceMetricsOverride", {
+            "width": px, "height": 900, "deviceScaleFactor": 1, "mobile": False}, page=True)
+        self.js("new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r(true))))")
 
     def media(self, motion):
         self.b.call("Emulation.setEmulatedMedia", {"features": [
@@ -221,6 +266,19 @@ def probe(pg, theme):
     pg.mouse(1, 1)
     check("tip-hover", (before, after, back) == ("visible", "hidden", "visible"),
           f"hovered {before}, after Escape {after}, after leaving and returning {back}")
+
+    for width in (300, 1440):
+        pg.width(width)
+        r = pg.js(ROWS)
+        check(f"rows {width}", r["rows"] == 6 and not r["hits"] and abs(r["lead"] - 5.5) < 0.01,
+              f"{r['rows']} rows, overlaps: {r['hits'] or 'none'}, --lead first column {r['lead']:.2f}em")
+    # Negative control: the grid before this probe, on the same rows, must be refused.
+    pg.width(1440)
+    pg.js(BEFORE)
+    r = pg.js(ROWS)
+    pg.js('document.getElementById("before").remove(); true')
+    check("rows old", any("staging.atlas.dev" in h for h in r["hits"]),
+          f"the 5.5em grid on a text-first row is refused: {r['hits'][:2] or 'NOT REFUSED'}")
     return fails, report
 
 

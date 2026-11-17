@@ -313,16 +313,28 @@ dialog.hw-dialog[open] { animation: hw-dialog-in var(--hw-duration-slow) var(--h
 
 /* ---------- list row ---------- */
 .hw-list { list-style: none; margin: 0; padding: 0; }
+/* Columns follow the children: each child on the first line takes the next column, the first
+   column is the text and takes the free space, and every later column is as wide as what it holds,
+   so a row that opens with its text never pushes it into the meta beside it. A row that opens
+   with a meta keeps that meta at its own width. .hw-row--lead opts into a leading meta column of
+   a fixed 5.5em, so times line up down a list: the time-text-source row. */
 .hw-row {
-  display: grid; grid-template-columns: var(--_cols, 5.5em 1fr auto); gap: var(--hw-space-4) var(--hw-space-12); align-items: baseline;
+  display: grid; grid-template-columns: var(--_cols, 1fr); grid-auto-columns: auto; grid-auto-flow: column;
+  gap: var(--hw-space-4) var(--hw-space-12); align-items: baseline;
   min-height: var(--hw-row-h); padding: var(--hw-cell-pad-y) var(--hw-space-12); border-bottom: var(--hw-border-w) solid var(--hw-line);
   font-size: var(--hw-text-md); line-height: var(--hw-leading-snug); color: var(--hw-text);
 }
+.hw-row:not(.hw-row--lead):has(> .hw-row-meta:first-child) { grid-template-columns: var(--_cols, auto 1fr); }
+.hw-row:not(.hw-row--lead) > :not(.hw-row-actions) { grid-row: 1; }
+.hw-row.hw-row--lead { grid-template-columns: var(--_cols, 5.5em 1fr auto); grid-auto-flow: row; }
 .hw-row > * { margin: 0; min-width: 0; }
+.hw-row > :not(.hw-row-meta, .hw-row-actions) { overflow-wrap: anywhere; }
 .hw-row:hover { background: var(--hw-bg-subtle); }
 .hw-row[aria-selected="true"] { background: var(--hw-surface); box-shadow: 0 0 0 var(--hw-border-w) var(--hw-line-strong); border-radius: var(--hw-radius-md); border-bottom-color: transparent; }
 .hw-row-meta { font-size: var(--hw-text-sm); color: var(--hw-text-muted); font-variant-numeric: tabular-nums; }
-.hw-row-actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--hw-space-8); padding-top: var(--hw-space-4); }
+.hw-row-actions { grid-row: 2; grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--hw-space-8); padding-top: var(--hw-space-4); }
+.hw-row:has(> .hw-row-meta:first-child) > .hw-row-actions { grid-column: 2 / -1; }
+.hw-row--lead > .hw-row-actions { grid-row: auto; grid-column: 2 / -1; }
 
 /* ---------- table ---------- */
 .hw-table { width: 100%; border-collapse: collapse; font-size: var(--hw-text-sm); line-height: var(--hw-leading-snug); color: var(--hw-text); }
