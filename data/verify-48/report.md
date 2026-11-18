@@ -119,3 +119,46 @@ I ran the same 18 entry points from section 2 on base 2fd14a0, and all exited 0 
 - The README sentence says the check refuses a solid "on the ground it sits on", which is broader than what it measures.
 
 Verdict: PARTIAL - the fix is correct and red/green and every check pass, but rule 8 misses a fill reached through a private alias chain and never measures a tinted ground set by nesting, so the README claim is wider than the check.
+
+## Re-run (head 3f0e9798)
+
+The head moved from cf8d55a to 3f0e979. Three commits were added, and they touch only `tests/components.py` and `README.md`:
+
+- a602585 adds a control (test)
+- 078ecb4 follows `--_x` aliases (fix)
+- 3f0e979 narrows the README (docs)
+
+`components/`, `exports`, `examples`, `ramps`, `fonts`, `tools` and `design` are byte-identical to cf8d55a. The merge base is still 2fd14a0. Logs are in `rerun-*.txt`.
+
+### Each gap I named
+
+| gap | status at 3f0e979 | a check that fails without it? |
+|---|---|---|
+| B1: a fill through a private alias chain is not measured | **Closed in code.** `roles_in` follows `--_x` through the box's own declarations and its component's base rule, and takes a fallback only when the alias is undeclared | **Yes.** At a602585 (control added, fix absent), `python3 tests/components.py` exits 1 with "negative control not caught: a solid reached through a private alias chain". At head it exits 0 and the control is caught at pointback light 1.87:1. On head with the alias branch replaced by `elif False:`, it exits 1 with the same failure |
+| A: a ground set by nesting (a tinted callout or selected row) is never measured | **Not closed in code.** The README and the rule-8 docstring now say plainly that it is not modelled, and that such rules are measured on the five page grounds unless `GROUND_OF` names the ground | **No.** No check. The over-broad claim is gone, but the gap is now a documented limit, not a refusal. Attacks 1a and 1h behave exactly as before |
+| Media and theme scope ignored; selector-keyed exceptions do not follow a nested selector | Unchanged | No. This errs strict: it can only over-refuse, never miss |
+| PR body cites stale hashes (7258d5f, 680d87e, cd74e75) | Unchanged. The body still cites them and does not mention a602585, 078ecb4 or 3f0e979 | n/a |
+
+### New attacks on the alias fix
+
+All were run through head's own `check_fills` (`attack6.py`).
+
+| input | expected | result |
+|---|---|---|
+| B4 an alias cycle, `--_a: var(--_b); --_b: var(--_a); --_bg: var(--_a)` | no hang or crash; nothing painted, as in a browser | no crash, nothing measured |
+| B5 an alias declared on the base `.hw-chip`, read by `.hw-chip--brand` | refused | refused, pointback light 1.87:1 |
+| B6 an alias declared as `--hw-surface`, with the solid as its fallback | not refused (a browser uses the alias) | not refused |
+| B7 an undeclared alias with the solid as its fallback | measured | measured as `--hw-accent`. It passes on the `--hw-line-strong` edge it inherits from `.hw-btn` (at least 3.06), which is correct |
+| B8 an alias set on the ancestor `.hw-callout`, read by `.hw-callout .hw-btn--x` | refused | refused. Scope comes from the first `.hw-` class in the selector |
+| B9 a state rule dropping the pin's edge through an alias in its halo | refused | refused, pointback 1.95:1 and quoth 1.34:1 |
+| B10 a three-deep alias chain in the accent button's edge, resolving to `--hw-line` | refused | refused, edge 1.40:1 |
+
+All the earlier attacks were re-run on head (`rerun-attacks-head.txt`). Every result is as in the first run except 2a, which is now refused at pointback light 1.87:1.
+
+### Nothing regressed
+
+- The same 18 entry points as in section 2 were run on 3f0e979, and all exited 0 (`rerun-full-head.txt`): ramps --check, contrast, export ×4 with an empty porcelain, distinct, faces --vendored, components --check (18 renders current), check-links (149, 0 unresolved), test-check-sources, and tests invariants, mutation_tests (23/23), ramps, exports, components, browser and token_diff.
+- The `fills:` section of `tests/components.py` is identical to cf8d55a's: 22 solids and tracks, 0 under 1.4.11, 7 excepted, the same lowest figures. The alias fix changes no measured value in today's CSS.
+- CI on 3f0e979: `checks`, `consistency`, `token-diff`, `secrets`, `watermark` and `shadow` all completed success.
+
+Verdict 48 (re-run): PARTIAL - the alias-chain gap is closed with a control that fails without the fix (red at a602585 and under mutation, green at head), and nothing regressed; but the nested-ground gap is closed only by narrowing the README and docstring, with no check, and the PR body still cites stale commit hashes.
