@@ -12,7 +12,7 @@ Four invariants, each failing loudly rather than warning:
   1. The two converters share no code, and neither file imports the other.
   2. They still agree numerically, to a bound stated here rather than assumed, on every step
      floor of every brand the house builds.
-  3. The second instrument's CIEDE2000 reproduces the published test pairs.
+  3. Each instrument's CIEDE2000 reproduces the published test pairs.
   4. The separation bars the maintainer decided are the bars tools/contrast.py declares.
 
     python3 tests/invariants.py [repo-root]
@@ -83,12 +83,18 @@ SHARMA = [((50, 2.6772, -79.7751), (50, 0, -82.7485), 2.0425),
 
 
 def colour_difference_holds(fails):
-    for a, b, want in SHARMA:
-        for x, y in ((a, b), (b, a)):
-            if abs(contrast.de2000(x, y) - want) > 1e-4:
-                fails.append(f"contrast.de2000 gives {contrast.de2000(x, y):.4f} for Sharma's "
-                             f"{x} / {y}, which the paper gives as {want}")
-    print(f"  difference:   contrast.de2000 reproduces {len(SHARMA)} Sharma pairs both ways")
+    """Both instruments' CIEDE2000: contrast.py's certifies the bars, and ramps.py's own moves a
+    working accent against them (2026-11-17), each written separately to the same paper."""
+    for tool in (contrast, ramps):
+        for a, b, want in SHARMA:
+            for x, y in ((a, b), (b, a)):
+                if abs(tool.de2000(x, y) - want) > 1e-4:
+                    fails.append(f"{tool.__name__}.de2000 gives {tool.de2000(x, y):.4f} for "
+                                 f"Sharma's {x} / {y}, which the paper gives as {want}")
+    if ramps.de2000 is contrast.de2000:
+        fails.append("ramps.de2000 and contrast.de2000 are the same object")
+    print(f"  difference:   contrast.de2000 and ramps.de2000 each reproduce {len(SHARMA)} Sharma "
+          f"pairs both ways")
 
 
 # The separation bars decided on 2026-09-21 (design/12-brand.md), and the chart and status-text

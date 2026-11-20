@@ -15,7 +15,7 @@ The first answer was a solver with eleven inputs, then twenty-three: accent chro
 Each input was bounded and certified, and the house design review of 2026-10-02 found the solver cost more than it returned: 1,979 lines solving each colour from 23 inputs, with bounds that lived in the code, and 205 of 360 accent hues refused, so "a product cannot take hue 150" held because the solver had no room rather than because a product needed it.
 The ramps replaced it.
 A brand now names hues and the build gives every hue the same twelve steps, so a role is a choice of step, never a new solve, and an input that only moved a step a few thousandths has nothing left to move.
-Every one of the 360 hues builds; what `tools/contrast.py` still refuses is an accent whose selected-row fill reads as a state, 27 of every fifth hue's 72, from 0 to 85 and 130 to 170.
+Every one of the 360 hues builds, and since 2026-11-17 every one is certified: the 27 of every fifth hue's 72 that `tools/contrast.py` refused, from 0 to 85 and 130 to 170, because the selected-row fill or the ring read as a state, now build with [a working accent](#the-working-accent).
 
 What the first rule got right survives whole.
 A product stylesheet that sets `--hw-radius-md: 8px` is still a fork wearing the system's name, because nobody built that value and nobody certified it.
@@ -86,6 +86,7 @@ The ring is accent step 8, solved to 3:1 against every ground it can sit on.
 A quiet accent makes a quiet ring, and a quiet ring stops reading as focus, so the ring is held **at least 14 CIEDE2000 from `--hw-line-strong`**, a control's own edge, and **17 from `--hw-danger`**, the error border, in every block.
 Under `prefers-contrast: more` the ring becomes the text ink in light and accent step 11 in dark, the two that clear the raised bar.
 The four brands clear the edge bar with 14.75 at worst, pointback's pencil in dark.
+A ring that misses either bar at the brand's hue takes [the working accent](#the-working-accent).
 
 ### The vivid tier
 
@@ -133,6 +134,31 @@ On top of the floors, `tools/contrast.py` holds the painted distances below, in 
 
 The accent text is not held to the states; `tools/contrast.py` reports its distance and does not refuse it, because every state carries a glyph and a word.
 A hue of the brand's own is reported against the three state ramps and never refused: quoth's `live` sits 11.01 from amber at step 11, and [the worked example](#the-worked-example-quoths-live-colour) says what that costs.
+
+## The working accent
+
+The captain's decision of 2026-11-17: **an accent beside a state is no longer refused.**
+The brand keeps its hue for its brand moments, the accent solid (steps 9 and 10) and the accent text, and the roles a bar above holds move to the working accent, the nearest hue at which every one of those bars clears.
+`tools/ramps.py` declares the roles and the steps they read as `WORKING_ROLES`, and the bars as `SEPARATION`, measured with its own CIEDE2000 on the 8-bit value and aimed 0.3 above the bar:
+
+| role | steps moved | bars |
+|---|---|---|
+| selection: `--hw-accent-fill` and its edge, `--hw-accent-line` | 3 and 7, both themes | 5 from each state's fill |
+| focus: `--hw-focus` and `--hw-accent-edge` | 8 in both themes, and 11 in dark, the ring under `prefers-contrast: more` | 17 from `--hw-danger`, 14 from `--hw-line-strong` |
+
+A role that clears every bar at the brand's hue does not move, so the four brands' files are the bytes they were.
+The roles that miss move together, walking out one degree each side of the brand's hue, and the build prints one line per moved role, its brand, its role, the hue it left, the hue it took and the bar that forced it:
+
+```text
+shift  meadow: selection (light accent-3, 7; dark accent-3, 7) hue 145 -> 125, forced by the selected fill from the green state fill: dark accent-3 sat 1.2 CIEDE2000 from green-3, bar 5
+```
+
+The emitted file says the same in its header comment, and `verify()` re-measures the bars on the written file before it reaches disk.
+The ring's dark step 11 is also `--hw-accent-text` in dark, so a brand whose ring moves, an accent from 5 to 45 at chroma 0.15, sets its dark links in the working accent too; light links and every solid keep the brand's hue.
+No chart series reads the accent: `--hw-chart-1` is teal step 8 in every brand and already held 14 from every state, so there is no series to move.
+An accent with almost no chroma reads as a control's own edge at every hue, and no hue rescues it: `tools/ramps.py` refuses it, naming the ring's bar against `--hw-line-strong`, as `tools/contrast.py` refused its build before.
+`tools/contrast.py` is unchanged and still refuses an accent fill on a state when it is built without the shift, which `tests/ramps.py` holds.
+The three accents the strategy evidence names, a green beside success, a streaming-player green as a named solid, and an orange beside warning, are fixture brands in `tests/brands/`, built and certified on every change.
 
 ## Building a brand
 
@@ -259,7 +285,7 @@ Put two products in greyscale with their names covered, and they should still di
 | the solver's tuning inputs: accent chroma and lightness per theme, the quiet-fill multiplier, the ring choice, ground lightness, sunken depth, the dark card step | retired with the solver: a ramp step is chosen once for every brand, and each of these moved a step by a few thousandths against bars a brand could not see. The dark card step and the deeper chassis are the stated gaps above |
 | a brand primary | the loudest control is ink in every brand, and the accent solid is where a key fills a control; the tier's `primary: brand` retired with the solver |
 | the type scale, and which step the display face starts at | every size is load-bearing for density, from the 44px row down, and the stage sizes are the only ones the display face sets |
-| a ring chroma of its own | the ring is accent step 8, held to its bars; a brand whose ring fails them changes its accent |
+| a ring chroma of its own | the ring is accent step 8, held to its bars; a brand whose ring fails them takes [the working accent](#the-working-accent) |
 | motion | the house curve is identity: three alternative ease-outs differ from it by at most 1.5px on an 8px move. Up to four named moments may live in a product's namespace ([40-motion.md](40-motion.md#a-products-own-moments)) |
 | elevation | 73 of 75 sampled elements carry no shadow; border-first is identity |
 | surface texture | a product may have one in its own namespace, held to the pattern rule ([30-space.md](30-space.md#surfaces)) |
