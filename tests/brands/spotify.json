@@ -1,0 +1,11 @@
+{
+  "note": "A test brand, not a product and affiliated with nobody: a streaming-player green, #1DB954, oklch(0.689 0.187 148.9), as the accent's named solid carrying ink, the case the strategy evidence calls spotify. tests/ramps.py builds it with tools/ramps.py and certifies it with tools/contrast.py; its interactive roles must take the working accent while the solid keeps the green.",
+  "neutral": {"hue": 150, "chroma": 0.004},
+  "hues": {
+    "accent": {"hue": 148.9, "chroma": 0.187, "solid": {"light": 0.689, "dark": 0.689}},
+    "mark": {"hue": 100, "chroma": 0.19, "solid": {"light": 0.9, "dark": 0.88}},
+    "red": {"hue": 27, "chroma": 0.19},
+    "amber": {"hue": 70, "chroma": 0.16},
+    "green": {"hue": 150, "chroma": 0.14}
+  }
+}

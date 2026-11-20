@@ -87,7 +87,7 @@ Every step names the one file that owns it.
 
 A product takes its identity from a brand file, `ramps/brands/<product>.json`: a neutral, five to eight named hues, and a shape register, an icon stroke and faces from the house roster ([design/12-brand.md](design/12-brand.md)).
 `python3 tools/ramps.py` builds it in the house's own token names, and `tools/contrast.py` refuses it if one role fails.
-At accent hue 150 it refuses, because the selected-row fill sits 0.4 CIEDE2000 from `--hw-success-fill` against the 5 [design/12-brand.md](design/12-brand.md#the-bars-every-brand-is-held-to) requires.
+An accent beside a state is not refused: at hue 150 the selected-row fill would sit 0.4 CIEDE2000 from `--hw-success-fill` against the 5 [design/12-brand.md](design/12-brand.md#the-bars-every-brand-is-held-to) requires, so the build moves the selection to the working accent at hue 125, keeps 150 on the solid and the accent text, and prints the shift.
 
 ## What is open
 

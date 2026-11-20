@@ -76,7 +76,8 @@ cases against this repository and 17 wrong inputs left every tool green.
 as expected, 0 improved, 0 failed" for the current count); one further diagnostic,
 `tests/ident_sweep.py`, prints rather than refuses and is run on demand. `tests/ramps.py` (179 seconds on 2026-10-15 with the hue sweeps, which only `--sweeps` runs and the weekly job passes) checks `tools/ramps.py` from outside:
 `contrast.py` certifying the committed files, every accent hue building, malformed brand and
-roster files refused by name, and `contrast.py` refusing a floor missed by under 0.01, a role on
+roster files refused by name, the three accents in `tests/brands/` and the hostile accents built
+with their working accent or refused by name, and `contrast.py` refusing a floor missed by under 0.01, a role on
 the wrong step, an accent equal to the success green, a chart series under its mark floor or on
 another series or a state, a shape or face outside the roster, and a malformed file.
 
@@ -113,11 +114,14 @@ python3 tools/contrast.py ramps/tokens/papertrace.tokens.css
 python3 tools/export.py examples/papertrace
 ```
 
-An accent the bars refuse is refused by name: at hue 150 `--hw-accent-fill` sits 0.4 CIEDE2000
-from `--hw-success-fill` in light, against the 5
-[design/12-brand.md](design/12-brand.md#the-bars-every-brand-is-held-to) requires, and
-`contrast.py` refuses it, which is what makes "a product cannot take hue 150" an executable rule
-rather than a sentence.
+An accent beside a state builds with a working accent (the captain's decision of 2026-11-17,
+[design/12-brand.md](design/12-brand.md#the-working-accent)): at hue 150 `--hw-accent-fill` would
+sit 0.4 CIEDE2000 from `--hw-success-fill` against the bar of 5, so `ramps.py` moves the roles a
+bar holds (`WORKING_ROLES`, against `SEPARATION`) to the nearest hue that clears every bar, keeps
+the brand's hue on every other step, and prints one `shift` line per moved role. `contrast.py`
+still refuses the unshifted file by name (`build(brand, shift=False)` in `tests/ramps.py`), and an
+accent no hue rescues, a near-grey one, is refused by `ramps.py` naming the bar. The fixtures for
+this are `tests/brands/`, not `ramps/brands/`: they are not products and have no tokens or exports.
 
 ## Rules a change is held to
 
@@ -246,7 +250,7 @@ something has actually moved**, so a quiet week is silent rather than noisy.
 
 **What it checks.** Every row but the last is the `consistency` call, which `ci.yml` makes on every
 pull request as well, except that only this weekly call passes `sweeps: true` (every accent hue built
-and every fifth hue through the separation bars, 280 of the old 355 seconds); only the last row is the weekly job's own, because only a schedule can catch
+and every fifth hue built and certified through the separation bars, 280 of the old 355 seconds); only the last row is the weekly job's own, because only a schedule can catch
 a source that went away without anyone touching this repository. That is also why this workflow
 has no `push` trigger: `ci.yml` already runs the consistency call on every push to `main`, and a
 per-push network sweep is 51 outbound requests (52 cited sources less the one skipped, counted
