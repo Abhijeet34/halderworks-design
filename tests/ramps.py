@@ -14,11 +14,15 @@
      blocks' agreement, so the re-measure is a check rather than a formality.
   8. tools/contrast.py refuses a floor missed by under 0.01, a role on the wrong step, a
      dark danger solid or ring back beside the ink under more, an accent equal to the success
-     green, a chart series under its mark floor, on another series or on a state, and malformed
+     green built without its working accent, a chart series under its mark floor, on another series or on a state, and malformed
      files, each by name and without a traceback.
   9. ramps.py's floors and contrast.py's are the same set, declared in each file.
-  10. Every fifth accent hue through contrast.py's separation bars: hue 150 refused, 262 not.
-      Every hue builds (4); this is how many of them read as a state once built.
+  10. Every fifth accent hue built and through contrast.py's separation bars: all 72 certified,
+      hue 150 with a working accent and 262 without (the captain's decision of 2026-11-17).
+  12. The three accents beside a state in tests/brands, meadow, spotify and ember, each built with
+      its shift printed, its brand hue kept on steps 9, 10 and 12, and certified by contrast.py.
+  13. Hostile accents: exactly between two states, identical to a state, near-grey; each either
+      certified with the shift named or refused by name.
   11. The pairs contrast.py hands tools/painted.py name only declared properties, cover
       all four tiers and carry every solid's label and every chart mark, since CI cannot run the
       browser that paints them.
@@ -70,18 +74,25 @@ def floors_declared_twice(fails):
     """The floors ramps.py solves to and the floors contrast.py certifies are two declarations of
     one set, so weakening a floor takes an edit in both files and this check names it."""
     theirs = {k: (v[0], tuple(v[1])) for k, v in contrast.STEP_FLOORS.items()}
+    bars = ("FILL_FROM_STATE", "RING_FROM_DANGER", "RING_FROM_BORDER")
+    if any(getattr(ramps, b) != getattr(contrast, b) for b in bars):
+        fails.append("tools/ramps.py moves the working accent against "
+                     + ", ".join(f"{b} {getattr(ramps, b)}" for b in bars)
+                     + "; tools/contrast.py certifies "
+                     + ", ".join(f"{b} {getattr(contrast, b)}" for b in bars))
     if (theirs != ramps.FLOORS or contrast.HUE_STEP_12 != ramps.HUE_12
             or contrast.SOLIDS != (9, 10) or contrast.AA != ramps.LABEL):
         fails.append(f"tools/ramps.py solves to {ramps.FLOORS}, hue step 12 {ramps.HUE_12}, label "
                      f"{ramps.LABEL}, and tools/contrast.py certifies {theirs}, hue step 12 "
                      f"{contrast.HUE_STEP_12}, label {contrast.AA}")
     print(f"  floors:       ramps.py and contrast.py declare the same {len(theirs)} step floors, "
-          f"the {ramps.HUE_12}:1 hue step 12 and the {ramps.LABEL}:1 label")
+          f"the {ramps.HUE_12}:1 hue step 12, the {ramps.LABEL}:1 label and the "
+          f"{len(bars)} bars the working accent moves against")
 
 
-def brand_css(tmp, name, brand):
+def brand_css(tmp, name, brand, shift=True):
     path = Path(tmp) / f"{name}.tokens.css"
-    path.write_text(ramps.emit(ramps.build(brand), name), encoding="utf-8")
+    path.write_text(ramps.emit(ramps.build(brand, shift), name), encoding="utf-8")
     return path
 
 
@@ -225,7 +236,9 @@ def contrast_refuses(fails):
                                      "--hw-accent-fill sits 0.0 CIEDE2000 from --hw-success-fill"),
                                     ("an accent at hue 150", at150,
                                      "--hw-accent-fill sits")):
-            bad, _ = contrast.certify_ramps(brand_css(tmp, "case", brand))
+            # Built without the working accent: the file a build before 2026-11-17 wrote, which
+            # the second instrument must still refuse on its own.
+            bad, _ = contrast.certify_ramps(brand_css(tmp, "case", brand, shift=False))
             cases.append((what, 1 if bad else 0, "\n".join(bad), expect))
     for what, rc, err, expect in cases:
         if rc != 1 or expect not in err or "Traceback" in err:
@@ -237,23 +250,123 @@ def contrast_refuses(fails):
 
 
 def separation_sweep(fails):
-    """Every fifth accent hue at chroma 0.15, through contrast.py's separation bars: the arc that
-    builds but reads as a state is refused, and hue 150, the success green's, is inside it."""
-    refused = []
+    """Every fifth accent hue at chroma 0.15, built and through contrast.py's separation bars.
+    Until 2026-11-17 the 27 hues beside a state were refused; now each builds with its working
+    accent and every one is certified, hue 150, the success green's, shifting and 262 not."""
+    refused, shifted = [], []
     with tempfile.TemporaryDirectory() as tmp:
         for hue in range(0, 360, 5):
             b = copy.deepcopy(HOUSE)
             b["hues"]["accent"] = {"hue": hue, "chroma": 0.15}
-            # The house file with its accent moved: only a separation bar may refuse it.
-            bad, _ = contrast.certify_ramps(brand_css(tmp, "house", b))
+            try:
+                built = ramps.build(b)
+            except ramps.BrandError as e:
+                refused.append(hue)
+                fails.append(f"accent hue {hue}: tools/ramps.py refuses it: {e}")
+                continue
+            if built["shifts"]:
+                shifted.append(hue)
+            path = Path(tmp) / "house.tokens.css"
+            path.write_text(ramps.emit(built, "house"), encoding="utf-8")
+            bad, _ = contrast.certify_ramps(path)
             if bad:
                 refused.append(hue)
-                if not all("CIEDE2000" in x for x in bad):
-                    fails.append(f"accent hue {hue}: refused for more than separation: {bad[:3]}")
-    if 150 not in refused or 262 in refused:
-        fails.append(f"the separation sweep refused {refused}: hue 150 must be in it and 262 not")
-    print(f"  separation:   {len(refused)} of 72 accent hues refused as reading as a state: "
-          f"{refused}")
+                fails.append(f"accent hue {hue}: contrast.py refuses its build: {bad[:3]}")
+    if refused or 150 not in shifted or 262 in shifted:
+        fails.append(f"the separation sweep refused {refused} and shifted {shifted}: none may be "
+                     f"refused, hue 150 must shift and 262 not")
+    print(f"  separation:   {72 - len(refused)} of 72 accent hues build and are certified, "
+          f"{len(shifted)} with a working accent: {shifted}")
+
+
+TEST_BRANDS = ROOT / "tests" / "brands"
+
+
+def working_accent_brands(fails):
+    """The three accents the strategy evidence names (tests/brands/): a green near success, a
+    streaming-player green and an orange near warning. Each builds, prints its shift, keeps its
+    brand hue on the solid and the accent text, and is certified by tools/contrast.py."""
+    paths = sorted(TEST_BRANDS.glob("*.json"))
+    if {p.stem for p in paths} != {"meadow", "spotify", "ember"}:
+        fails.append(f"tests/brands holds {[p.name for p in paths]}, not meadow, spotify and ember")
+    with tempfile.TemporaryDirectory() as tmp:
+        r = subprocess.run([sys.executable, str(TOOL), *map(str, paths), "--out", tmp],
+                           capture_output=True, text=True)
+        if r.returncode or "Traceback" in r.stderr:
+            fails.append(f"tools/ramps.py on tests/brands exited {r.returncode}:\n{r.stderr}")
+            return
+        shifts = [x for x in r.stdout.splitlines() if x.startswith("shift ")]
+        for p in paths:
+            mine = [x for x in shifts if x.startswith(f"shift  {p.stem}: ")]
+            if not mine:
+                fails.append(f"{p.stem}: tools/ramps.py printed no shift for an accent beside a "
+                             f"state:\n{r.stdout}")
+            brand = json.loads(p.read_text(encoding="utf-8"))["hues"]["accent"]
+            css = (Path(tmp) / f"{p.stem}.tokens.css").read_text(encoding="utf-8")
+            for theme, rs in ramps.parse(css).items():
+                for step in (9, 10, 12):
+                    if rs["accent"][step][2] != round(brand["hue"], 1):
+                        fails.append(f"{p.stem} {theme} accent-{step} sits at hue "
+                                     f"{rs['accent'][step][2]}, not the brand's {brand['hue']}")
+        c = subprocess.run([sys.executable, str(CONTRAST),
+                            *sorted(str(x) for x in Path(tmp).glob("*.tokens.css"))],
+                           capture_output=True, text=True)
+        if c.returncode or "Traceback" in c.stderr:
+            fails.append(f"tools/contrast.py refuses tests/brands, exit {c.returncode}:\n"
+                         f"{c.stderr.strip()[:1500]}")
+    print(f"  working:      {len(paths)} test brands beside a state built, "
+          f"{len(shifts)} shifts printed, contrast.py exit {c.returncode}")
+    for x in shifts:
+        print(f"                {x}")
+
+
+HOSTILE = [
+    # (what, accent, the shift it must print or None, or the sentence ramps.py must refuse with)
+    ("a hue exactly between danger 27 and warning 70", {"hue": 48.5, "chroma": 0.15},
+     "selection", None),
+    ("a hue exactly between warning 70 and success 150", {"hue": 110, "chroma": 0.15}, None, None),
+    ("an accent identical to the success green", {"hue": 150, "chroma": 0.14}, "selection", None),
+    ("an accent identical to the danger red", {"hue": 27, "chroma": 0.19}, "focus", None),
+    ("an accent identical to the warning amber", {"hue": 70, "chroma": 0.16}, "selection", None),
+    ("a near-grey accent", {"hue": 262, "chroma": 0.005}, None,
+     "no hue clears the ring from --hw-line-strong"),
+    ("a near-grey accent at the success hue", {"hue": 150, "chroma": 0.005}, None,
+     "no hue clears the ring from --hw-line-strong"),
+]
+
+
+def hostile_accents(fails):
+    """Accents the working accent does not name: a hue exactly between two states, an accent
+    identical to a state, and a near-grey accent with almost no chroma. Each either builds,
+    shifting the roles named, and is certified by contrast.py, or is refused by name."""
+    with tempfile.TemporaryDirectory() as tmp:
+        for what, accent, role, refusal in HOSTILE:
+            path = Path(tmp) / "hostile.json"
+            path.write_text(with_hues(accent=accent), encoding="utf-8")
+            r = subprocess.run([sys.executable, str(TOOL), str(path), "--out", tmp],
+                               capture_output=True, text=True)
+            out = Path(tmp) / "hostile.tokens.css"
+            if "Traceback" in r.stderr:
+                fails.append(f"{what}: tools/ramps.py raised:\n{r.stderr}")
+            elif refusal:
+                if r.returncode != 1 or refusal not in r.stderr or out.exists():
+                    fails.append(f"{what}: exit {r.returncode}, expected a refusal naming "
+                                 f"{refusal!r} and no file; got: {r.stderr.strip()[:300]}")
+                continue
+            elif r.returncode:
+                fails.append(f"{what}: tools/ramps.py refuses it: {r.stderr.strip()[:300]}")
+                continue
+            got = {x.split(": ")[1].split(" ")[0] for x in r.stdout.splitlines()
+                   if x.startswith("shift  ")}
+            if (role is None and got) or (role is not None and role not in got):
+                fails.append(f"{what}: shifted {sorted(got)}, expected {role or 'nothing'}")
+            c = subprocess.run([sys.executable, str(CONTRAST), str(out)], capture_output=True,
+                               text=True)
+            if c.returncode:
+                fails.append(f"{what}: contrast.py refuses its build: {c.stderr.strip()[:300]}")
+            out.unlink()
+    print(f"  hostile:      {len(HOSTILE)} accents between, on and without a state's hue, each "
+          f"certified with its shift or refused by name")
 
 
 def roles_resolve(fails):
@@ -434,6 +547,8 @@ def main():
     malformed_brands_are_refused(fails)
     verify_refuses_a_broken_file(fails)
     contrast_refuses(fails)
+    working_accent_brands(fails)
+    hostile_accents(fails)
     if SWEEPS:
         separation_sweep(fails)
         every_hue_is_open(fails)
