@@ -16,6 +16,15 @@ what it may name and what it may paint:
   6. exactly one script, radiogroup.js, and every icon used is vendored with Lucide's licence
   7. every class components.css defines appears in a class attribute of the markup in
      design/64-component-sheets.md, so no class is left for a reader to find in the CSS
+  8. every rule that paints a solid (a ground tools/contrast.py certifies a label on: the ink,
+     accent, danger and mark solids) or a control's track holds WCAG 1.4.11's 3:1 against each
+     ground it sits on, 4.5:1 under prefers-contrast: more, either with its fill or with an edge
+     it paints itself, measured here on every brand in every tier, float and 8-bit. A fill
+     contrast.py certifies a label on is not thereby certified against the page: pointback's
+     accent is 1.95:1 on white and quoth's 1.34:1. A rule with a halo (an outer ring in a role)
+     sits on its halo; any exception is in FILL_EXCEPTIONS with its reason. A ground set by
+     nesting (a button inside a tinted callout or a selected row) is not modelled: the rule is
+     measured on the five page grounds unless GROUND_OF names its ground by hand
 
 Each check has a negative control: a wrong input that must be refused, so a green run cannot be
 a suite that checks nothing. What it cannot see is a rendered page; the browser pass that rendered
@@ -61,6 +70,30 @@ EXCEPTIONS = [
     ("--hw-text", "--hw-mark-7", "dark", 4.5,
      "the dark highlight: a block in mark step 7, since a swipe under light text measured 1.15:1"),
 ]
+
+# Rule 8. The solids are the grounds contrast.py certifies a label on, read from its own lists.
+# A track or an indicator is a rule whose fill is the state it reports, measured whatever role it
+# names: the switch's track, and the meter's lit bar, which paints a 3:1 step rather than a solid.
+SOLID_FILLS = tuple(dict.fromkeys(f for fs in contrast.ROLE_LABELS.values() for f in fs))
+TRACKS = (".hw-switch input", ".hw-meter > i.on")
+FILL_PROPS = ("background", "background-color", "--_bg", "--_bgh", "--_field")
+EDGE_PROPS = ("--_bd", "border-color", "border")
+# A rule drawn inside another component sits on that component's fill, not on the page.
+GROUND_OF = {".hw-toast .hw-btn": "--hw-ink"}
+# (selector, fill, tier or None for every tier): why the rule is not held to 1.4.11 against the
+# page there. Each is a decision recorded where it was taken, not a measurement skipped.
+REGION = "a region a product is loud in, not a control; its text is a certified label"
+DANGER_MORE = ("ramps/roles.css, dark under more: no colour carries the gray-12 label at 7:1 and "
+               "clears 3:1 on a dark ground (2.65:1 at best), so the word carries it")
+FILL_EXCEPTIONS = {
+    (".hw-mark", "--hw-mark", None): "a highlighter behind words: the word is the content, ink on the swipe",
+    (".hw-mark.hw-mark--solid", "--hw-mark", None): "a highlighted word, certified as --hw-on-mark on --hw-mark",
+    (".hw-stage", "--hw-mark", None): REGION,
+    (".hw-stage--ink", "--hw-ink", None): REGION,
+    (".hw-stage--accent", "--hw-accent", None): REGION,
+    (".hw-btn--danger-solid", "--hw-danger-solid", "dark-more"): DANGER_MORE,
+    (".hw-btn--danger-solid", "--hw-danger-hover", "dark-more"): DANGER_MORE,
+}
 
 FG_PROPS = ("color", "--_fg", "--_on")
 BG_PROPS = ("background", "background-color", "--_bg", "--_field", "--_f")
@@ -176,6 +209,154 @@ def check_pairs(rules, envs):
     return bad, rows
 
 
+def var_calls(value):
+    """(name, fallback or None) for every var() in a value, outermost first, gradients included."""
+    out, i, text = [], 0, value or ""
+    while (i := text.find("var(", i)) != -1:
+        depth, j = 0, i + 3
+        for j in range(i + 3, len(text)):
+            depth += {"(": 1, ")": -1}.get(text[j], 0)
+            if depth == 0:
+                break
+        name, _, fallback = text[i + 4:j].partition(",")
+        out.append((name.strip(), fallback.strip() or None))
+        i = j + 1
+    return out
+
+
+def roles_in(value, scope=None, seen=()):
+    """Every --hw- role a value paints, fallbacks and gradient stops included. A private --_x
+    alias is followed through `scope`, the declarations on the box (finding B1 of the PR 48
+    verification: a chain of them was measured as nothing); its fallback is read only when the
+    alias is declared nowhere in scope, as a browser would."""
+    out = []
+    for name, fallback in var_calls(value):
+        if name.startswith("--hw-"):
+            out.append(name)
+        elif name.startswith("--_") and scope and name in scope and name not in seen:
+            out += roles_in(scope[name], scope, (*seen, name))
+        elif fallback:
+            out += roles_in(fallback, scope, seen)
+    return out
+
+
+def shadows(value, scope=None):
+    """(inset edges, halos) a box-shadow paints in a role: an inset ring is the object's own edge,
+    an outer spread ring is the ground the object then sits on."""
+    edges, halos = [], []
+    for part in re.split(r",(?![^(]*\))", value or ""):
+        names = roles_in(part, scope)
+        if not names:
+            continue
+        if re.search(r"\binset\b", part):
+            edges.extend(names)
+        elif re.match(r"\s*0 0 0 ", part):
+            halos.extend(names)   # a ring, not an elevation token such as --hw-shadow-overlay
+    return edges, halos
+
+
+def is_solid(name):
+    """A solid by role, or a ramp's solid step named directly: a fill on --hw-accent-9 is the
+    accent solid whatever it is called."""
+    return name in SOLID_FILLS or re.fullmatch(r"--hw-[a-z][a-z0-9]*-(?:9|10)", name) is not None
+
+
+# An inactive control is exempt from 1.4.11 (its own understanding note), and the house paints it
+# in --hw-text-disabled, which contrast.py holds to 3:1 in both tiers rather than raising.
+DISABLED = re.compile(r":disabled|\[aria-disabled|\[disabled")
+
+
+def fills_in(rules):
+    """(selector, fill, edges, grounds) for every rule that paints a solid or a track, with a
+    variant inheriting its component's edge, and its grounds the halo it paints or GROUND_OF.
+    A later rule on the same box that restates an edge or a ring (a state, a theme override)
+    without restating the solid is measured as that solid under its own edge, so an edge cannot
+    be dropped in a rule this check would otherwise never read."""
+    base, decls, owners, later = {}, {}, [], []
+    for media, sel, d in rules:
+        if re.fullmatch(r"\.hw-[a-z-]+", sel):
+            decls.setdefault(sel, {}).update(d)
+            for p in EDGE_PROPS:
+                if p in d:
+                    base[sel] = d[p]
+
+    def scope_of(sel, d):
+        """The declarations a box reads its --_x aliases from: its component's base rule, then its own."""
+        comp = re.match(r"(\.hw-[a-z]+)", sel)
+        return {**(decls.get(comp.group(1), {}) if comp else {}), **d}
+
+    for media, sel, d in rules:
+        if media and ("forced-colors" in media or "print" in media):
+            continue
+        track = sel in TRACKS
+        scope = scope_of(sel, d)
+        fills = [r for p in FILL_PROPS for r in roles_in(d.get(p), scope)
+                 if is_solid(r) or (track and p in ("background", "background-color"))]
+        if not fills:
+            if any(p in d for p in (*EDGE_PROPS, "box-shadow")):
+                later.append((sel, d))
+            continue
+        edge_values = [d[p] for p in EDGE_PROPS if p in d]
+        if not edge_values:
+            owner = re.match(r"(\.hw-[a-z]+)--[a-z-]+$", sel)
+            if owner and owner.group(1) in base:
+                edge_values = [base[owner.group(1)]]
+        edges = [r for v in edge_values for r in roles_in(v, scope)]
+        owners.append((sel, scope, list(dict.fromkeys(fills)), edges, *shadows(d.get("box-shadow"), scope)))
+    for sel, d in later:
+        if DISABLED.search(sel):
+            continue
+        for osel, oscope, fills, edges, inset, halos in list(owners):
+            # the same box: the owner's selector last, then only states (:hover, [aria-*]), never a
+            # descendant, and never a pseudo-element the owner is not (a thumb sits on its track)
+            on_box = re.search(re.escape(osel) + r"(?:[:\[][^\s>+~]*)?$", sel) and ("::" in osel or "::" not in sel)
+            if sel == osel or not on_box:
+                continue
+            scope = {**oscope, **d}
+            own = [r for p in FILL_PROPS for r in roles_in(d.get(p), scope)]
+            stated = [d[p] for p in EDGE_PROPS if p in d]
+            new_edges = [r for v in stated for r in roles_in(v, scope)] if stated else edges
+            ring = shadows(d["box-shadow"], scope) if "box-shadow" in d else (inset, halos)
+            owners.append((sel, scope, own or fills, new_edges, *ring))
+    out = []
+    for sel, _, fills, edges, inset, halos in owners:
+        edges = edges + inset
+        grounds = [GROUND_OF[sel]] if sel in GROUND_OF else halos or list(contrast.ROLE_GROUNDS)
+        for fill in fills:
+            out.append((sel, fill, edges, grounds))
+    return out
+
+
+def check_fills(rules, envs):
+    """Rule 8: a solid or a track holds 3:1 on every ground it sits on, raised under more, with
+    its fill or an edge it paints, on every brand in every tier, float and 8-bit."""
+    bad, rows, lowest = [], [], {}
+    for sel, fill, edges, grounds in fills_in(rules):
+        if (sel, fill, None) in FILL_EXCEPTIONS:
+            continue
+        for brand, env in envs.items():
+            for tier, e in env.items():
+                if (sel, fill, tier) in FILL_EXCEPTIONS:
+                    continue
+                bar = contrast.raised(contrast.NON_TEXT) if tier.endswith("-more") else contrast.NON_TEXT
+                for g in grounds:
+                    ground = contrast.resolve(g, e)
+                    # a width such as --hw-border-w is a role name in the value and no colour
+                    got = {x: min(contrast.ratio(contrast.resolve(x, e), ground))
+                           for x in [fill, *edges] if x in e}
+                    best = max(got, key=got.get)
+                    key = (sel, fill)
+                    if key not in lowest or got[best] < lowest[key][0]:
+                        lowest[key] = (got[best], f"{brand} {tier} on {g}, by {best}")
+                    if got[best] < bar:
+                        edge = ", ".join(f"edge {x} {got[x]:.2f}:1" for x in edges if x in got) or "no edge"
+                        bad.append(f"{brand} {tier}: {sel} paints {fill} on {g} at {got[fill]:.2f}:1, "
+                                   f"under {bar} ({edge})")
+    for (sel, fill), (r, where) in lowest.items():
+        rows.append(f"{sel} {fill}: lowest {r:.2f}:1 ({where})")
+    return bad, rows
+
+
 def check_type_floor(text):
     bad = []
     body = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
@@ -217,9 +398,11 @@ def ramp_envs():
         brand = tokens.name.split(".")[0]
         out[brand] = {}
         for theme in ("light", "dark"):
-            roles = {**lb["base"], **(lb.get("dark", {}) if theme == "dark" else {})}
+            dark = theme == "dark"
+            roles = {**lb["base"], **(lb.get("dark", {}) if dark else {})}
             out[brand][theme] = {**rb[theme], **roles}
-            out[brand][theme + "-more"] = {**rb[theme], **roles, **lb.get("more", {})}
+            out[brand][theme + "-more"] = {**rb[theme], **roles, **lb.get("more", {}),
+                                           **(lb.get("dark-more", {}) if dark else {})}
     return out
 
 
@@ -255,6 +438,12 @@ def main():
     print(f"  pairs:        {len(pairs_in(rules))} rules paint text on a background, all certified or excepted")
     for row in rows:
         print(f"                exception {row}")
+    got, rows = check_fills(rules, envs)
+    fails += got
+    print(f"  fills:        {len(fills_in(rules))} solids and tracks against the grounds they sit on, "
+          f"{len(got)} under 1.4.11, {len(FILL_EXCEPTIONS)} excepted")
+    for row in rows:
+        print(f"                {row}")
     got = check_type_floor(text)
     fails += got
     print(f"  type floor:   {len(got)} sub-1em sizes without the 11px floor")
@@ -265,6 +454,7 @@ def main():
 
     # Negative controls: each replays a mistake and must be caught.
     btn = ".hw-btn--primary { --_bg: var(--hw-ink); --_fg: var(--hw-on-ink);"
+    pin_edge = "box-shadow: inset 0 0 0 var(--hw-border-w) var(--hw-accent-edge), 0 0 0 2px var(--hw-surface)"
     cases = [
         ("an undeclared token", lambda: check_tokens(text.replace("var(--hw-line-strong)", "var(--hw-line-strongest)", 1), exports, demos)),
         ("the layer redefining a house token", lambda: check_tokens(text + "\n.hw-x { --hw-text: red; }", exports, demos)),
@@ -272,13 +462,42 @@ def main():
         ("an undeclared literal length", lambda: check_literals(text.replace("var(--hw-space-12)", "13px", 1))),
         ("muted text on the ink solid", lambda: check_pairs(rules_of(text.replace(btn, ".hw-btn--primary { --_bg: var(--hw-ink); --_fg: var(--hw-text-muted);")), envs)[0]),
         ("a label on the wrong solid", lambda: check_pairs(rules_of(text.replace(btn, ".hw-btn--primary { --_bg: var(--hw-accent); --_fg: var(--hw-on-ink);")), envs)[0]),
+        ("the pin without its inner edge, as before audit row H1", lambda: check_fills(rules_of(text.replace(
+            pin_edge, "box-shadow: 0 0 0 2px var(--hw-surface)")), envs)[0]),
+        ("the accent button edged in its own solid, as before audit row H2", lambda: check_fills(rules_of(text.replace(
+            "--_bd: var(--hw-accent-edge); --_bgh: var(--hw-accent-hover);",
+            "--_bd: var(--hw-accent); --_bgh: var(--hw-accent-hover);")), envs)[0]),
+        ("the lit meter bar in the accent solid, as before audit row H2", lambda: check_fills(rules_of(text.replace(
+            "var(--_live, var(--hw-accent-edge))", "var(--_live, var(--hw-accent))")), envs)[0]),
+        ("a new solid named by its raw ramp step", lambda: check_fills(rules_of(
+            text + "\n.hw-btn--brand { --_bg: var(--hw-accent-9); --_bd: var(--hw-accent-9); }"), envs)[0]),
+        ("a state rule that drops the pin's edge", lambda: check_fills(rules_of(
+            text + "\n.hw-pin:hover { box-shadow: 0 0 0 2px var(--hw-surface); }"), envs)[0]),
+        ("a theme override that drops the accent button's edge", lambda: check_fills(rules_of(
+            text + '\n:where([data-theme="light"]) .hw-btn--accent { --_bd: transparent; }'), envs)[0]),
+        ("a pin haloed in its own solid", lambda: check_fills(rules_of(text.replace(
+            pin_edge, pin_edge.replace("2px var(--hw-surface)", "2px var(--hw-accent)"))), envs)[0]),
+        ("a solid reached through a private alias chain (verification of PR 48, B1)", lambda: check_fills(rules_of(
+            text + "\n.hw-btn--brand { --_solid: var(--hw-accent); --_brand: var(--_solid); --_bg: var(--_brand); --_bd: var(--_brand); }"),
+            envs)[0]),
         ("a 0.8em keycap with no floor", lambda: check_type_floor(text.replace("max(0.8em, 11px)", "0.8em", 1))),
         ("a class the sheets never show", lambda: check_documented(text + "\n.hw-btn--ghost { color: var(--hw-text); }", book)),
     ]
     if btn not in text:
         fails.append("negative controls: the primary button rule they edit has moved")
+    for rule in (pin_edge, "--_bd: var(--hw-accent-edge); --_bgh: var(--hw-accent-hover);",
+                 "var(--_live, var(--hw-accent-edge))"):
+        if rule not in text:
+            fails.append(f"negative controls: the rule they edit has moved: {rule}")
+    # The audit's numbers, held: the pin without its edge is refused on its halo at exactly these.
+    bare = check_fills(rules_of(text.replace(pin_edge, "box-shadow: 0 0 0 2px var(--hw-surface)")), envs)[0]
+    for brand, at in (("pointback", "1.95"), ("quoth", "1.34")):
+        want = f"{brand} light: .hw-pin paints --hw-accent on --hw-surface at {at}:1"
+        if not any(f.startswith(want) for f in bare):
+            fails.append(f"negative control: the bare pin is not refused as {want!r}")
     clean = {"tokens": set(check_tokens(text, exports, demos)), "literals": set(check_literals(text)),
-             "pairs": set(check_pairs(rules, envs)[0]), "type": set(check_type_floor(text)),
+             "pairs": set(check_pairs(rules, envs)[0]), "fills": set(check_fills(rules, envs)[0]),
+             "type": set(check_type_floor(text)),
              "documented": set(check_documented(text, book))}
     before = set().union(*clean.values())
     for label, run in cases:

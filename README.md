@@ -28,7 +28,8 @@ So the book states each foundation once and names the file that enforces it, and
   `tools/contrast.py` certifies every step and every role again with arithmetic it shares with nothing, and carries its own list of what must hold, so a floor cannot be weakened in the same edit as the value it guards.
   `tools/painted.py` then measures the same pairs on the pixels a browser paints.
 - **Permission is a table, not a convention.**
-  Two roles both existing does not make them a pair: [design/10-color.md](design/10-color.md#which-ink-may-sit-on-which-ground) lists the pairs `tools/contrast.py` certifies, and `tests/components.py` refuses a component that paints any other pair without measuring it itself.
+  Two roles both existing does not make them a pair: [design/10-color.md](design/10-color.md#which-ink-may-sit-on-which-ground) lists the pairs `tools/contrast.py` certifies, and `tests/components.py` refuses a component that paints any other pair without measuring it itself, and a solid or a control's track that does not hold 3:1, by its fill or by its own edge, on the five page grounds, or on its own halo where it paints one.
+  It does not see a ground set by nesting: a button inside a tinted callout or a selected row is measured on the page grounds, never on the tint, unless that pairing is entered by hand, as the toast's buttons are on ink.
 - **The text size is the reader's.**
   Type, space and controls are rem, five settings move the root from 13 to 22px, and `tests/exports.py` holds every export to its floors at each of them.
 - **Rhythm is a checked property, not a claim.**
