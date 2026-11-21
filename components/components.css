@@ -316,16 +316,25 @@ dialog.hw-dialog[open] { animation: hw-dialog-in var(--hw-duration-slow) var(--h
 
 /* ---------- list row ---------- */
 .hw-list { list-style: none; margin: 0; padding: 0; }
+/* Columns follow the children: each child takes the next place on the line, the text takes the
+   free space and every meta is as wide as what it holds, so a row that opens with its text never
+   runs it into the meta beside it. When the line cannot hold the text at 10em beside its metas, the
+   metas wrap below it rather than crush it, and text that cannot wrap breaks. .hw-row--lead opts
+   into the fixed grid of a leading 5.5em meta column, text and source, so times line up down a
+   list; it is the grid this row had before, unchanged, and the only form --_cols sets. */
 .hw-row {
-  display: grid; grid-template-columns: var(--_cols, 5.5em 1fr auto); gap: var(--hw-space-4) var(--hw-space-12); align-items: baseline;
+  display: flex; flex-wrap: wrap; gap: var(--hw-space-4) var(--hw-space-12); align-items: baseline;
   min-height: var(--hw-row-h); padding: var(--hw-cell-pad-y) var(--hw-space-12); border-bottom: var(--hw-border-w) solid var(--hw-line);
   font-size: var(--hw-text-md); line-height: var(--hw-leading-snug); color: var(--hw-text);
 }
-.hw-row > * { margin: 0; min-width: 0; }
+.hw-row > * { margin: 0; min-width: 0; flex: 0 1 auto; }
+.hw-row:not(.hw-row--lead) > * { overflow-wrap: anywhere; }
+.hw-row:not(.hw-row--lead) > :not(.hw-row-meta, .hw-row-actions) { flex: 1 1 10em; }
+.hw-row--lead { display: grid; grid-template-columns: var(--_cols, 5.5em 1fr auto); }
 .hw-row:hover { background: var(--hw-bg-subtle); }
 .hw-row[aria-selected="true"] { background: var(--hw-surface); box-shadow: 0 0 0 var(--hw-border-w) var(--hw-line-strong); border-radius: var(--hw-radius-md); border-bottom-color: transparent; }
 .hw-row-meta { font-size: var(--hw-text-sm); color: var(--hw-text-muted); font-variant-numeric: tabular-nums; }
-.hw-row-actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--hw-space-8); padding-top: var(--hw-space-4); }
+.hw-row-actions { flex-basis: 100%; grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: var(--hw-space-8); padding-top: var(--hw-space-4); }
 
 /* ---------- table ---------- */
 .hw-table { width: 100%; border-collapse: collapse; font-size: var(--hw-text-sm); line-height: var(--hw-leading-snug); color: var(--hw-text); }

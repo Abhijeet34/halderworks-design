@@ -9,7 +9,8 @@ A demo is the live render on the sheet; markup is what a product copies, one (va
 pair per variant, using only the classes components.css defines. {{icon:name}} becomes the Lucide
 icon from components/icons/ (ISC, LICENSE there) in a demo, and in markup an empty svg naming that
 file, so the snippet keeps the icon's box and says which file fills it.
-Demo content is real product copy and fixture data, as the review that proposed this layer used.
+Demo content is neutral fixture data built on five archetypes, a project, a deployment, a member,
+an invoice and a document, so no sheet reads as one product's screen and any product can copy it.
 """
 
 GROUPS = [
@@ -48,15 +49,15 @@ component(
     "Not focusable; a heading class on a real h1 to h6 keeps the outline a screen reader walks.",
     "Put the class on the element whose level is right, and one headline per page.",
     "Use a heading class on a div to fake a heading. Set a size in px beside it.",
-    """<p class="hw-headline">Words that land right the first time.</p><p class="hw-title">Settings</p><p class="hw-heading">Dictation</p><p class="hw-subheading">Microphone</p><p class="hw-lead">Dictation that stays on your Mac.</p><p class="hw-body">quoth types what you say into the app in front, and keeps nothing it cannot explain.</p><p class="hw-small">Kept on this Mac for 30 days.</p><p class="hw-label">Microphone</p><p class="hw-body">Cited <span class="hw-num">1,204</span> times, against <span class="hw-num">87</span>.</p>""",
-    [("Display, title and headings", """<h1 class="hw-headline">Words that land right the first time.</h1>
+    """<p class="hw-headline">Every deployment, accounted for.</p><p class="hw-title">Settings</p><p class="hw-heading">Billing</p><p class="hw-subheading">Payment method</p><p class="hw-lead">Invoices are sent on the first of each month.</p><p class="hw-body">Each project keeps its own members, deployments and documents, and a year of their history.</p><p class="hw-small">Last changed 14 November 2026.</p><p class="hw-label">Payment method</p><p class="hw-body">Paid <span class="hw-num">1,204</span> invoices, with <span class="hw-num">87</span> overdue.</p>""",
+    [("Display, title and headings", """<h1 class="hw-headline">Every deployment, accounted for.</h1>
 <h1 class="hw-title">Settings</h1>
-<h2 class="hw-heading">Dictation</h2>
-<h3 class="hw-subheading">Microphone</h3>"""),
-     ("Running text", """<p class="hw-lead">Dictation that stays on your Mac.</p>
-<p class="hw-body">quoth types what you say into the app in front.</p>
-<p class="hw-small">Kept on this Mac for 30 days.</p>
-<p class="hw-label">Microphone</p>"""),
+<h2 class="hw-heading">Billing</h2>
+<h3 class="hw-subheading">Payment method</h3>"""),
+     ("Running text", """<p class="hw-lead">Invoices are sent on the first of each month.</p>
+<p class="hw-body">Each project keeps its own members, deployments and documents.</p>
+<p class="hw-small">Last changed 14 November 2026.</p>
+<p class="hw-label">Payment method</p>"""),
      ("Tabular figures", """<span class="hw-num">1,204</span>""")])
 
 # ------------------------------------------------------------------------------------ actions
@@ -77,21 +78,21 @@ component(
     "product names.",
     "Two primaries side by side. Colour a button to make it louder. Disable a submit because a form "
     "is incomplete.",
-    """<div class="row"><button class="hw-btn hw-btn--primary">Agree and finish</button><button class="hw-btn">{{icon:copy}}Copy</button><button class="hw-btn hw-btn--quiet">Cancel</button><button class="hw-btn hw-btn--accent">Download for Mac</button></div>
-<div class="row"><button class="hw-btn hw-btn--danger">{{icon:trash-2}}Forget repository</button><button class="hw-btn hw-btn--danger-solid">Delete 412 dictations</button><button class="hw-btn" disabled>Export report</button><button class="hw-btn" aria-busy="true">Checking DOIs</button></div>
-<div class="row"><button class="hw-btn hw-btn--sm">Show changes</button><button class="hw-btn">Insert again</button><button class="hw-btn hw-btn--lg hw-btn--primary">Dictate</button><button class="hw-btn hw-btn--icon" aria-label="More actions">{{icon:ellipsis}}</button></div>""",
-    [("Secondary, the default", """<button type="button" class="hw-btn">Insert again</button>"""),
+    """<div class="row"><button class="hw-btn hw-btn--primary">Save changes</button><button class="hw-btn">{{icon:copy}}Copy</button><button class="hw-btn hw-btn--quiet">Cancel</button><button class="hw-btn hw-btn--accent">Create a project</button></div>
+<div class="row"><button class="hw-btn hw-btn--danger">{{icon:trash-2}}Remove member</button><button class="hw-btn hw-btn--danger-solid">Delete 12 projects</button><button class="hw-btn" disabled>Export report</button><button class="hw-btn" aria-busy="true">Deploying</button></div>
+<div class="row"><button class="hw-btn hw-btn--sm">Show changes</button><button class="hw-btn">Redeploy</button><button class="hw-btn hw-btn--lg hw-btn--primary">Invite members</button><button class="hw-btn hw-btn--icon" aria-label="More actions">{{icon:ellipsis}}</button></div>""",
+    [("Secondary, the default", """<button type="button" class="hw-btn">Redeploy</button>"""),
      ("With an icon before the label", """<button type="button" class="hw-btn">{{icon:copy}}Copy</button>"""),
-     ("Primary, in ink, one per view", """<button type="button" class="hw-btn hw-btn--primary">Agree and finish</button>"""),
-     ("Accent, for a stage or the brand moment", """<button type="button" class="hw-btn hw-btn--accent">Download for Mac</button>"""),
+     ("Primary, in ink, one per view", """<button type="button" class="hw-btn hw-btn--primary">Save changes</button>"""),
+     ("Accent, for a stage or the brand moment", """<button type="button" class="hw-btn hw-btn--accent">Create a project</button>"""),
      ("Quiet", """<button type="button" class="hw-btn hw-btn--quiet">Cancel</button>"""),
-     ("Danger, outlined", """<button type="button" class="hw-btn hw-btn--danger">{{icon:trash-2}}Forget repository</button>"""),
-     ("Danger solid, the answer in a destructive dialog", """<button type="button" class="hw-btn hw-btn--danger-solid">Delete 412 dictations</button>"""),
+     ("Danger, outlined", """<button type="button" class="hw-btn hw-btn--danger">{{icon:trash-2}}Remove member</button>"""),
+     ("Danger solid, the answer in a destructive dialog", """<button type="button" class="hw-btn hw-btn--danger-solid">Delete 12 projects</button>"""),
      ("Small and large", """<button type="button" class="hw-btn hw-btn--sm">Show changes</button>
-<button type="button" class="hw-btn hw-btn--lg hw-btn--primary">Dictate</button>"""),
+<button type="button" class="hw-btn hw-btn--lg hw-btn--primary">Invite members</button>"""),
      ("Icon only, named by aria-label", """<button type="button" class="hw-btn hw-btn--icon" aria-label="More actions">{{icon:ellipsis}}</button>"""),
      ("Disabled", """<button type="button" class="hw-btn" disabled>Export report</button>"""),
-     ("Busy", """<button type="button" class="hw-btn" aria-busy="true">Checking DOIs</button>""")])
+     ("Busy", """<button type="button" class="hw-btn" aria-busy="true">Deploying</button>""")])
 
 component(
     "actions", "Link", [".hw-link"], "the house",
@@ -103,11 +104,11 @@ component(
     "A native anchor: Tab reaches it, Enter follows it.",
     "Write the destination as the link text.",
     "Write 'click here'. Remove the underline in running text.",
-    """<p class="hw-body">The report cites <a class="hw-link" href="https://doi.org/10.1038/s41586-019-1666-5">doi:10.1038/s41586-019-1666-5</a>, which resolves to a different title.</p>""",
-    [("Inline", """<a class="hw-link" href="https://doi.org/10.1038/s41586-019-1666-5">doi:10.1038/s41586-019-1666-5</a>""")])
+    """<p class="hw-body">The build log is at <a class="hw-link" href="#deployments/482">Deployments, build 482</a>, with the step that failed.</p>""",
+    [("Inline", """<a class="hw-link" href="/deployments/482">Deployments, build 482</a>""")])
 
 component(
-    "actions", "Keycap", [".hw-kbd"], "quoth, pointback",
+    "actions", "Keycap", [".hw-kbd"], "two products",
     "Names a key or a shortcut the person presses.",
     "Code (the code mark); a pressable control (a button).",
     "Mono at 0.8em and never under 11px, a 1px --hw-line-strong border with a 2px bottom edge, "
@@ -116,9 +117,9 @@ component(
     "Not focusable: it names a key, it is not one.",
     "Use the platform's symbols: ⌘ ⌥ ⇧ ⌃.",
     "Spell out 'Cmd'. Use it as a pressable control.",
-    """<p class="hw-body">Hold <kbd class="hw-kbd">⌥ Space</kbd> in any app and speak. Let go to type it there. Open History with <kbd class="hw-kbd">⌘2</kbd>.</p>""",
-    [("A shortcut", """Open History with <kbd class="hw-kbd">⌘2</kbd>."""),
-     ("A chord, one keycap per key", """<kbd class="hw-kbd">⌥</kbd><kbd class="hw-kbd">Space</kbd>""")])
+    """<p class="hw-body">Press <kbd class="hw-kbd">⌘ K</kbd> anywhere to search projects. Open Deployments with <kbd class="hw-kbd">⌘2</kbd>.</p>""",
+    [("A shortcut", """Open Deployments with <kbd class="hw-kbd">⌘2</kbd>."""),
+     ("A chord, one keycap per key", """<kbd class="hw-kbd">⌘</kbd><kbd class="hw-kbd">K</kbd>""")])
 
 component(
     "actions", "Segmented control", [".hw-segmented"], "the house",
@@ -153,67 +154,67 @@ component(
     "Native input; the label is a real label, and the error is tied with aria-describedby.",
     "Say what is wrong and what is expected in the error.",
     "Use the placeholder as the label. Turn the edge red without a sentence.",
-    """<div class="grid2"><div class="hw-field"><label class="hw-field-label" for="tf-a">When I say</label><input id="tf-a" class="hw-input" value="priya anka" aria-describedby="tf-a-hint"><span id="tf-a-hint" class="hw-field-hint">Spoken form, lower case</span></div>
-<div class="hw-field"><label class="hw-field-label" for="tf-b">Fingerprint</label><input id="tf-b" class="hw-input" aria-invalid="true" aria-describedby="tf-b-err" value="9f2c1a"><span id="tf-b-err" class="hw-field-error">{{icon:circle-alert}}Expected 64 hex characters. That value is 6.</span></div>
-<div class="hw-field"><label class="hw-field-label" for="tf-c">Type</label><input id="tf-c" class="hw-input" placeholder="Priyanka"></div>
-<div class="hw-field"><label class="hw-field-label" for="tf-d">Model</label><input id="tf-d" class="hw-input" disabled value="Base (English), 148 MB"></div></div>""",
+    """<div class="grid2"><div class="hw-field"><label class="hw-field-label" for="tf-a">Project name</label><input id="tf-a" class="hw-input" value="Atlas" aria-describedby="tf-a-hint"><span id="tf-a-hint" class="hw-field-hint">Shown to every member</span></div>
+<div class="hw-field"><label class="hw-field-label" for="tf-b">Invoice number</label><input id="tf-b" class="hw-input" aria-invalid="true" aria-describedby="tf-b-err" value="2041"><span id="tf-b-err" class="hw-field-error">{{icon:circle-alert}}Expected INV- and four digits, as INV-2041. That value has no INV-.</span></div>
+<div class="hw-field"><label class="hw-field-label" for="tf-c">Billing email</label><input id="tf-c" class="hw-input" placeholder="billing@example.com"></div>
+<div class="hw-field"><label class="hw-field-label" for="tf-d">Plan</label><input id="tf-d" class="hw-input" disabled value="Team, 10 seats"></div></div>""",
     [("With a hint", """<div class="hw-field">
-  <label class="hw-field-label" for="say">When I say</label>
-  <input id="say" class="hw-input" aria-describedby="say-hint">
-  <span id="say-hint" class="hw-field-hint">Spoken form, lower case</span>
+  <label class="hw-field-label" for="project-name">Project name</label>
+  <input id="project-name" class="hw-input" aria-describedby="project-name-hint">
+  <span id="project-name-hint" class="hw-field-hint">Shown to every member</span>
 </div>"""),
      ("Invalid, with its sentence", """<div class="hw-field">
-  <label class="hw-field-label" for="fp">Fingerprint</label>
-  <input id="fp" class="hw-input" aria-invalid="true" aria-describedby="fp-err" value="9f2c1a">
-  <span id="fp-err" class="hw-field-error">{{icon:circle-alert}}Expected 64 hex characters. That value is 6.</span>
+  <label class="hw-field-label" for="invoice">Invoice number</label>
+  <input id="invoice" class="hw-input" aria-invalid="true" aria-describedby="invoice-err" value="2041">
+  <span id="invoice-err" class="hw-field-error">{{icon:circle-alert}}Expected INV- and four digits, as INV-2041. That value has no INV-.</span>
 </div>"""),
-     ("Disabled and read-only: the same field, with the attribute on the input", """<input id="model" class="hw-input" disabled value="Base (English), 148 MB">
-<input id="path" class="hw-input" readonly value="~/Developer/atlas">""")])
+     ("Disabled and read-only: the same field, with the attribute on the input", """<input id="plan" class="hw-input" disabled value="Team, 10 seats">
+<input id="project-id" class="hw-input" readonly value="prj_7f3a92">""")])
 
 component(
-    "inputs", "Textarea", [".hw-textarea"], "pointback",
+    "inputs", "Textarea", [".hw-textarea"], "one product",
     "Takes several lines of text.", "One line (text field).",
     "As the text field, at least three lines tall, resizing vertically only.",
     "as the text field",
     "Native textarea; Tab leaves it, so it never traps focus.",
     "Show a count only when there is a limit.", "Grow without a maximum.",
-    """<div class="hw-field"><label class="hw-field-label" for="ta-a">Note to the agent</label><textarea id="ta-a" class="hw-textarea">The primary button on checkout sits 4px lower than the secondary; align their baselines.</textarea></div>""",
+    """<div class="hw-field"><label class="hw-field-label" for="ta-a">Release notes</label><textarea id="ta-a" class="hw-textarea">Fixes the due date shown on overdue invoices, and loads the members page in half the time.</textarea></div>""",
     [("In a field", """<div class="hw-field">
-  <label class="hw-field-label" for="note">Note to the agent</label>
-  <textarea id="note" class="hw-textarea"></textarea>
+  <label class="hw-field-label" for="notes">Release notes</label>
+  <textarea id="notes" class="hw-textarea"></textarea>
 </div>""")])
 
 component(
-    "inputs", "Select", [".hw-select"], "quoth",
+    "inputs", "Select", [".hw-select"], "one product",
     "Picks one value from a list the platform can show natively.",
     "Fewer than three options (segmented control).",
     "The text field box with a drawn chevron in --hw-text-muted; the list itself is the platform's.",
     "as the text field",
     "Native select: arrow keys change the value, and the platform's own list opens on Space.",
     "Keep it native: it is accessible for free.", "Rebuild the list in a script to restyle it.",
-    """<div class="hw-field narrow"><label class="hw-field-label" for="se-a">Microphone</label><select id="se-a" class="hw-select"><option>MacBook Pro Microphone</option><option>AirPods Pro</option></select></div>""",
+    """<div class="hw-field narrow"><label class="hw-field-label" for="se-a">Region</label><select id="se-a" class="hw-select"><option>Europe (Frankfurt)</option><option>US East (Virginia)</option></select></div>""",
     [("In a field", """<div class="hw-field">
-  <label class="hw-field-label" for="mic">Microphone</label>
-  <select id="mic" class="hw-select">
-    <option>MacBook Pro Microphone</option>
-    <option>AirPods Pro</option>
+  <label class="hw-field-label" for="region">Region</label>
+  <select id="region" class="hw-select">
+    <option>Europe (Frankfurt)</option>
+    <option>US East (Virginia)</option>
   </select>
 </div>""")])
 
 component(
-    "inputs", "Search field", [".hw-search"], "quoth, papertrace",
+    "inputs", "Search field", [".hw-search"], "two products",
     "Filters what is on the screen as the person types.",
     "Submitting a query to a server page (a form).",
     "The text field with a leading magnifier at 1.15em; the label is visually hidden and says what "
     "is searched.",
     "as the text field",
     "Native input of type search; Escape clears it in every engine.",
-    "Say what is searched: 'Search your words'.", "Write 'Search...'.",
-    """<label class="hw-search narrow"><span class="hw-visually-hidden">Search your words</span>{{icon:search}}<input class="hw-input" type="search" placeholder="Search your words"></label>""",
+    "Say what is searched: 'Search projects'.", "Write 'Search...'.",
+    """<label class="hw-search narrow"><span class="hw-visually-hidden">Search projects</span>{{icon:search}}<input class="hw-input" type="search" placeholder="Search projects"></label>""",
     [("A visually hidden label, the icon, the input", """<label class="hw-search">
-  <span class="hw-visually-hidden">Search your words</span>
+  <span class="hw-visually-hidden">Search projects</span>
   {{icon:search}}
-  <input class="hw-input" type="search" placeholder="Search your words">
+  <input class="hw-input" type="search" placeholder="Search projects">
 </label>""")])
 
 component(
@@ -227,29 +228,29 @@ component(
     "Native inputs: Space toggles a checkbox; radios in one name are one Tab stop with arrow keys.",
     "Write the label as the thing that becomes true.",
     "Use a checkbox for a setting that applies at once.",
-    """<div class="row"><label class="hw-check"><input type="checkbox" checked>Include figures</label><label class="hw-check"><input type="checkbox">Include supplementary files</label><label class="hw-check"><input type="checkbox" disabled>Include raw data</label></div>
+    """<div class="row"><label class="hw-check"><input type="checkbox" checked>Include comments</label><label class="hw-check"><input type="checkbox">Include attachments</label><label class="hw-check"><input type="checkbox" disabled>Include version history</label></div>
 <div class="row" role="radiogroup" aria-label="Export as"><label class="hw-check"><input type="radio" name="cr-fmt" checked>Plain text</label><label class="hw-check"><input type="radio" name="cr-fmt">Markdown</label></div>""",
-    [("Checkbox", """<label class="hw-check"><input type="checkbox" checked>Include figures</label>"""),
-     ("Disabled", """<label class="hw-check"><input type="checkbox" disabled>Include raw data</label>"""),
+    [("Checkbox", """<label class="hw-check"><input type="checkbox" checked>Include comments</label>"""),
+     ("Disabled", """<label class="hw-check"><input type="checkbox" disabled>Include version history</label>"""),
      ("Radios, one name, one Tab stop", """<div role="radiogroup" aria-label="Export as">
   <label class="hw-check"><input type="radio" name="export-as" checked>Plain text</label>
   <label class="hw-check"><input type="radio" name="export-as">Markdown</label>
 </div>""")])
 
 component(
-    "inputs", "Switch", [".hw-switch"], "quoth",
+    "inputs", "Switch", [".hw-switch"], "one product",
     "Turns a setting on or off, effective at once.", "A choice that waits for a Save (checkbox).",
     "A track 2.13em by 1.2em with the thumb inset; on is --hw-ink. The label sits before it in a "
     "settings row.",
     "off, on, focus-visible, disabled",
     "A native checkbox with role switch: Space toggles it.",
     "Name the setting, not the state.", "Write 'Enabled' as the label.",
-    """<div class="stack"><label class="hw-switch">Learn words from the repository in front <input type="checkbox" role="switch" checked></label><label class="hw-switch">Keep recordings when typing fails <input type="checkbox" role="switch"></label><label class="hw-switch">Start at login, set by your organisation <input type="checkbox" role="switch" checked disabled></label></div>""",
-    [("On", """<label class="hw-switch">Learn words from the repository in front <input type="checkbox" role="switch" checked></label>"""),
-     ("Disabled", """<label class="hw-switch">Keep recordings when typing fails <input type="checkbox" role="switch" disabled></label>""")])
+    """<div class="stack"><label class="hw-switch">Email me when a deployment fails <input type="checkbox" role="switch" checked></label><label class="hw-switch">Send a weekly summary <input type="checkbox" role="switch"></label><label class="hw-switch">Require two-step sign-in, set by your organisation <input type="checkbox" role="switch" checked disabled></label></div>""",
+    [("On", """<label class="hw-switch">Email me when a deployment fails <input type="checkbox" role="switch" checked></label>"""),
+     ("Disabled", """<label class="hw-switch">Send a weekly summary <input type="checkbox" role="switch" disabled></label>""")])
 
 component(
-    "inputs", "Slider", [".hw-slider"], "quoth",
+    "inputs", "Slider", [".hw-slider"], "one product",
     "Sets a value on a continuous range where the exact number matters less than the feel.",
     "A precise number (a text field).",
     "A track 0.27em tall with the ink fill reaching the thumb's centre (the page sets --_p to the "
@@ -265,7 +266,7 @@ component(
 
 component(
     "inputs", "Hotkey field", [".hw-hotkey"],
-    "quoth",
+    "one product",
     "Shows the shortcut that starts something, and records a new one when pressed.",
     "Typing text (a text field); naming a key in prose (a keycap).",
     "The text field box as a button, holding the current shortcut as keycaps. While recording it is "
@@ -276,16 +277,16 @@ component(
     "Capturing the chord is the product's script; this layer draws the states.",
     "Show the shortcut in the platform's symbols, as the menu bar will.",
     "Accept a chord the system already owns without saying so.",
-    """<div class="grid2"><div class="hw-field"><span class="hw-field-label" id="hk-a-l">Dictate</span><button type="button" class="hw-hotkey" aria-labelledby="hk-a-l hk-a" id="hk-a"><kbd class="hw-kbd">⌥</kbd><kbd class="hw-kbd">Space</kbd></button></div>
-<div class="hw-field"><span class="hw-field-label" id="hk-b-l">Open History</span><button type="button" class="hw-hotkey" aria-pressed="true" aria-labelledby="hk-b-l hk-b" id="hk-b">Press the new shortcut</button></div>
-<div class="hw-field"><span class="hw-field-label" id="hk-c-l">Paste last</span><button type="button" class="hw-hotkey" aria-invalid="true" aria-describedby="hk-c-err" aria-labelledby="hk-c-l hk-c" id="hk-c"><kbd class="hw-kbd">⌘</kbd><kbd class="hw-kbd">V</kbd></button><span id="hk-c-err" class="hw-field-error">{{icon:circle-alert}}macOS uses ⌘V for Paste. Choose another.</span></div></div>""",
+    """<div class="grid2"><div class="hw-field"><span class="hw-field-label" id="hk-a-l">Search</span><button type="button" class="hw-hotkey" aria-labelledby="hk-a-l hk-a" id="hk-a"><kbd class="hw-kbd">⌘</kbd><kbd class="hw-kbd">K</kbd></button></div>
+<div class="hw-field"><span class="hw-field-label" id="hk-b-l">New project</span><button type="button" class="hw-hotkey" aria-pressed="true" aria-labelledby="hk-b-l hk-b" id="hk-b">Press the new shortcut</button></div>
+<div class="hw-field"><span class="hw-field-label" id="hk-c-l">Quick add</span><button type="button" class="hw-hotkey" aria-invalid="true" aria-describedby="hk-c-err" aria-labelledby="hk-c-l hk-c" id="hk-c"><kbd class="hw-kbd">⌘</kbd><kbd class="hw-kbd">V</kbd></button><span id="hk-c-err" class="hw-field-error">{{icon:circle-alert}}macOS uses ⌘V for Paste. Choose another.</span></div></div>""",
     [("Set", """<div class="hw-field">
-  <span class="hw-field-label" id="dictate-l">Dictate</span>
-  <button type="button" class="hw-hotkey" id="dictate" aria-labelledby="dictate-l dictate"><kbd class="hw-kbd">⌥</kbd><kbd class="hw-kbd">Space</kbd></button>
+  <span class="hw-field-label" id="search-key-l">Search</span>
+  <button type="button" class="hw-hotkey" id="search-key" aria-labelledby="search-key-l search-key"><kbd class="hw-kbd">⌘</kbd><kbd class="hw-kbd">K</kbd></button>
 </div>"""),
-     ("Recording: the same button, pressed", """<button type="button" class="hw-hotkey" id="dictate" aria-pressed="true" aria-labelledby="dictate-l dictate">Press the new shortcut</button>"""),
-     ("A clash: the same button, invalid, with its sentence", """<button type="button" class="hw-hotkey" id="dictate" aria-invalid="true" aria-describedby="dictate-err" aria-labelledby="dictate-l dictate"><kbd class="hw-kbd">⌘</kbd><kbd class="hw-kbd">V</kbd></button>
-<span id="dictate-err" class="hw-field-error">{{icon:circle-alert}}macOS uses ⌘V for Paste. Choose another.</span>""")])
+     ("Recording: the same button, pressed", """<button type="button" class="hw-hotkey" id="search-key" aria-pressed="true" aria-labelledby="search-key-l search-key">Press the new shortcut</button>"""),
+     ("A clash: the same button, invalid, with its sentence", """<button type="button" class="hw-hotkey" id="search-key" aria-invalid="true" aria-describedby="search-key-err" aria-labelledby="search-key-l search-key"><kbd class="hw-kbd">⌘</kbd><kbd class="hw-kbd">V</kbd></button>
+<span id="search-key-err" class="hw-field-error">{{icon:circle-alert}}macOS uses ⌘V for Paste. Choose another.</span>""")])
 
 # ----------------------------------------------------------------------------------- feedback
 component(
@@ -299,21 +300,21 @@ component(
     "neutral, accent, success, warning, danger",
     "Not focusable; the word is the accessible text.",
     "Always a word beside the colour.", "Colour alone. A badge that says 'New'.",
-    """<div class="row"><span class="hw-badge hw-badge--success">Verified</span><span class="hw-badge hw-badge--warning">Check</span><span class="hw-badge hw-badge--danger">Retracted</span><span class="hw-badge">Unresolved</span><span class="hw-badge hw-badge--accent">Sent</span><span class="hw-badge hw-badge--plain">Draft</span></div>
-<div class="row"><span class="hw-status">Idle</span><span class="hw-status hw-status--ok">Ready</span><span class="hw-status hw-status--warn">Model downloading</span><span class="hw-status hw-status--bad">Microphone off</span></div>""",
-    [("Badge, neutral", """<span class="hw-badge">Unresolved</span>"""),
-     ("Badge, by state", """<span class="hw-badge hw-badge--success">Verified</span>
-<span class="hw-badge hw-badge--warning">Check</span>
-<span class="hw-badge hw-badge--danger">Retracted</span>
+    """<div class="row"><span class="hw-badge hw-badge--success">Paid</span><span class="hw-badge hw-badge--warning">Due soon</span><span class="hw-badge hw-badge--danger">Overdue</span><span class="hw-badge">Pending</span><span class="hw-badge hw-badge--accent">Sent</span><span class="hw-badge hw-badge--plain">Draft</span></div>
+<div class="row"><span class="hw-status">Idle</span><span class="hw-status hw-status--ok">Healthy</span><span class="hw-status hw-status--warn">Degraded</span><span class="hw-status hw-status--bad">Down</span></div>""",
+    [("Badge, neutral", """<span class="hw-badge">Pending</span>"""),
+     ("Badge, by state", """<span class="hw-badge hw-badge--success">Paid</span>
+<span class="hw-badge hw-badge--warning">Due soon</span>
+<span class="hw-badge hw-badge--danger">Overdue</span>
 <span class="hw-badge hw-badge--accent">Sent</span>"""),
      ("Badge without its dot", """<span class="hw-badge hw-badge--plain">Draft</span>"""),
      ("Status, neutral and by state", """<span class="hw-status">Idle</span>
-<span class="hw-status hw-status--ok">Ready</span>
-<span class="hw-status hw-status--warn">Model downloading</span>
-<span class="hw-status hw-status--bad">Microphone off</span>""")])
+<span class="hw-status hw-status--ok">Healthy</span>
+<span class="hw-status hw-status--warn">Degraded</span>
+<span class="hw-status hw-status--bad">Down</span>""")])
 
 component(
-    "feedback", "Callout", [".hw-callout", ".hw-callout-actions"], "quoth, papertrace",
+    "feedback", "Callout", [".hw-callout", ".hw-callout-actions"], "two products",
     "Says one thing the reader must know before acting on this view.",
     "A transient confirmation (toast); an error on one field (field error).",
     "An icon, a bold first phrase, at most three lines, optional actions; the state fill with a 1px "
@@ -322,26 +323,26 @@ component(
     "Its actions are ordinary buttons in reading order after the text.",
     "Lead with what happened, then where the work is, then the one action.",
     "A coloured left stripe. More than one callout per view.",
-    """<div class="hw-callout hw-callout--danger" role="alert">{{icon:mic-off}}<div><strong>quoth can't hear you.</strong> macOS has the microphone switched off for quoth. Switch it on in System Settings, then come back. Nothing you said was lost.</div><div class="hw-callout-actions"><button class="hw-btn hw-btn--sm hw-btn--primary">Open System Settings</button></div></div>
-<div class="hw-callout hw-callout--warning">{{icon:triangle-alert}}<div><strong>3 citations unresolved.</strong> Crossref returned no record for these DOIs; they are listed under Findings with the query that was sent.</div></div>
-<div class="hw-callout hw-callout--success">{{icon:check}}<div><strong>All 48 references resolved.</strong> Each DOI returned a record whose title matches the citation.</div></div>
-<div class="hw-callout">{{icon:info}}<div><strong>Similarity was not compared.</strong> papertrace checks citations and grammar; it does not search for copied text.</div></div>""",
+    """<div class="hw-callout hw-callout--danger" role="alert">{{icon:circle-alert}}<div><strong>The deployment to production failed.</strong> The build stopped at step 4 of 6 when its tests timed out. The previous deployment is still live, and nothing was lost.</div><div class="hw-callout-actions"><button class="hw-btn hw-btn--sm hw-btn--primary">View the build log</button></div></div>
+<div class="hw-callout hw-callout--warning">{{icon:triangle-alert}}<div><strong>3 invoices overdue.</strong> They are listed under Billing with the date each was due and the contact it was sent to.</div></div>
+<div class="hw-callout hw-callout--success">{{icon:check}}<div><strong>All 48 members have signed in.</strong> Each has two-step sign-in turned on.</div></div>
+<div class="hw-callout">{{icon:info}}<div><strong>Usage is counted hourly.</strong> The figures on this page can be up to an hour behind the projects they count.</div></div>""",
     [("Neutral", """<div class="hw-callout">
   {{icon:info}}
-  <div><strong>Similarity was not compared.</strong> papertrace checks citations and grammar.</div>
+  <div><strong>Usage is counted hourly.</strong> The figures on this page can be up to an hour behind.</div>
 </div>"""),
-     ("Success, warning and danger: add the modifier and its icon", """<div class="hw-callout hw-callout--success">{{icon:check}}<div><strong>All 48 references resolved.</strong></div></div>
-<div class="hw-callout hw-callout--warning">{{icon:triangle-alert}}<div><strong>3 citations unresolved.</strong></div></div>
-<div class="hw-callout hw-callout--danger" role="alert">{{icon:mic-off}}<div><strong>quoth can't hear you.</strong></div></div>"""),
+     ("Success, warning and danger: add the modifier and its icon", """<div class="hw-callout hw-callout--success">{{icon:check}}<div><strong>All 48 members have signed in.</strong></div></div>
+<div class="hw-callout hw-callout--warning">{{icon:triangle-alert}}<div><strong>3 invoices overdue.</strong></div></div>
+<div class="hw-callout hw-callout--danger" role="alert">{{icon:circle-alert}}<div><strong>The deployment to production failed.</strong></div></div>"""),
      ("With its actions", """<div class="hw-callout hw-callout--danger" role="alert">
-  {{icon:mic-off}}
-  <div><strong>quoth can't hear you.</strong> Switch the microphone on in System Settings, then come back.</div>
-  <div class="hw-callout-actions"><button type="button" class="hw-btn hw-btn--sm hw-btn--primary">Open System Settings</button></div>
+  {{icon:circle-alert}}
+  <div><strong>The deployment to production failed.</strong> The previous deployment is still live.</div>
+  <div class="hw-callout-actions"><button type="button" class="hw-btn hw-btn--sm hw-btn--primary">View the build log</button></div>
 </div>""")])
 
 component(
     "feedback", "Toast", [".hw-toast"],
-    "quoth, pointback",
+    "two products",
     "Confirms an action finished, with an Undo when the action can be undone.",
     "Errors that need action (callout); anything the person must read twice.",
     "An ink surface at radius --hw-radius-lg and at least --hw-row-h tall, 13px text, an optional "
@@ -351,13 +352,13 @@ component(
     "role status, so it is announced without taking focus; its Undo is reachable by Tab.",
     "Name the result: 'Copied'. Offer Undo for a delete.",
     "Stack three. Put an error in a toast.",
-    """<div class="row"><div class="hw-toast" role="status">{{icon:check}}Copied to the clipboard</div><div class="hw-toast" role="status">Repository forgotten <button class="hw-btn hw-btn--sm">Undo</button></div></div>""",
+    """<div class="row"><div class="hw-toast" role="status">{{icon:check}}Copied to the clipboard</div><div class="hw-toast" role="status">Member removed <button class="hw-btn hw-btn--sm">Undo</button></div></div>""",
     [("With an icon", """<div class="hw-toast" role="status">{{icon:check}}Copied to the clipboard</div>"""),
-     ("With Undo", """<div class="hw-toast" role="status">Repository forgotten <button type="button" class="hw-btn hw-btn--sm">Undo</button></div>""")])
+     ("With Undo", """<div class="hw-toast" role="status">Member removed <button type="button" class="hw-btn hw-btn--sm">Undo</button></div>""")])
 
 component(
     "feedback", "Progress", [".hw-progress"],
-    "quoth, papertrace",
+    "two products",
     "Shows how far a known task has gone; indeterminate only when the total is unknown.",
     "A live level (level meter).",
     "A 0.27rem track on --hw-fill-active with an ink fill and full radius; a sentence with the numbers "
@@ -365,12 +366,12 @@ component(
     "determinate, indeterminate (sweeps; under reduced motion a still full-width bar at 35% opacity)",
     "role progressbar with aria-valuenow, or no value when indeterminate; not focusable.",
     "Print what and how much: '86 of 148 MB'.", "A percentage with no unit of work.",
-    """<div class="stack wide"><div class="spread"><span class="hw-small strong" id="pg-a">Downloading the speech model</span><span class="hw-small hw-num">86 of 148 MB</span></div><div class="hw-progress" role="progressbar" aria-labelledby="pg-a" aria-valuenow="58" aria-valuemin="0" aria-valuemax="100"><span style="--_v:58%"></span></div>
-<span class="hw-small strong" id="pg-b">Asking Crossref about 3 DOIs</span><div class="hw-progress hw-progress--indeterminate" role="progressbar" aria-labelledby="pg-b"><span></span></div></div>""",
-    [("Determinate: the inner span's style sets the filled width", """<span class="hw-small" id="model-dl">Downloading the speech model, 86 of 148 MB</span>
-<div class="hw-progress" role="progressbar" aria-labelledby="model-dl" aria-valuenow="58" aria-valuemin="0" aria-valuemax="100"><span style="--_v:58%"></span></div>"""),
-     ("Indeterminate", """<span class="hw-small" id="crossref">Asking Crossref about 3 DOIs</span>
-<div class="hw-progress hw-progress--indeterminate" role="progressbar" aria-labelledby="crossref"><span></span></div>""")])
+    """<div class="stack wide"><div class="spread"><span class="hw-small strong" id="pg-a">Uploading the contract</span><span class="hw-small hw-num">86 of 148 MB</span></div><div class="hw-progress" role="progressbar" aria-labelledby="pg-a" aria-valuenow="58" aria-valuemin="0" aria-valuemax="100"><span style="--_v:58%"></span></div>
+<span class="hw-small strong" id="pg-b">Deploying to production</span><div class="hw-progress hw-progress--indeterminate" role="progressbar" aria-labelledby="pg-b"><span></span></div></div>""",
+    [("Determinate: the inner span's style sets the filled width", """<span class="hw-small" id="upload">Uploading the contract, 86 of 148 MB</span>
+<div class="hw-progress" role="progressbar" aria-labelledby="upload" aria-valuenow="58" aria-valuemin="0" aria-valuemax="100"><span style="--_v:58%"></span></div>"""),
+     ("Indeterminate", """<span class="hw-small" id="deploy">Deploying to production</span>
+<div class="hw-progress hw-progress--indeterminate" role="progressbar" aria-labelledby="deploy"><span></span></div>""")])
 
 component(
     "feedback", "Skeleton", [".hw-skeleton"], "the house",
@@ -388,11 +389,11 @@ component(
 
 component(
     "feedback", "Level meter", [".hw-meter"],
-    "quoth",
+    "one product",
     "Shows a live input level; one of the three things in the house that move on their own.",
     "Progress; decoration.",
     "Bars 0.2em wide and 0.13em apart on --hw-fill-active; lit bars take the product's live colour "
-    "through --_live, set to its live hue's step 8, a mark at 3:1 (quoth: --_live: var(--hw-live-8)), "
+    "through --_live, set to its live hue's step 8, a mark at 3:1 (for example --_live: var(--hw-live-8)), "
     "and with none set take --hw-accent-edge, the accent's own 3:1 step, never the solid. "
     "Always beside a word.",
     "idle, live (bars follow the input; under reduced motion they still follow it and nothing else "
@@ -406,7 +407,7 @@ component(
 # ----------------------------------------------------------------------------------- overlays
 component(
     "overlays", "Menu", [".hw-menu", ".hw-menu-item", ".hw-menu-key", ".hw-menu-sep", ".hw-menu-label"],
-    "quoth, pointback",
+    "two products",
     "Lists actions on a thing, opened from a button or a secondary click.",
     "Picking a value (select); navigation (rail).",
     "A raised surface with a 4px inset; items at control height minus 2px with a 1.15em icon and "
@@ -415,17 +416,17 @@ component(
     "Opened as a popover from its button, so Escape and an outside click close it and focus returns. "
     "Items are buttons in a column: Tab moves through them. Arrow-key roving is the product's.",
     "Put the destructive item last, after a separator.", "Nest more than one level.",
-    """<div class="hw-menu" role="menu" aria-label="Dictation"><p class="hw-menu-label hw-label">Microphone</p><button class="hw-menu-item" role="menuitemradio" aria-checked="true">MacBook Pro Microphone</button><button class="hw-menu-item" role="menuitemradio" aria-checked="false">AirPods Pro</button><hr class="hw-menu-sep"><button class="hw-menu-item" role="menuitem" data-active>{{icon:mic-off}}Mute<span class="hw-menu-key">⌥⌘M</span></button><button class="hw-menu-item" role="menuitem">{{icon:history}}Open History<span class="hw-menu-key">⌘2</span></button><button class="hw-menu-item" role="menuitem" disabled>{{icon:copy}}Copy last</button><hr class="hw-menu-sep"><button class="hw-menu-item hw-menu-item--danger" role="menuitem">{{icon:trash-2}}Delete this dictation</button></div>""",
-    [("Opened as a popover from its button", """<button type="button" class="hw-btn" popovertarget="dictation-menu">Dictation</button>
-<div class="hw-menu" id="dictation-menu" popover role="menu" aria-label="Dictation">
-  <p class="hw-menu-label hw-label">Microphone</p>
-  <button class="hw-menu-item" role="menuitemradio" aria-checked="true">MacBook Pro Microphone</button>
-  <button class="hw-menu-item" role="menuitemradio" aria-checked="false">AirPods Pro</button>
+    """<div class="hw-menu" role="menu" aria-label="Project"><p class="hw-menu-label hw-label">Sort by</p><button class="hw-menu-item" role="menuitemradio" aria-checked="true">Last updated</button><button class="hw-menu-item" role="menuitemradio" aria-checked="false">Name</button><hr class="hw-menu-sep"><button class="hw-menu-item" role="menuitem" data-active>{{icon:pencil}}Rename<span class="hw-menu-key">⌘R</span></button><button class="hw-menu-item" role="menuitem">{{icon:history}}Show history<span class="hw-menu-key">⌘Y</span></button><button class="hw-menu-item" role="menuitem" disabled>{{icon:copy}}Copy link</button><hr class="hw-menu-sep"><button class="hw-menu-item hw-menu-item--danger" role="menuitem">{{icon:trash-2}}Delete this project</button></div>""",
+    [("Opened as a popover from its button", """<button type="button" class="hw-btn" popovertarget="project-menu">Project</button>
+<div class="hw-menu" id="project-menu" popover role="menu" aria-label="Project">
+  <p class="hw-menu-label hw-label">Sort by</p>
+  <button class="hw-menu-item" role="menuitemradio" aria-checked="true">Last updated</button>
+  <button class="hw-menu-item" role="menuitemradio" aria-checked="false">Name</button>
   <hr class="hw-menu-sep">
-  <button class="hw-menu-item" role="menuitem">{{icon:history}}Open History<span class="hw-menu-key">⌘2</span></button>
-  <button class="hw-menu-item" role="menuitem" disabled>{{icon:copy}}Copy last</button>
+  <button class="hw-menu-item" role="menuitem">{{icon:history}}Show history<span class="hw-menu-key">⌘Y</span></button>
+  <button class="hw-menu-item" role="menuitem" disabled>{{icon:copy}}Copy link</button>
   <hr class="hw-menu-sep">
-  <button class="hw-menu-item hw-menu-item--danger" role="menuitem">{{icon:trash-2}}Delete this dictation</button>
+  <button class="hw-menu-item hw-menu-item--danger" role="menuitem">{{icon:trash-2}}Delete this project</button>
 </div>""")])
 
 component(
@@ -450,7 +451,7 @@ component(
 
 component(
     "overlays", "Popover", [".hw-popover"],
-    "quoth, pointback",
+    "two products",
     "Shows a small panel of detail or controls tied to one thing on screen.",
     "A task with its own flow (dialog).",
     "A raised surface, 16px padding, 20rem wide, --hw-shadow-overlay; opens below its anchor and flips "
@@ -460,17 +461,17 @@ component(
     "focus returns to the button.",
     "Use the popover attribute so it escapes overflow.",
     "Position it absolutely inside a scrolling list.",
-    """<div class="row"><button class="hw-btn" popovertarget="po-live" style="anchor-name:--po-live">Postgres</button></div>
-<div class="hw-popover" id="po-live" popover style="position-anchor:--po-live"><p class="hw-subheading">Postgres</p><dl class="hw-kv"><dt>You say</dt><dd>postgres, post gress</dd><dt>quoth types</dt><dd>Postgres</dd><dt>Learned from</dt><dd>~/Developer/atlas</dd></dl><div class="row"><button class="hw-btn hw-btn--sm">Edit</button><button class="hw-btn hw-btn--sm hw-btn--danger">Forget</button></div></div>
-<div class="hw-popover"><p class="hw-subheading">Postgres</p><dl class="hw-kv"><dt>You say</dt><dd>postgres, post gress</dd><dt>quoth types</dt><dd>Postgres</dd><dt>Learned from</dt><dd>~/Developer/atlas</dd></dl><div class="row"><button class="hw-btn hw-btn--sm">Edit</button><button class="hw-btn hw-btn--sm hw-btn--danger">Forget</button></div></div>""",
-    [("The popover attribute, anchored to its button", """<button type="button" class="hw-btn" popovertarget="term" style="anchor-name:--term">Postgres</button>
-<div class="hw-popover" id="term" popover style="position-anchor:--term">
-  <p class="hw-subheading">Postgres</p>
-  <dl class="hw-kv"><dt>You say</dt><dd>postgres, post gress</dd><dt>quoth types</dt><dd>Postgres</dd></dl>
+    """<div class="row"><button class="hw-btn" popovertarget="po-live" style="anchor-name:--po-live">Mira Shah</button></div>
+<div class="hw-popover" id="po-live" popover style="position-anchor:--po-live"><p class="hw-subheading">Mira Shah</p><dl class="hw-kv"><dt>Role</dt><dd>Admin</dd><dt>Email</dt><dd>mira@example.com</dd><dt>Joined</dt><dd>4 September 2026</dd></dl><div class="row"><button class="hw-btn hw-btn--sm">Edit</button><button class="hw-btn hw-btn--sm hw-btn--danger">Remove</button></div></div>
+<div class="hw-popover"><p class="hw-subheading">Mira Shah</p><dl class="hw-kv"><dt>Role</dt><dd>Admin</dd><dt>Email</dt><dd>mira@example.com</dd><dt>Joined</dt><dd>4 September 2026</dd></dl><div class="row"><button class="hw-btn hw-btn--sm">Edit</button><button class="hw-btn hw-btn--sm hw-btn--danger">Remove</button></div></div>""",
+    [("The popover attribute, anchored to its button", """<button type="button" class="hw-btn" popovertarget="member" style="anchor-name:--member">Mira Shah</button>
+<div class="hw-popover" id="member" popover style="position-anchor:--member">
+  <p class="hw-subheading">Mira Shah</p>
+  <dl class="hw-kv"><dt>Role</dt><dd>Admin</dd><dt>Email</dt><dd>mira@example.com</dd></dl>
 </div>""")])
 
 component(
-    "overlays", "Dialog", [".hw-dialog", ".hw-dialog-actions", ".hw-scrim"], "quoth",
+    "overlays", "Dialog", [".hw-dialog", ".hw-dialog-actions", ".hw-scrim"], "one product",
     "Asks for a decision that blocks the task until it is answered.",
     "Information (callout); a confirmation that fits its row (inline confirm).",
     "A raised surface at radius --hw-radius-lg, 24px padding, a 21px title, the body, actions right "
@@ -480,16 +481,16 @@ component(
     "returns on close; Escape closes it.",
     "Write the title as the question and the button as the answer.",
     "'Are you sure?' with OK and Cancel.",
-    """<div class="row"><button class="hw-btn hw-btn--danger" commandfor="dl-live" command="show-modal">Delete all dictations</button></div>
-<dialog class="hw-dialog" id="dl-live" aria-labelledby="dl-live-t"><h3 id="dl-live-t" class="hw-heading">Delete 412 dictations?</h3><p class="hw-small strong">They are removed from this Mac and cannot be recovered. Vocabulary and settings are kept.</p><div class="hw-dialog-actions"><button class="hw-btn hw-btn--quiet" commandfor="dl-live" command="close" autofocus>Keep them</button><button class="hw-btn hw-btn--danger-solid" commandfor="dl-live" command="close">Delete 412 dictations</button></div></dialog>
-<div class="hw-scrim backdrop"><div class="hw-dialog" role="dialog" aria-labelledby="dl-t"><h3 id="dl-t" class="hw-heading">Delete 412 dictations?</h3><p class="hw-small strong">They are removed from this Mac and cannot be recovered. Vocabulary and settings are kept.</p><div class="hw-dialog-actions"><button class="hw-btn hw-btn--quiet">Keep them</button><button class="hw-btn hw-btn--danger-solid">Delete 412 dictations</button></div></div></div>""",
-    [("A native dialog, opened by a command button", """<button type="button" class="hw-btn hw-btn--danger" commandfor="delete-all" command="show-modal">Delete all dictations</button>
+    """<div class="row"><button class="hw-btn hw-btn--danger" commandfor="dl-live" command="show-modal">Delete selected projects</button></div>
+<dialog class="hw-dialog" id="dl-live" aria-labelledby="dl-live-t"><h3 id="dl-live-t" class="hw-heading">Delete 12 projects?</h3><p class="hw-small strong">They are removed with their deployments and documents, and cannot be recovered. Members and invoices are kept.</p><div class="hw-dialog-actions"><button class="hw-btn hw-btn--quiet" commandfor="dl-live" command="close" autofocus>Keep them</button><button class="hw-btn hw-btn--danger-solid" commandfor="dl-live" command="close">Delete 12 projects</button></div></dialog>
+<div class="hw-scrim backdrop"><div class="hw-dialog" role="dialog" aria-labelledby="dl-t"><h3 id="dl-t" class="hw-heading">Delete 12 projects?</h3><p class="hw-small strong">They are removed with their deployments and documents, and cannot be recovered. Members and invoices are kept.</p><div class="hw-dialog-actions"><button class="hw-btn hw-btn--quiet">Keep them</button><button class="hw-btn hw-btn--danger-solid">Delete 12 projects</button></div></div></div>""",
+    [("A native dialog, opened by a command button", """<button type="button" class="hw-btn hw-btn--danger" commandfor="delete-all" command="show-modal">Delete selected projects</button>
 <dialog class="hw-dialog" id="delete-all" aria-labelledby="delete-all-t">
-  <h2 id="delete-all-t" class="hw-heading">Delete 412 dictations?</h2>
-  <p class="hw-small">They are removed from this Mac and cannot be recovered.</p>
+  <h2 id="delete-all-t" class="hw-heading">Delete 12 projects?</h2>
+  <p class="hw-small">They are removed with their deployments and documents, and cannot be recovered.</p>
   <div class="hw-dialog-actions">
     <button type="button" class="hw-btn hw-btn--quiet" commandfor="delete-all" command="close" autofocus>Keep them</button>
-    <button type="button" class="hw-btn hw-btn--danger-solid" commandfor="delete-all" command="close">Delete 412 dictations</button>
+    <button type="button" class="hw-btn hw-btn--danger-solid" commandfor="delete-all" command="close">Delete 12 projects</button>
   </div>
 </dialog>"""),
      ("Drawn in the page rather than the top layer, the scrim behind it", """<div class="hw-scrim">
@@ -498,7 +499,7 @@ component(
 
 component(
     "overlays", "Sheet", [".hw-sheet", ".hw-sheet-head"],
-    "quoth",
+    "one product",
     "Holds a secondary task beside the page it belongs to, such as a setting's detail or a record's "
     "history, without leaving the page.",
     "A decision that blocks (dialog); the app's own navigation (rail).",
@@ -510,20 +511,20 @@ component(
     "close; Escape closes it.",
     "Keep the page it belongs to visible behind the scrim.",
     "Open a sheet from a sheet.",
-    """<div class="row"><button class="hw-btn" commandfor="sh-live" command="show-modal">Show the vocabulary sheet</button></div>
-<dialog class="hw-sheet" id="sh-live" aria-labelledby="sh-live-t"><div class="hw-sheet-head"><h3 id="sh-live-t" class="hw-heading">Postgres</h3><button class="hw-btn hw-btn--quiet hw-btn--icon" commandfor="sh-live" command="close" aria-label="Close">{{icon:x}}</button></div><dl class="hw-kv"><dt>You say</dt><dd>postgres, post gress</dd><dt>quoth types</dt><dd>Postgres</dd><dt>Learned from</dt><dd>~/Developer/atlas</dd><dt>Typed</dt><dd>38 times since 4 September</dd></dl><div class="hw-dialog-actions"><button class="hw-btn hw-btn--danger" commandfor="sh-live" command="close">Forget</button></div></dialog>
-<div class="hw-scrim backdrop sheetframe"><div class="hw-sheet" role="dialog" aria-labelledby="sh-t"><div class="hw-sheet-head"><h3 id="sh-t" class="hw-heading">Postgres</h3><button class="hw-btn hw-btn--quiet hw-btn--icon" aria-label="Close">{{icon:x}}</button></div><dl class="hw-kv"><dt>You say</dt><dd>postgres, post gress</dd><dt>quoth types</dt><dd>Postgres</dd><dt>Learned from</dt><dd>~/Developer/atlas</dd><dt>Typed</dt><dd>38 times since 4 September</dd></dl><div class="hw-dialog-actions"><button class="hw-btn hw-btn--danger">Forget</button></div></div></div>""",
-    [("A native dialog at the inline end", """<dialog class="hw-sheet" id="term-sheet" aria-labelledby="term-sheet-t">
+    """<div class="row"><button class="hw-btn" commandfor="sh-live" command="show-modal">Show the member sheet</button></div>
+<dialog class="hw-sheet" id="sh-live" aria-labelledby="sh-live-t"><div class="hw-sheet-head"><h3 id="sh-live-t" class="hw-heading">Mira Shah</h3><button class="hw-btn hw-btn--quiet hw-btn--icon" commandfor="sh-live" command="close" aria-label="Close">{{icon:x}}</button></div><dl class="hw-kv"><dt>Role</dt><dd>Admin</dd><dt>Email</dt><dd>mira@example.com</dd><dt>Projects</dt><dd>4</dd><dt>Last active</dt><dd>Today, 9:02 am</dd></dl><div class="hw-dialog-actions"><button class="hw-btn hw-btn--danger" commandfor="sh-live" command="close">Remove</button></div></dialog>
+<div class="hw-scrim backdrop sheetframe"><div class="hw-sheet" role="dialog" aria-labelledby="sh-t"><div class="hw-sheet-head"><h3 id="sh-t" class="hw-heading">Mira Shah</h3><button class="hw-btn hw-btn--quiet hw-btn--icon" aria-label="Close">{{icon:x}}</button></div><dl class="hw-kv"><dt>Role</dt><dd>Admin</dd><dt>Email</dt><dd>mira@example.com</dd><dt>Projects</dt><dd>4</dd><dt>Last active</dt><dd>Today, 9:02 am</dd></dl><div class="hw-dialog-actions"><button class="hw-btn hw-btn--danger">Remove</button></div></div></div>""",
+    [("A native dialog at the inline end", """<dialog class="hw-sheet" id="member-sheet" aria-labelledby="member-sheet-t">
   <div class="hw-sheet-head">
-    <h2 id="term-sheet-t" class="hw-heading">Postgres</h2>
-    <button type="button" class="hw-btn hw-btn--quiet hw-btn--icon" commandfor="term-sheet" command="close" aria-label="Close">{{icon:x}}</button>
+    <h2 id="member-sheet-t" class="hw-heading">Mira Shah</h2>
+    <button type="button" class="hw-btn hw-btn--quiet hw-btn--icon" commandfor="member-sheet" command="close" aria-label="Close">{{icon:x}}</button>
   </div>
-  <dl class="hw-kv"><dt>You say</dt><dd>postgres, post gress</dd></dl>
-  <div class="hw-dialog-actions"><button type="button" class="hw-btn hw-btn--danger" commandfor="term-sheet" command="close">Forget</button></div>
+  <dl class="hw-kv"><dt>Role</dt><dd>Admin</dd></dl>
+  <div class="hw-dialog-actions"><button type="button" class="hw-btn hw-btn--danger" commandfor="member-sheet" command="close">Remove</button></div>
 </dialog>""")])
 
 component(
-    "overlays", "Inline confirm", [".hw-confirm", ".hw-confirm-actions"], "quoth",
+    "overlays", "Inline confirm", [".hw-confirm", ".hw-confirm-actions"], "one product",
     "Confirms a destructive action on one row without leaving it.",
     "Bulk or irreversible deletes of many things (dialog).",
     "Replaces the row's actions at the row's height: a sentence, the danger button, Cancel. It wraps "
@@ -531,11 +532,11 @@ component(
     "open; it never times out",
     "Focus moves to Cancel when it opens and returns to the row's action when it closes.",
     "Repeat the verb on the button.", "Time it out.",
-    """<div class="hw-confirm"><span>Forget the 400 words learned from <b>quoth</b>?</span><div class="hw-confirm-actions"><button class="hw-btn hw-btn--sm hw-btn--danger">Forget</button><button class="hw-btn hw-btn--sm hw-btn--quiet">Cancel</button></div></div>""",
+    """<div class="hw-confirm"><span>Remove <b>Mira Shah</b> from this project?</span><div class="hw-confirm-actions"><button class="hw-btn hw-btn--sm hw-btn--danger">Remove</button><button class="hw-btn hw-btn--sm hw-btn--quiet">Cancel</button></div></div>""",
     [("In place of the row's actions", """<div class="hw-confirm">
-  <span>Forget the 400 words learned from <b>quoth</b>?</span>
+  <span>Remove <b>Mira Shah</b> from this project?</span>
   <div class="hw-confirm-actions">
-    <button type="button" class="hw-btn hw-btn--sm hw-btn--danger">Forget</button>
+    <button type="button" class="hw-btn hw-btn--sm hw-btn--danger">Remove</button>
     <button type="button" class="hw-btn hw-btn--sm hw-btn--quiet">Cancel</button>
   </div>
 </div>""")])
@@ -543,7 +544,7 @@ component(
 # --------------------------------------------------------------------------------- navigation
 component(
     "navigation", "Rail and navigation item", [".hw-rail", ".hw-nav-item", ".hw-nav-key"],
-    "quoth",
+    "one product",
     "Moves between the four to six places of an app.",
     "Actions (buttons); sections within a page (tabs).",
     "The rail on --hw-bg-subtle; items at control height with a 1.15em icon, a 13px label and the "
@@ -551,15 +552,15 @@ component(
     "rest, hover, current (aria-current page), focus-visible",
     "Links in a nav landmark, in order; the shortcut is the product's.",
     "Show the shortcut beside each item.", "Badges or counts on the rail.",
-    """<nav class="hw-rail framed" aria-label="quoth"><a class="hw-nav-item" href="#today">{{icon:sun}}Today<span class="hw-nav-key">⌘1</span></a><a class="hw-nav-item" aria-current="page" href="#history">{{icon:history}}History<span class="hw-nav-key">⌘2</span></a><a class="hw-nav-item" href="#vocabulary">{{icon:book-open}}Vocabulary<span class="hw-nav-key">⌘3</span></a><a class="hw-nav-item" href="#insights">{{icon:chart-no-axes-column}}Insights<span class="hw-nav-key">⌘4</span></a></nav>""",
-    [("The current item carries aria-current", """<nav class="hw-rail" aria-label="quoth">
-  <a class="hw-nav-item" href="/today">{{icon:sun}}Today<span class="hw-nav-key">⌘1</span></a>
-  <a class="hw-nav-item" href="/history" aria-current="page">{{icon:history}}History<span class="hw-nav-key">⌘2</span></a>
+    """<nav class="hw-rail framed" aria-label="Workspace"><a class="hw-nav-item" href="#projects">{{icon:sun}}Projects<span class="hw-nav-key">⌘1</span></a><a class="hw-nav-item" aria-current="page" href="#deployments">{{icon:history}}Deployments<span class="hw-nav-key">⌘2</span></a><a class="hw-nav-item" href="#documents">{{icon:book-open}}Documents<span class="hw-nav-key">⌘3</span></a><a class="hw-nav-item" href="#billing">{{icon:chart-no-axes-column}}Billing<span class="hw-nav-key">⌘4</span></a></nav>""",
+    [("The current item carries aria-current", """<nav class="hw-rail" aria-label="Workspace">
+  <a class="hw-nav-item" href="/projects">{{icon:sun}}Projects<span class="hw-nav-key">⌘1</span></a>
+  <a class="hw-nav-item" href="/deployments" aria-current="page">{{icon:history}}Deployments<span class="hw-nav-key">⌘2</span></a>
 </nav>""")])
 
 component(
     "navigation", "Tabs", [".hw-tabs", ".hw-tab", ".hw-tab-count"],
-    "papertrace, pointback",
+    "two products",
     "Switches between views of the same thing.",
     "Moving between places (rail); filtering (segmented control).",
     "13px labels 16px apart on a 1px line, each at control height; the active tab has a 2px rule in "
@@ -568,11 +569,11 @@ component(
     "The layer styles role tab; the product owns the panels and the arrow-key roving between tabs, "
     "since the panels are its own.",
     "Keep to three to six.", "Colour the active tab.",
-    """<div class="hw-tabs" role="tablist" aria-label="Report"><button class="hw-tab" role="tab" aria-selected="true">Findings<span class="hw-tab-count">7</span></button><button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">References<span class="hw-tab-count">48</span></button><button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Figures<span class="hw-tab-count">12</span></button><button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Run log</button></div>""",
-    [("The selected tab, a count, the rest out of the Tab order", """<div class="hw-tabs" role="tablist" aria-label="Report">
-  <button class="hw-tab" role="tab" aria-selected="true">Findings<span class="hw-tab-count">7</span></button>
-  <button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">References<span class="hw-tab-count">48</span></button>
-  <button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Run log</button>
+    """<div class="hw-tabs" role="tablist" aria-label="Project"><button class="hw-tab" role="tab" aria-selected="true">Deployments<span class="hw-tab-count">7</span></button><button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Members<span class="hw-tab-count">48</span></button><button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Documents<span class="hw-tab-count">12</span></button><button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Settings</button></div>""",
+    [("The selected tab, a count, the rest out of the Tab order", """<div class="hw-tabs" role="tablist" aria-label="Project">
+  <button class="hw-tab" role="tab" aria-selected="true">Deployments<span class="hw-tab-count">7</span></button>
+  <button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Members<span class="hw-tab-count">48</span></button>
+  <button class="hw-tab" role="tab" aria-selected="false" tabindex="-1">Settings</button>
 </div>""")])
 
 component(
@@ -583,49 +584,61 @@ component(
     "as its buttons",
     "role toolbar with an aria-label; its buttons are Tab stops in order.",
     "Order by frequency.", "Icon-only buttons without tooltips.",
-    """<div class="hw-toolbar" role="toolbar" aria-label="Dictation"><button class="hw-btn hw-btn--sm">{{icon:copy}}Copy</button><button class="hw-btn hw-btn--sm">Insert again</button><span class="hw-toolbar-sep"></span><button class="hw-btn hw-btn--sm hw-btn--quiet">{{icon:pencil}}Edit</button><span class="hw-tip"><button class="hw-btn hw-btn--sm hw-btn--icon" aria-label="More actions">{{icon:ellipsis}}</button><span class="hw-tooltip" aria-hidden="true">More actions</span></span></div>""",
-    [("Two groups, the spacer between them", """<div class="hw-toolbar" role="toolbar" aria-label="Dictation">
+    """<div class="hw-toolbar" role="toolbar" aria-label="Document"><button class="hw-btn hw-btn--sm">{{icon:copy}}Copy</button><button class="hw-btn hw-btn--sm">Duplicate</button><span class="hw-toolbar-sep"></span><button class="hw-btn hw-btn--sm hw-btn--quiet">{{icon:pencil}}Edit</button><span class="hw-tip"><button class="hw-btn hw-btn--sm hw-btn--icon" aria-label="More actions">{{icon:ellipsis}}</button><span class="hw-tooltip" aria-hidden="true">More actions</span></span></div>""",
+    [("Two groups, the spacer between them", """<div class="hw-toolbar" role="toolbar" aria-label="Document">
   <button type="button" class="hw-btn hw-btn--sm">{{icon:copy}}Copy</button>
-  <button type="button" class="hw-btn hw-btn--sm">Insert again</button>
+  <button type="button" class="hw-btn hw-btn--sm">Duplicate</button>
   <span class="hw-toolbar-sep"></span>
   <button type="button" class="hw-btn hw-btn--sm hw-btn--quiet">{{icon:pencil}}Edit</button>
 </div>""")])
 
 # ------------------------------------------------------------------------------- data display
 component(
-    "data", "List row", [".hw-list", ".hw-row", ".hw-row-meta", ".hw-row-actions"],
-    "quoth, pointback",
+    "data", "List row", [".hw-list", ".hw-row", ".hw-row--lead", ".hw-row-meta", ".hw-row-actions"],
+    "two products",
     "One record in a list scanned for a single subject.",
     "Comparing values across records (table).",
-    "A grid of time, content and source; --hw-cell-pad-y and 12px padding; a 1px --hw-line between "
-    "rows; at least --hw-row-h tall; a selected row becomes a bordered surface holding its actions.",
+    "Its columns follow its children: the text takes the free space and each meta is as wide as what "
+    "it holds; where the line cannot hold the text at 10em beside them the metas wrap below it, and "
+    "text that cannot wrap breaks rather than run into the meta beside it. .hw-row--lead is the "
+    "fixed grid of a 5.5em leading meta, the text and a source, so a time lines up down the list. "
+    "--hw-cell-pad-y and 12px padding; a 1px --hw-line between rows; at least --hw-row-h tall; a "
+    "selected row becomes a bordered surface holding its actions on a line of their own.",
     "rest, hover, selected (expanded), focus-visible",
     "The row's own control, usually its content as a button, is the Tab stop; its actions follow it "
     "only when it is selected.",
     "Show actions on the selected row only.", "A card per row; four icon buttons on every row.",
-    """<ul class="hw-list"><li class="hw-row"><span class="hw-row-meta">12:30 pm</span><p>Call <code class="hw-code">getUserName</code></p><span class="hw-row-meta">VS Code</span></li><li class="hw-row" aria-selected="true"><span class="hw-row-meta">10:41 am</span><p>Deploy to <span class="hw-mark">K8s</span> cluster</p><span class="hw-row-meta">Linear</span><div class="hw-row-actions"><button class="hw-btn hw-btn--sm">{{icon:copy}}Copy</button><button class="hw-btn hw-btn--sm">Insert again</button><button class="hw-btn hw-btn--sm hw-btn--quiet hw-btn--danger">Delete</button></div></li><li class="hw-row"><span class="hw-row-meta">9:02 am</span><p>Ship it.</p><span class="hw-row-meta">Slack</span></li></ul>""",
-    [("A row, and a selected row holding its actions", """<ul class="hw-list">
-  <li class="hw-row"><span class="hw-row-meta">12:30 pm</span><p>Call getUserName</p><span class="hw-row-meta">VS Code</span></li>
+    """<ul class="hw-list"><li class="hw-row"><p>staging.atlas.dev</p><span class="hw-row-meta">Live</span><span class="hw-row-meta">2 days ago</span></li><li class="hw-row" aria-selected="true"><p>preview-482.atlas.dev</p><span class="hw-row-meta">Failed</span><span class="hw-row-meta">10:41 am</span><div class="hw-row-actions"><button class="hw-btn hw-btn--sm">Redeploy</button><button class="hw-btn hw-btn--sm">{{icon:copy}}Copy address</button><button class="hw-btn hw-btn--sm hw-btn--quiet hw-btn--danger">Delete</button></div></li><li class="hw-row"><p>atlas.dev</p><span class="hw-row-meta">Live</span><span class="hw-row-meta">14 Nov</span></li></ul>
+<ul class="hw-list"><li class="hw-row hw-row--lead"><span class="hw-row-meta">12:30 pm</span><p>Mira Shah invited Sam Lee to <b>Atlas</b></p><span class="hw-row-meta">Members</span></li><li class="hw-row hw-row--lead" aria-selected="true"><span class="hw-row-meta">10:41 am</span><p>Invoice <span class="hw-mark">INV-2041</span> marked as paid</p><span class="hw-row-meta">Billing</span><div class="hw-row-actions"><button class="hw-btn hw-btn--sm">Open invoice</button><button class="hw-btn hw-btn--sm hw-btn--quiet">Undo</button></div></li><li class="hw-row hw-row--lead"><span class="hw-row-meta">9:02 am</span><p>Contract renewal uploaded</p><span class="hw-row-meta">Documents</span></li></ul>""",
+    [("Text first: the text takes the free space, each meta its own width", """<ul class="hw-list">
+  <li class="hw-row"><p>staging.atlas.dev</p><span class="hw-row-meta">2 days ago</span></li>
   <li class="hw-row" aria-selected="true">
-    <span class="hw-row-meta">10:41 am</span><p>Deploy to K8s cluster</p><span class="hw-row-meta">Linear</span>
-    <div class="hw-row-actions"><button type="button" class="hw-btn hw-btn--sm">{{icon:copy}}Copy</button></div>
+    <p>preview-482.atlas.dev</p><span class="hw-row-meta">10:41 am</span>
+    <div class="hw-row-actions"><button type="button" class="hw-btn hw-btn--sm">Redeploy</button></div>
+  </li>
+</ul>"""),
+     ("A leading time at 5.5em, lined up down the list", """<ul class="hw-list">
+  <li class="hw-row hw-row--lead"><span class="hw-row-meta">12:30 pm</span><p>Mira Shah invited Sam Lee</p><span class="hw-row-meta">Members</span></li>
+  <li class="hw-row hw-row--lead" aria-selected="true">
+    <span class="hw-row-meta">10:41 am</span><p>Invoice INV-2041 marked as paid</p><span class="hw-row-meta">Billing</span>
+    <div class="hw-row-actions"><button type="button" class="hw-btn hw-btn--sm">Open invoice</button></div>
   </li>
 </ul>""")])
 
 component(
-    "data", "Table", [".hw-table"], "papertrace",
+    "data", "Table", [".hw-table"], "one product",
     "Compares values across records.", "Scanning for one subject (list row).",
     "A 12px/560 muted head over a 1px --hw-line-strong rule; 13px cells with 12px side padding; "
     "numbers right-aligned and tabular; no zebra, no vertical rules.",
     "rest, hover, sorted (head in text colour, aria-sort), selected (accent fill)",
     "A native table; a sortable head is a button inside the th.",
     "Right-align numbers with tabular figures.", "Centre text columns.",
-    """<div class="scroll"><table class="hw-table"><thead><tr><th scope="col">Reference</th><th scope="col">Status</th><th scope="col" class="num" aria-sort="descending">Year</th><th scope="col" class="num">Citations</th></tr></thead><tbody><tr><td>Hwang, Nature 579</td><td><span class="hw-badge hw-badge--danger">Retracted</span></td><td class="num">2020</td><td class="num">1,204</td></tr><tr aria-selected="true"><td>doi:10.1101/2020.03.12</td><td><span class="hw-badge hw-badge--warning">Preprint</span></td><td class="num">2020</td><td class="num">12</td></tr><tr><td>Smith, Cell Rep 31</td><td><span class="hw-badge hw-badge--success">Verified</span></td><td class="num">2019</td><td class="num">87</td></tr></tbody></table></div>""",
+    """<div class="scroll"><table class="hw-table"><thead><tr><th scope="col">Invoice</th><th scope="col">Status</th><th scope="col" class="num" aria-sort="descending">Due</th><th scope="col" class="num">Amount</th></tr></thead><tbody><tr><td>INV-2042, Harbour &amp; Co</td><td><span class="hw-badge hw-badge--warning">Due soon</span></td><td class="num">2026-12-01</td><td class="num">1,240.00</td></tr><tr aria-selected="true"><td>INV-2041, Lindqvist AB</td><td><span class="hw-badge hw-badge--danger">Overdue</span></td><td class="num">2026-10-31</td><td class="num">4,820.00</td></tr><tr><td>INV-2039, Okafor Studio</td><td><span class="hw-badge hw-badge--success">Paid</span></td><td class="num">2026-09-30</td><td class="num">87.50</td></tr></tbody></table></div>""",
     [("Numbers in class num; the sorted head carries aria-sort", """<table class="hw-table">
-  <thead><tr><th scope="col">Reference</th><th scope="col" class="num" aria-sort="descending">Year</th></tr></thead>
+  <thead><tr><th scope="col">Invoice</th><th scope="col" class="num" aria-sort="descending">Amount</th></tr></thead>
   <tbody>
-    <tr><td>Hwang, Nature 579</td><td class="num">2020</td></tr>
-    <tr aria-selected="true"><td>Smith, Cell Rep 31</td><td class="num">2019</td></tr>
+    <tr><td>INV-2041, Lindqvist AB</td><td class="num">4,820.00</td></tr>
+    <tr aria-selected="true"><td>INV-2042, Harbour &amp; Co</td><td class="num">1,240.00</td></tr>
   </tbody>
 </table>""")])
 
@@ -638,68 +651,68 @@ component(
     "set, missing (the value reads 'Not set')",
     "A native description list; not focusable.",
     "Write units into the value.", "An empty dash for a missing value.",
-    """<div class="hw-kv-wrap"><dl class="hw-kv"><dt>Model</dt><dd>Base (English), 148 MB</dd><dt>Runs on</dt><dd>This Mac, no network</dd><dt>History kept</dt><dd>30 days</dd><dt>Licence</dt><dd>Not set</dd></dl></div>""",
+    """<div class="hw-kv-wrap"><dl class="hw-kv"><dt>Plan</dt><dd>Team, 10 seats</dd><dt>Region</dt><dd>Europe (Frankfurt)</dd><dt>History kept</dt><dd>30 days</dd><dt>Custom domain</dt><dd>Not set</dd></dl></div>""",
     [("A description list; it stacks below 30rem of its container", """<dl class="hw-kv">
-  <dt>Model</dt><dd>Base (English), 148 MB</dd>
-  <dt>Licence</dt><dd>Not set</dd>
+  <dt>Plan</dt><dd>Team, 10 seats</dd>
+  <dt>Custom domain</dt><dd>Not set</dd>
 </dl>"""),
      ("On a page that declares no container, wrap it", """<div class="hw-kv-wrap">
   <dl class="hw-kv">...</dl>
 </div>""")])
 
 component(
-    "data", "Empty state", [".hw-empty"], "quoth, pointback",
+    "data", "Empty state", [".hw-empty"], "two products",
     "Says what will appear here and how to make it appear.", "An error (callout).",
     "A 2.67rem glyph in muted, a 17px sentence, a 13px line with the key or the action; aligned with "
     "the content column.",
     "nothing yet, nothing found, nothing permitted",
     "Its one action, when it has one, is the first Tab stop in the container.",
     "Teach the one action.", "A mascot. 'No data'.",
-    """<div class="hw-empty">{{icon:quote}}<p class="hw-subheading">Nothing said yet.</p><p class="hw-small">Hold <kbd class="hw-kbd">⌥ Space</kbd> in any app and speak. What you say is kept here, on this Mac, for 30 days.</p></div>""",
+    """<div class="hw-empty">{{icon:history}}<p class="hw-subheading">No deployments yet.</p><p class="hw-small">Push to the main branch, or press <kbd class="hw-kbd">⌘ D</kbd> to deploy by hand. Each deployment is kept here for 90 days.</p></div>""",
     [("Glyph, sentence, the one action", """<div class="hw-empty">
-  {{icon:quote}}
-  <p class="hw-subheading">Nothing said yet.</p>
-  <p class="hw-small">Hold <kbd class="hw-kbd">⌥ Space</kbd> in any app and speak.</p>
+  {{icon:history}}
+  <p class="hw-subheading">No deployments yet.</p>
+  <p class="hw-small">Push to the main branch, or press <kbd class="hw-kbd">⌘ D</kbd> to deploy by hand.</p>
 </div>""")])
 
 component(
-    "data", "Stat", [".hw-stat", ".hw-stat-value"], "quoth, papertrace",
+    "data", "Stat", [".hw-stat", ".hw-stat-value"], "two products",
     "A number the person comes back to check.", "Decoration on a dashboard.",
     "The value at 21px/650 in tabular figures, the label at 12px muted under it, the unit in the value.",
     "static",
     "Not focusable; the label follows the value in reading order.",
     "Say over what period or of what.", "The hero-metric template with a gradient.",
-    """<div class="row gap-lg"><div class="hw-stat"><span class="hw-stat-value">162</span><span class="hw-label">words, planted-errors.txt</span></div><div class="hw-stat"><span class="hw-stat-value">21</span><span class="hw-label">grammar findings</span></div><div class="hw-stat"><span class="hw-stat-value">8.32</span><span class="hw-label">Flesch-Kincaid grade</span></div></div>""",
-    [("Value, then label", """<div class="hw-stat"><span class="hw-stat-value">162</span><span class="hw-label">words, planted-errors.txt</span></div>""")])
+    """<div class="row gap-lg"><div class="hw-stat"><span class="hw-stat-value">12</span><span class="hw-label">projects in this workspace</span></div><div class="hw-stat"><span class="hw-stat-value">48</span><span class="hw-label">members active this month</span></div><div class="hw-stat"><span class="hw-stat-value">4.2 min</span><span class="hw-label">median deploy, last 30 days</span></div></div>""",
+    [("Value, then label", """<div class="hw-stat"><span class="hw-stat-value">12</span><span class="hw-label">projects in this workspace</span></div>""")])
 
 component(
-    "data", "Tag", [".hw-tag"], "quoth",
+    "data", "Tag", [".hw-tag"], "one product",
     "A word or short value from a set, often the product's own vocabulary.", "A state (badge).",
     "An inline box at least 1.6rem tall, 13px/500, on --hw-mark-quiet, radius --hw-radius-sm; a "
     "removable tag ends in a small button.",
     "rest, removable",
     "Only the remove button is a Tab stop, named 'Remove' and the word.",
     "Show the real word as the product will type it.", "Colour-code tags by category.",
-    """<div class="row"><span class="hw-tag">parseHeader</span><span class="hw-tag">whisper.cpp</span><span class="hw-tag">Tauri</span><span class="hw-tag">TranscriptStore<button aria-label="Remove TranscriptStore">{{icon:x}}</button></span><span class="hw-tag">SQLCipher</span><span class="hw-small">and 394 more</span></div>""",
-    [("Plain", """<span class="hw-tag">whisper.cpp</span>"""),
-     ("Removable", """<span class="hw-tag">TranscriptStore<button type="button" aria-label="Remove TranscriptStore">{{icon:x}}</button></span>""")])
+    """<div class="row"><span class="hw-tag">design</span><span class="hw-tag">billing</span><span class="hw-tag">Q4 launch</span><span class="hw-tag">infrastructure<button aria-label="Remove infrastructure">{{icon:x}}</button></span><span class="hw-tag">contracts</span><span class="hw-small">and 12 more</span></div>""",
+    [("Plain", """<span class="hw-tag">billing</span>"""),
+     ("Removable", """<span class="hw-tag">infrastructure<button type="button" aria-label="Remove infrastructure">{{icon:x}}</button></span>""")])
 
 component(
-    "data", "Disclosure", [".hw-disclosure"], "papertrace",
+    "data", "Disclosure", [".hw-disclosure"], "one product",
     "Hides detail most readers do not need.", "Primary content.",
     "A summary row at --hw-row-h with a chevron that turns in 120ms; the content below.",
     "closed, open, focus-visible",
     "A native details element: Enter or Space on the summary opens it.",
     "Write the summary as what is inside.", "Nest them.",
-    """<details class="hw-disclosure" open><summary>Why this reference was flagged</summary><p class="hw-small strong">Retraction Watch lists DOI 10.1038/s41586-020-2012-7 as retracted on 2020-11-06. The manuscript cites it in section 2.1 without noting the retraction.</p></details>""",
+    """<details class="hw-disclosure" open><summary>Why this deployment failed</summary><p class="hw-small strong">The build stopped at step 4 of 6 when its tests ran past their 10-minute limit. The deployment of 14 November is still live, and nothing was changed.</p></details>""",
     [("A details element", """<details class="hw-disclosure">
-  <summary>Why this reference was flagged</summary>
-  <p class="hw-small">Retraction Watch lists it as retracted on 2020-11-06.</p>
+  <summary>Why this deployment failed</summary>
+  <p class="hw-small">The build stopped at step 4 of 6 when its tests ran past their limit.</p>
 </details>""")])
 
 component(
     "data", "Avatar", [".hw-avatar", ".hw-avatar-group"],
-    "pointback",
+    "one product",
     "Stands for a person beside what they did: who left a note, who sent a review.",
     "A product mark; decoration.",
     "A circle at --hw-radius-full in three sizes (1.6, 1.87 and 2.67rem), initials at 40% of its "
@@ -711,7 +724,7 @@ component(
     "Not focusable; the image's alt or an aria-label carries the name, and a group's count is text.",
     "Keep the initials under the image, so a failed load still names the person.",
     "Stack more than four; say '+3' as text after them.",
-    """<div class="row"><span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar hw-avatar--lg" role="img" aria-label="Reviewer">{{icon:user}}</span><span class="hw-avatar-group"><span class="hw-avatar" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Mark Wren">MW</span><span class="hw-avatar" role="img" aria-label="Sam Lee">SL</span></span><span class="hw-small">and 3 more</span></div>""",
+    """<div class="row"><span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span><span class="hw-avatar hw-avatar--lg" role="img" aria-label="Guest">{{icon:user}}</span><span class="hw-avatar-group"><span class="hw-avatar" role="img" aria-label="Mira Shah">MS</span><span class="hw-avatar" role="img" aria-label="Mark Wren">MW</span><span class="hw-avatar" role="img" aria-label="Sam Lee">SL</span></span><span class="hw-small">and 3 more</span></div>""",
     [("Initials, in three sizes", """<span class="hw-avatar hw-avatar--sm" role="img" aria-label="Mira Shah">MS</span>
 <span class="hw-avatar" role="img" aria-label="Priyanka Rao">PR</span>
 <span class="hw-avatar hw-avatar--lg" role="img" aria-label="Sam Lee">SL</span>"""),
@@ -725,7 +738,7 @@ component(
 # ------------------------------------------------------------------------------------- marks
 component(
     "marks", "Highlight", [".hw-mark"],
-    "all three apps",
+    "three products",
     "Marks the words a product knows, matched or pointed at.",
     "Emphasis in prose (use weight); a state.",
     "Light: a highlighter swipe from 44% to 90% of the line box in --hw-mark, the text left in ink. "
@@ -735,14 +748,14 @@ component(
     "Not focusable unless the product makes the word a button that explains the mark.",
     "Mark only what the product can explain on click.",
     "Highlight a whole paragraph. Use it as the selection colour.",
-    """<p class="hw-body large">We deploy with <span class="hw-mark">Kubernetes</span> and <span class="hw-mark">Postgres</span>, and <span class="hw-mark hw-mark--solid">pgvector</span> is the word selected.</p><p class="hw-small">quoth: the words its dictionary knows. papertrace: the passage matched elsewhere. pointback: the text the reviewer selected. Quiet: <span class="hw-mark hw-mark--quiet">TranscriptStore</span>.</p>""",
-    [("A known word", """<span class="hw-mark">Kubernetes</span>"""),
-     ("The selected word", """<span class="hw-mark hw-mark--solid">pgvector</span>"""),
-     ("Quiet, for dense lists", """<span class="hw-mark hw-mark--quiet">TranscriptStore</span>""")])
+    """<p class="hw-body large">The contract renews on <span class="hw-mark">1 December</span> for <span class="hw-mark">12 months</span>, and <span class="hw-mark hw-mark--solid">renewal</span> is the match selected.</p><p class="hw-small">A term the product recognises, a passage a search matched, or the text a reviewer selected. Quiet: <span class="hw-mark hw-mark--quiet">INV-2041</span>.</p>""",
+    [("A known word", """<span class="hw-mark">1 December</span>"""),
+     ("The selected word", """<span class="hw-mark hw-mark--solid">renewal</span>"""),
+     ("Quiet, for dense lists", """<span class="hw-mark hw-mark--quiet">INV-2041</span>""")])
 
 component(
     "marks", "Proof marks", [".hw-proof", ".hw-ins", ".hw-del", ".hw-caret"],
-    "quoth",
+    "one product",
     "Shows what a product changed in someone's words, the way an editor marks a page.",
     "Code changes (diff).",
     "The original words in muted; removed words struck through in --hw-delete; inserted text in "
@@ -751,11 +764,11 @@ component(
     "Use ins and del elements, so the change is announced as well as drawn.",
     "Show the person's own words, then the result.",
     "Rely on colour alone: the strike and the caret carry it.",
-    """<p class="hw-proof"><del class="hw-del">fix the bug</del> <del class="hw-del">scratch that</del> refactor the parser<span class="hw-caret"></span><ins class="hw-ins">.</ins> <del class="hw-del">period new line</del> ship it<span class="hw-caret"></span><ins class="hw-ins">.</ins></p><p class="hw-body">Refactor the parser.<br>Ship it.</p>""",
-    [("Struck words, then the caret and the insertion", """<p class="hw-proof"><del class="hw-del">scratch that</del> refactor the parser<span class="hw-caret"></span><ins class="hw-ins">.</ins></p>""")])
+    """<p class="hw-proof">the renewal is due <del class="hw-del">friday</del> <del class="hw-del">no</del> on the first of december<span class="hw-caret"></span><ins class="hw-ins">.</ins> <del class="hw-del">new line</del> send it to finance<span class="hw-caret"></span><ins class="hw-ins">.</ins></p><p class="hw-body">The renewal is due on the first of December.<br>Send it to finance.</p>""",
+    [("Struck words, then the caret and the insertion", """<p class="hw-proof">due <del class="hw-del">friday</del> on the first<span class="hw-caret"></span><ins class="hw-ins">.</ins></p>""")])
 
 component(
-    "marks", "Diff", [".hw-diff"], "pointback, papertrace",
+    "marks", "Diff", [".hw-diff"], "two products",
     "Shows changed lines of code or text with their context.",
     "Changes inside prose (proof marks).",
     "Mono 13px, a line per row; added rows on --hw-insert-fill with a + in --hw-insert, removed rows "
@@ -765,17 +778,17 @@ component(
     "Not focusable unless it scrolls; the signs are text, so a screen reader reads them.",
     "Keep the text in ink; the fill and the sign carry the change.",
     "Colour the text green and red.",
-    """<div class="hw-diff"><div class="ctx">.checkout-actions {</div><div class="rem">  align-items: center;</div><div class="add">  align-items: baseline;</div><div class="ctx">  gap: 12px;</div><div class="ctx">}</div></div>""",
+    """<div class="hw-diff"><div class="ctx">deploy:</div><div class="rem">  region: us-east-1</div><div class="add">  region: eu-central-1</div><div class="ctx">  replicas: 2</div><div class="ctx">  timeout: 10m</div></div>""",
     [("One div per line: ctx, rem or add", """<div class="hw-diff">
-  <div class="ctx">.checkout-actions {</div>
-  <div class="rem">  align-items: center;</div>
-  <div class="add">  align-items: baseline;</div>
-  <div class="ctx">}</div>
+  <div class="ctx">deploy:</div>
+  <div class="rem">  region: us-east-1</div>
+  <div class="add">  region: eu-central-1</div>
+  <div class="ctx">  replicas: 2</div>
 </div>""")])
 
 component(
     "marks", "Pin and margin note", [".hw-pin", ".hw-note", ".hw-note-locator"],
-    "pointback",
+    "one product",
     "Points at a place on a page and carries a note back.", "Decoration.",
     "A 1.6rem teardrop in the product's solid with its number, widening for three digits or more, "
     "with an inner edge in --hw-accent-edge that holds 3:1 where the solid does not; the note is a "
@@ -783,12 +796,12 @@ component(
     "placed, sent, resolved",
     "The note is the Tab stop; the pin is its label, read with it.",
     "Number pins in the order they were made.", "Hide the number.",
-    """<div class="row top"><span class="hw-pin" aria-hidden="true">3</span><div class="hw-note"><p class="hw-small strong">The primary button sits 4px lower than Cancel.</p><code class="hw-code hw-note-locator">main &gt; .checkout-actions &gt; button.primary</code></div></div>
+    """<div class="row top"><span class="hw-pin" aria-hidden="true">3</span><div class="hw-note"><p class="hw-small strong">The payment terms here say 30 days; the contract says 14.</p><code class="hw-code hw-note-locator">main &gt; section.terms &gt; p:nth-of-type(2)</code></div></div>
 <div class="row top"><span class="hw-pin" aria-hidden="true">128</span><div class="hw-note"><p class="hw-small strong">The footer links wrap under the logo at 390 wide.</p><code class="hw-code hw-note-locator">footer &gt; nav.site-links</code></div></div>""",
     [("The pin beside its note", """<span class="hw-pin" aria-hidden="true">3</span>
 <div class="hw-note">
-  <p class="hw-small">The primary button sits 4px lower than Cancel.</p>
-  <code class="hw-code hw-note-locator">main &gt; .checkout-actions &gt; button.primary</code>
+  <p class="hw-small">The payment terms here say 30 days; the contract says 14.</p>
+  <code class="hw-code hw-note-locator">main &gt; section.terms &gt; p:nth-of-type(2)</code>
 </div>"""),
      ("Three digits or more: the pin widens", """<span class="hw-pin" aria-hidden="true">128</span>""")])
 
@@ -800,7 +813,7 @@ component(
     "static",
     "A code element; a block that scrolls is focusable so the keyboard can scroll it.",
     "Show the identifier exactly as it is written.", "Syntax-colour a one-line command.",
-    """<p class="hw-body">Call <code class="hw-code">getUserName</code>, then run <code class="hw-code">cargo build --release</code>.</p><pre class="hw-code" tabindex="0">python3 tools/components.py --check</pre>""",
+    """<p class="hw-body">Call <code class="hw-code">getUserName</code>, then run <code class="hw-code">npm run deploy -- --region eu-central-1</code>.</p><pre class="hw-code" tabindex="0">python3 tools/components.py --check</pre>""",
     [("Inline", """<code class="hw-code">getUserName</code>"""),
      ("A block, focusable so it scrolls by keyboard", """<pre class="hw-code" tabindex="0">python3 tools/components.py --check</pre>""")])
 
@@ -810,20 +823,20 @@ component(
     "site, store frames",
     "The one loud surface a product may have: a welcome, a site section, a store frame, an empty "
     "state at most once.",
-    "Any working view: lists, settings, reports. quoth's welcome, which stays on paper.",
+    "Any working view: lists, settings, reports. A first-run screen inside the app, which stays on paper.",
     "A full field in the highlighter solid, the product's accent or ink, radius --hw-radius-lg or "
     "full bleed, display type at the stage sizes, at most one action and one drawing.",
     "static; one entry moment, none under reduced motion",
     "Its one action is an ordinary button or link; the focus ring takes the stage's own text colour.",
     "Put the person's real words or the product's real output on it.",
     "Gradients, glow, sparkles, a stock illustration.",
-    """<div class="hw-stage"><p class="hw-label">quoth</p><p class="hw-headline">Words that land right the first time.</p><p class="hw-lead">Dictation that stays on your Mac.</p></div>
-<div class="hw-stage hw-stage--ink"><p class="hw-label">quoth</p><p class="hw-headline">Dictation that stays on your Mac.</p><a class="hw-link" href="#stage">Download for Mac</a></div>
-<div class="hw-stage hw-stage--accent"><p class="hw-label">quoth</p><p class="hw-headline">Words that land right the first time.</p></div>""",
+    """<div class="hw-stage"><p class="hw-label">Atlas</p><p class="hw-headline">Every deployment, accounted for.</p><p class="hw-lead">Ship from one place, and see what changed.</p></div>
+<div class="hw-stage hw-stage--ink"><p class="hw-label">Atlas</p><p class="hw-headline">Ship from one place, and see what changed.</p><a class="hw-link" href="#stage">Create a project</a></div>
+<div class="hw-stage hw-stage--accent"><p class="hw-label">Atlas</p><p class="hw-headline">Every deployment, accounted for.</p></div>""",
     [("On the highlighter solid, the default", """<section class="hw-stage">
-  <p class="hw-label">quoth</p>
-  <h2 class="hw-headline">Words that land right the first time.</h2>
-  <p class="hw-lead">Dictation that stays on your Mac.</p>
+  <p class="hw-label">Atlas</p>
+  <h2 class="hw-headline">Every deployment, accounted for.</h2>
+  <p class="hw-lead">Ship from one place, and see what changed.</p>
 </section>"""),
      ("On ink, or on the product's accent", """<section class="hw-stage hw-stage--ink">...</section>
 <section class="hw-stage hw-stage--accent">...</section>""")])
